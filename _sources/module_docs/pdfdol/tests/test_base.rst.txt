@@ -1,0 +1,4 @@
+pdfdol.tests.test_base
+======================
+.. automodule:: pdfdol.tests.test_base
+   :members:
