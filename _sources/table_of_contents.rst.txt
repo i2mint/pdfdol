@@ -7,3 +7,4 @@
    module_docs/pdfdol/tests
    module_docs/pdfdol/tests/test_base
    module_docs/pdfdol/tests/utils_for_testing
+   module_docs/pdfdol/util
