@@ -39,3 +39,14 @@ FilesReader = add_decoder(PdfFilesReader, decoder=page_separator.join)
 pdfs = FilesReader(folder_path)
 # ...
 ```
+
+If you need to concatinate a bunch of pdfs together, you can do so in many
+ways. Here's one:
+
+```python
+from dol import Files
+from pdfdol import concat_pdfs
+
+s = Files('~/Downloads/cosmograph_documentation_pdfs/')
+concat_pdfs(s, key_order=sorted)
+```
