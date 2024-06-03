@@ -5,7 +5,7 @@ from typing import Iterable, Mapping, Union, Callable, Iterable
 import io
 import os
 from pathlib import Path
-from contextlib import redirect_stderr, nullcontext
+from contextlib import redirect_stderr, nullcontext, suppress
 
 from dol import Pipe, filt_iter, cache_iter
 
@@ -14,6 +14,42 @@ filter_pdfs = filt_iter.suffixes('.pdf')
 PdfPages = Iterable[PageObject]
 Filepath = str
 PdfPagesSpec = Union[PdfPages, Filepath]
+
+
+# TODO: generalize functions so they can work with pdf objects, not just filepaths
+def add_affix(string: str, *, prefix: str = None, suffix: str = None):
+    """Add a suffix and/or prefix to a filepath.
+
+    >>> add_affix('file.pdf', prefix='new_', suffix='_for_you')
+    'new_file_for_you.pdf'
+    """
+    if suffix:
+        string = string.rsplit('.', 1)
+        string = f'{string[0]}{suffix}.{string[1]}'
+    if prefix:
+        string = f'{prefix}{string}'
+    return string
+
+
+def affix_source_if_target_not_given(
+    src: str, target: str = None, *, prefix: str = None, suffix: str = None
+):
+    """
+    If target is None, affix the source filepath and return it.
+
+    >>> affix_source_if_target_not_given(
+    ...     'file.pdf', 'target_exists', prefix='new_', suffix='_for_you'
+    ... )
+    'target_exists'
+    >>> affix_source_if_target_not_given(
+    ...     'file.pdf', None, prefix='new_', suffix='_for_you'
+    ... )
+    'new_file_for_you.pdf'
+
+    """
+    if target is None:
+        return add_affix(src, prefix=prefix, suffix=suffix)
+    return target
 
 
 def ensure_pages(pages: PdfPagesSpec) -> PdfPages:
@@ -41,8 +77,12 @@ def remove_empty_pages(
 
     if isinstance(pages, str) and output_path is None:
         filepath = pages
-        # Suffix name with '_without_empty_pages' before the extension
-        output_path = filepath.rsplit('.', 1)[0] + '_without_empty_pages.pdf'
+        output_path = affix_source_if_target_not_given(
+            filepath, output_path, suffix='_without_empty_pages'
+        )
+    assert isinstance(
+        output_path, str
+    ), f"output_path must be a string, not {output_path}"
 
     pages = ensure_pages(pages)
 
@@ -66,6 +106,31 @@ def remove_empty_pages(
         writer.write(out_pdf)
 
     return output_path
+
+
+# ---------------------------------------------------------------------------------
+# Sourcing pdfs
+
+with suppress(ImportError, ModuleNotFoundError):
+    import pdfkit
+
+    DFLT_OPTIONS = {
+        'enable-local-file-access': None,
+        'page-size': 'A4',  # Ensure consistent page size
+        'disable-smart-shrinking': None,  # Disable smart shrinking to avoid unexpected layout changes
+    }
+
+    def html_to_pdf(
+        html_filepaths: Union[Filepath, Iterable[Filepath]],
+        save_filepath='htmls_to_pdf.pdf',
+        *,
+        options=DFLT_OPTIONS,
+    ):
+        """Convert one or several HTML files into a single PDF file."""
+        import pdfkit
+
+        pdfkit.from_file(html_filepaths, save_filepath, options=options)
+        return save_filepath
 
 
 # ---------------------------------------------------------------------------------
