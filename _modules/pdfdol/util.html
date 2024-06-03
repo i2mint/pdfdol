@@ -83,15 +83,153 @@
   <h1>Source code for pdfdol.util</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Utils for pdfdol&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">pypdf</span> <span class="kn">import</span> <span class="n">PdfReader</span><span class="p">,</span> <span class="n">PdfWriter</span>
+<span class="kn">from</span> <span class="nn">pypdf</span> <span class="kn">import</span> <span class="n">PdfReader</span><span class="p">,</span> <span class="n">PdfWriter</span><span class="p">,</span> <span class="n">PageObject</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">redirect_stderr</span><span class="p">,</span> <span class="n">nullcontext</span><span class="p">,</span> <span class="n">suppress</span>
 
 <span class="kn">from</span> <span class="nn">dol</span> <span class="kn">import</span> <span class="n">Pipe</span><span class="p">,</span> <span class="n">filt_iter</span><span class="p">,</span> <span class="n">cache_iter</span>
 
 <span class="n">filter_pdfs</span> <span class="o">=</span> <span class="n">filt_iter</span><span class="o">.</span><span class="n">suffixes</span><span class="p">(</span><span class="s1">&#39;.pdf&#39;</span><span class="p">)</span>
+
+<span class="n">PdfPages</span> <span class="o">=</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">PageObject</span><span class="p">]</span>
+<span class="n">Filepath</span> <span class="o">=</span> <span class="nb">str</span>
+<span class="n">PdfPagesSpec</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">PdfPages</span><span class="p">,</span> <span class="n">Filepath</span><span class="p">]</span>
+
+
+<span class="c1"># TODO: generalize functions so they can work with pdf objects, not just filepaths</span>
+<div class="viewcode-block" id="add_affix">
+<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.add_affix">[docs]</a>
+<span class="k">def</span> <span class="nf">add_affix</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a suffix and/or prefix to a filepath.</span>
+
+<span class="sd">    &gt;&gt;&gt; add_affix(&#39;file.pdf&#39;, prefix=&#39;new_&#39;, suffix=&#39;_for_you&#39;)</span>
+<span class="sd">    &#39;new_file_for_you.pdf&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">suffix</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}{</span><span class="n">suffix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">prefix</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">string</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+
+
+
+<div class="viewcode-block" id="affix_source_if_target_not_given">
+<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.affix_source_if_target_not_given">[docs]</a>
+<span class="k">def</span> <span class="nf">affix_source_if_target_not_given</span><span class="p">(</span>
+    <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If target is None, affix the source filepath and return it.</span>
+
+<span class="sd">    &gt;&gt;&gt; affix_source_if_target_not_given(</span>
+<span class="sd">    ...     &#39;file.pdf&#39;, &#39;target_exists&#39;, prefix=&#39;new_&#39;, suffix=&#39;_for_you&#39;</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &#39;target_exists&#39;</span>
+<span class="sd">    &gt;&gt;&gt; affix_source_if_target_not_given(</span>
+<span class="sd">    ...     &#39;file.pdf&#39;, None, prefix=&#39;new_&#39;, suffix=&#39;_for_you&#39;</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &#39;new_file_for_you.pdf&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">add_affix</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">target</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_pages">
+<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.ensure_pages">[docs]</a>
+<span class="k">def</span> <span class="nf">ensure_pages</span><span class="p">(</span><span class="n">pages</span><span class="p">:</span> <span class="n">PdfPagesSpec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PdfPages</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure that pages are given as a sequence of PageObject objects.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">pages</span>
+        <span class="k">return</span> <span class="n">PdfReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">pages</span>
+    <span class="k">return</span> <span class="n">pages</span></div>
+
+
+
+<div class="viewcode-block" id="is_page_empty">
+<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.is_page_empty">[docs]</a>
+<span class="k">def</span> <span class="nf">is_page_empty</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">min_n_characters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if a PDF page is empty.&quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">extract_text</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&lt;</span> <span class="n">min_n_characters</span></div>
+
+
+
+<div class="viewcode-block" id="remove_empty_pages">
+<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.remove_empty_pages">[docs]</a>
+<span class="k">def</span> <span class="nf">remove_empty_pages</span><span class="p">(</span>
+    <span class="n">pages</span><span class="p">:</span> <span class="n">PdfPagesSpec</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">page_is_empty</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">suppress_warnings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove empty pages from a PDF file.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">pages</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">affix_source_if_target_not_given</span><span class="p">(</span>
+            <span class="n">filepath</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_without_empty_pages&#39;</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">output_path</span><span class="p">,</span> <span class="nb">str</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;output_path must be a string, not </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">pages</span> <span class="o">=</span> <span class="n">ensure_pages</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">page_is_empty</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">page_is_empty</span> <span class="o">=</span> <span class="n">is_page_empty</span>
+
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">PdfWriter</span><span class="p">()</span>
+
+    <span class="n">context_manager</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">nullcontext</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">suppress_warnings</span>
+        <span class="k">else</span> <span class="n">redirect_stderr</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">context_manager</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">page</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pages</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">page_is_empty</span><span class="p">(</span><span class="n">page</span><span class="p">):</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_pdf</span><span class="p">:</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_pdf</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output_path</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------------</span>
+<span class="c1"># Sourcing pdfs</span>
+
+<span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">pdfkit</span>
+
+    <span class="n">DFLT_OPTIONS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;enable-local-file-access&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;page-size&#39;</span><span class="p">:</span> <span class="s1">&#39;A4&#39;</span><span class="p">,</span>  <span class="c1"># Ensure consistent page size</span>
+        <span class="s1">&#39;disable-smart-shrinking&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Disable smart shrinking to avoid unexpected layout changes</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">html_to_pdf</span><span class="p">(</span>
+        <span class="n">html_filepaths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Filepath</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Filepath</span><span class="p">]],</span>
+        <span class="n">save_filepath</span><span class="o">=</span><span class="s1">&#39;htmls_to_pdf.pdf&#39;</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">DFLT_OPTIONS</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert one or several HTML files into a single PDF file.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pdfkit</span>
+
+        <span class="n">pdfkit</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">html_filepaths</span><span class="p">,</span> <span class="n">save_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">save_filepath</span>
+
 
 <span class="c1"># ---------------------------------------------------------------------------------</span>
 <span class="c1"># Pdf concatenation</span>
