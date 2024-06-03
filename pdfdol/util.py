@@ -1,14 +1,72 @@
 """Utils for pdfdol"""
 
-from pypdf import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter, PageObject
 from typing import Iterable, Mapping, Union, Callable, Iterable
 import io
 import os
 from pathlib import Path
+from contextlib import redirect_stderr, nullcontext
 
 from dol import Pipe, filt_iter, cache_iter
 
 filter_pdfs = filt_iter.suffixes('.pdf')
+
+PdfPages = Iterable[PageObject]
+Filepath = str
+PdfPagesSpec = Union[PdfPages, Filepath]
+
+
+def ensure_pages(pages: PdfPagesSpec) -> PdfPages:
+    """Ensure that pages are given as a sequence of PageObject objects."""
+    if isinstance(pages, str):
+        filepath = pages
+        return PdfReader(filepath).pages
+    return pages
+
+
+def is_page_empty(page, min_n_characters: int = 1) -> bool:
+    """Check if a PDF page is empty."""
+    text = page.extract_text()
+    return len(text.strip()) < min_n_characters
+
+
+def remove_empty_pages(
+    pages: PdfPagesSpec,
+    output_path: str = None,
+    *,
+    page_is_empty: Callable = None,
+    suppress_warnings: bool = True,
+):
+    """Remove empty pages from a PDF file."""
+
+    if isinstance(pages, str) and output_path is None:
+        filepath = pages
+        # Suffix name with '_without_empty_pages' before the extension
+        output_path = filepath.rsplit('.', 1)[0] + '_without_empty_pages.pdf'
+
+    pages = ensure_pages(pages)
+
+    if page_is_empty is None:
+        page_is_empty = is_page_empty
+
+    writer = PdfWriter()
+
+    context_manager = (
+        nullcontext()
+        if not suppress_warnings
+        else redirect_stderr(open(os.devnull, 'w'))
+    )
+
+    with context_manager:
+        for i, page in enumerate(pages):
+            if not page_is_empty(page):
+                writer.add_page(page)
+
+    with open(output_path, 'wb') as out_pdf:
+        writer.write(out_pdf)
+
+    return output_path
+
 
 # ---------------------------------------------------------------------------------
 # Pdf concatenation
