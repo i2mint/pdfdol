@@ -193,7 +193,7 @@ with suppress(ImportError, ModuleNotFoundError):
                     htmls = [htmls]
                 elif Path(htmls).is_dir():
                     # Recursively find all HTML files in the directory
-                    htmls = filter(key_filt, Path(htmls).listdir())
+                    htmls = filter(key_filt, Path(htmls).iterdir())
                 else:
                     htmls = [htmls]
             if not isinstance(htmls, Iterable):
