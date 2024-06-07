@@ -63,6 +63,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.concat_pdf_readers"><code class="docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.concat_pdfs"><code class="docutils literal notranslate"><span class="pre">concat_pdfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.ensure_pages"><code class="docutils literal notranslate"><span class="pre">ensure_pages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.html_to_markdown"><code class="docutils literal notranslate"><span class="pre">html_to_markdown()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.is_html_content"><code class="docutils literal notranslate"><span class="pre">is_html_content()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.is_page_empty"><code class="docutils literal notranslate"><span class="pre">is_page_empty()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.remove_empty_pages"><code class="docutils literal notranslate"><span class="pre">remove_empty_pages()</span></code></a></li>
 </ul>
@@ -172,6 +174,35 @@ that attribute exists, and no file of that name (+’.pdf’) exists.</p></li>
 <dt class="sig sig-object py" id="pdfdol.util.ensure_pages">
 <span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">ensure_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PageObject</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PageObject</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/pdfdol/util.html#ensure_pages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.ensure_pages" title="Link to this definition"></a></dt>
 <dd><p>Ensure that pages are given as a sequence of PageObject objects.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.util.html_to_markdown">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">html_to_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/util.html#html_to_markdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.html_to_markdown" title="Link to this definition"></a></dt>
+<dd><p>Default function for html_to_markdown in case html2text not present.
+Just Raises an ImportError.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.util.is_html_content">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">is_html_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/pdfdol/util.html#is_html_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.is_html_content" title="Link to this definition"></a></dt>
+<dd><p>Check if the given content is HTML.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>content</strong> – The content to check, either a string or bytes.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the content is HTML, otherwise False.</p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">html_string</span> <span class="o">=</span> <span class="s2">&quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Test&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;Hello, World!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">non_html_string</span> <span class="o">=</span> <span class="s2">&quot;This is just a plain text.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_html_content</span><span class="p">(</span><span class="n">html_string</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_html_content</span><span class="p">(</span><span class="n">non_html_string</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
