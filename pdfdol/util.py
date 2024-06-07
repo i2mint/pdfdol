@@ -110,6 +110,155 @@ def remove_empty_pages(
 
 # ---------------------------------------------------------------------------------
 # Sourcing pdfs
+from typing import Mapping, Union, Iterable
+import io
+from dol import written_bytes
+
+import re
+
+
+def is_html_content(content: Union[str, bytes]) -> bool:
+    """
+    Check if the given content is HTML.
+
+    :param content: The content to check, either a string or bytes.
+    :return: True if the content is HTML, otherwise False.
+
+    >>> html_string = "<html><head><title>Test</title></head><body><p>Hello, World!</p></body></html>"
+    >>> non_html_string = "This is just a plain text."
+    >>> is_html_content(html_string)
+    True
+    >>> is_html_content(non_html_string)
+    False
+    """
+    if isinstance(content, bytes):
+        content = content.decode('utf-8', errors='ignore')
+
+    # A simple regex to check for common HTML tags
+    html_tags = re.compile(
+        (
+            r'<(html|head|body|title|meta|link|script|style|div|span|p|a|img|table|tr'
+            r'|td|ul|ol|li|h1|h2|h3|h4|h5|h6|br|hr|!--)'  # Opening tags
+        ),
+        re.IGNORECASE,
+    )
+
+    if html_tags.search(content):
+        return True
+    return False
+
+
+def html_to_markdown(*args, **kwargs):
+    """Default function for html_to_markdown in case html2text not present.
+    Just Raises an ImportError."""
+    raise ImportError("You need to have html2text installed to use html_to_markdown")
+
+
+with suppress(ImportError, ModuleNotFoundError):
+    import html2text
+
+    def html_to_markdown(
+        htmls: Union[str, Iterable[str], Mapping[str, str]],
+        save_filepath: str = None,
+        *,
+        key_filt=None,
+        content_filt=is_html_content,
+        prefixes=None,
+        **html2text_options,
+    ):
+        """
+        Convert one or several HTML files into a single Markdown file or return the
+        Markdown string(s).
+
+        :param htmls: A single file path, an iterable of file paths, or a mapping of
+            names to file paths.
+        :param save_filepath: The file path where the combined Markdown will be saved.
+            If None, returns the Markdown string.
+        :param prefixes: A list of prefixes to be woven with to each Markdown string
+            (there must be the same number of prefixes as HTML files).
+        :param html2text_options: Options to pass to the html2text.HTML2Text()
+            converter.
+        :return: Combined Markdown string if save_filepath is None, otherwise the
+            save_filepath.
+        """
+
+        def read_html_file(filepath):
+            return Path(filepath).read_bytes()
+
+        if isinstance(htmls, Mapping):
+            html_contents = filter(content_filt, htmls.values())
+        else:
+            if isinstance(htmls, str):
+                if htmls.endswith(".html"):
+                    htmls = [htmls]
+                elif Path(htmls).is_dir():
+                    # Recursively find all HTML files in the directory
+                    htmls = filter(key_filt, Path(htmls).listdir())
+                else:
+                    htmls = [htmls]
+            if not isinstance(htmls, Iterable):
+                raise TypeError(
+                    f"htmls must be an iterable of file paths or a mapping, not {htmls}"
+                )
+            html_contents = map(read_html_file, htmls)
+
+        # Initialize the html2text converter with options
+        converter = html2text.HTML2Text()
+        for key, value in html2text_options.items():
+            setattr(converter, key, value)
+
+        # Convert HTML contents to Markdown
+        markdown_contents = [
+            converter.handle(html_content.decode()) for html_content in html_contents
+        ]
+        if prefixes:
+            markdown_contents = (
+                f"{prefix}\n{markdown}"
+                for prefix, markdown in zip(prefixes, markdown_contents)
+            )
+        combined_markdown = "\n\n".join(markdown_contents)
+
+        if save_filepath:
+            Path(save_filepath).write_text(combined_markdown)
+            return save_filepath
+        else:
+            return combined_markdown
+
+
+# TODO: Generalize to allow html_filepaths to be mappings (with html as values)
+with suppress(ImportError, ModuleNotFoundError):
+    from weasyprint import HTML
+
+    def _html_bytes_to_pdf_bytes_writer(html_bytes, buffer):
+        return HTML(io.BytesIO(html_bytes)).write_pdf(buffer)
+
+    html_bytes_to_pdf_bytes = written_bytes(_html_bytes_to_pdf_bytes_writer)
+
+    def html_to_pdf_w_weasyprint(
+        htmls: Union[Filepath, Iterable[Filepath]],
+        save_filepath='htmls_to_pdf.pdf',
+    ):
+        """Convert one or several HTML files into a single PDF file."""
+        if isinstance(htmls, Mapping):
+            pdf_bytes = map(html_bytes_to_pdf_bytes, htmls.values())
+        else:
+            if isinstance(htmls, str):
+                htmls = [htmls]
+            if not isinstance(htmls, Iterable):
+                raise TypeError(
+                    f"htmls must be an iterable of filepaths or a mapping, not {htmls}"
+                )
+            html_file_bytes = map(lambda x: Path(x).read_bytes(), htmls)
+            pdf_bytes = map(html_bytes_to_pdf_bytes, html_file_bytes)
+
+        combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+
+        if save_filepath:
+            Path(save_filepath).write_bytes(combined_pdf_bytes)
+            return save_filepath
+        else:
+            return combined_pdf_bytes
+
 
 with suppress(ImportError, ModuleNotFoundError):
     import pdfkit
@@ -120,17 +269,31 @@ with suppress(ImportError, ModuleNotFoundError):
         'disable-smart-shrinking': None,  # Disable smart shrinking to avoid unexpected layout changes
     }
 
-    def html_to_pdf(
+    def html_to_pdf_w_pdfkit(
         html_filepaths: Union[Filepath, Iterable[Filepath]],
         save_filepath='htmls_to_pdf.pdf',
         *,
         options=DFLT_OPTIONS,
     ):
         """Convert one or several HTML files into a single PDF file."""
-        import pdfkit
 
         pdfkit.from_file(html_filepaths, save_filepath, options=options)
         return save_filepath
+
+
+# choose the first available html_to_pdf function
+preferences_for_html_to_pdf = ['html_to_pdf_w_weasyprint', 'html_to_pdf_w_pdfkit']
+
+for pref in preferences_for_html_to_pdf:
+    if pref in globals():
+        html_to_pdf = globals()[pref]
+        break
+else:
+
+    def html_to_pdf(*args, **kwargs):
+        raise ImportError(
+            "You need to have either weasyprint or pdfkit installed to use html_to_pdf"
+        )
 
 
 # ---------------------------------------------------------------------------------

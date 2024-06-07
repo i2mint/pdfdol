@@ -13,4 +13,4 @@ r"""Data Object Layers for PDF data.
 """
 
 from pdfdol.base import PdfFilesReader, pdf_files_reader_wrap
-from pdfdol.util import concat_pdfs
+from pdfdol.util import concat_pdfs, html_to_markdown
