@@ -61,6 +61,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.concat_pdf_readers"><code class="docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.concat_pdfs"><code class="docutils literal notranslate"><span class="pre">concat_pdfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.ensure_pages"><code class="docutils literal notranslate"><span class="pre">ensure_pages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.image_bytes_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">image_bytes_to_pdf_bytes()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.is_page_empty"><code class="docutils literal notranslate"><span class="pre">is_page_empty()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.remove_empty_pages"><code class="docutils literal notranslate"><span class="pre">remove_empty_pages()</span></code></a></li>
 </ul>
@@ -140,8 +141,8 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.util.concat_pdfs">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">concat_pdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_pdf_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/util.html#concat_pdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.concat_pdfs" title="Link to this definition"></a></dt>
-<dd><p>Concatenate multiple PDFs given as a mapping of filepaths to bytes.</p>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">concat_pdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/util.html#concat_pdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.concat_pdfs" title="Link to this definition"></a></dt>
+<dd><p>Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.</p>
 <p>Tip: Pdfs are aggregated in the order of the mapping’s iteration order.
 If you need these to be in a specific order, you can use the key_order argument
 to sort the mapping, specifying either a callable that will be called on the keys
@@ -153,11 +154,16 @@ out some keys.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pdf_source</strong> – Mapping of filepaths to pdf bytes</p></li>
 <li><p><strong>save_filepath</strong> – Filepath to save the concatenated pdf.
-If not given, the save_filepath will be taken from the rootdir of the pdf_source
-that attribute exists, and no file of that name (+’.pdf’) exists.</p></li>
-<li><p><strong>filter_pdf_extension</strong> – If True, only pdf files are considered</p></li>
+If <cite>None</cite>, the save_filepath will be taken from the rootdir of the pdf_source
+that attribute exists, and no file of that name (+’.pdf’) exists.
+If False, the pdf bytes are returned.</p></li>
+<li><p><strong>filter_extensions</strong> – If True, only files with recognized extensions
+(‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered</p></li>
 <li><p><strong>key_order</strong> – Callable or iterable of keys to sort the mapping</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The save_filepath if it was specified, otherwise the concatenated pdf bytes</p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="s1">&#39;~/Downloads/&#39;</span><span class="p">)</span>  
@@ -170,6 +176,12 @@ that attribute exists, and no file of that name (+’.pdf’) exists.</p></li>
 <dt class="sig sig-object py" id="pdfdol.util.ensure_pages">
 <span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">ensure_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PageObject</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PageObject</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/pdfdol/util.html#ensure_pages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.ensure_pages" title="Link to this definition"></a></dt>
 <dd><p>Ensure that pages are given as a sequence of PageObject objects.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.util.image_bytes_to_pdf_bytes">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">image_bytes_to_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/util.html#image_bytes_to_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.image_bytes_to_pdf_bytes" title="Link to this definition"></a></dt>
+<dd><p>Convert image bytes to PDF bytes.</p>
 </dd></dl>
 
 <dl class="py function">
