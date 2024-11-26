@@ -238,7 +238,7 @@ def concat_pdfs(
     *,
     filter_pdf_extension=False,
     key_order: Union[Callable, Iterable] = None,
-):
+) -> Union[str, bytes]:
     """
     Concatenate multiple PDFs given as a mapping of filepaths to bytes.
 
@@ -251,10 +251,13 @@ def concat_pdfs(
 
     :param pdf_source: Mapping of filepaths to pdf bytes
     :param save_filepath: Filepath to save the concatenated pdf.
-        If not given, the save_filepath will be taken from the rootdir of the pdf_source
+        If `None`, the save_filepath will be taken from the rootdir of the pdf_source
         that attribute exists, and no file of that name (+'.pdf') exists.
+        If False, the pdf bytes are returned.
     :param filter_pdf_extension: If True, only pdf files are considered
     :param key_order: Callable or iterable of keys to sort the mapping
+
+    :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes
 
     >>> s = Files('~/Downloads/')  # doctest: +SKIP
     >>> concat_pdfs(s, key_order=sorted)  # doctest: +SKIP
@@ -265,7 +268,12 @@ def concat_pdfs(
     if key_order is not None:
         pdf_source = cache_iter(pdf_source, keys_cache=key_order)
 
-    if save_filepath is None:
+    pdf_bytes = pdf_source.values()
+    combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+
+    if save_filepath is False:
+        return combined_pdf_bytes
+    elif save_filepath is None:
         if hasattr(pdf_source, 'rootdir'):
             rootdir = pdf_source.rootdir
             rootdir_path = Path(rootdir)
@@ -279,6 +287,7 @@ def concat_pdfs(
                 )
         else:
             save_filepath = DFLT_SAVE_PDF_NAME
-    pdf_bytes = pdf_source.values()
-    combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+
     Path(save_filepath).write_bytes(combined_pdf_bytes)
+    return save_filepath
+
