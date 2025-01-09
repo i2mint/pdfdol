@@ -255,9 +255,10 @@ def concat_pdf_files(pdf_filepaths: Iterable[str], save_filepath=DFLT_SAVE_PDF_N
     Path(save_filepath).write_bytes(combined_pdf_bytes)
 
 
+# TODO: Generalize to allow pdf_source to be a mapping of any keys to pdf bytes (not necessarily filepaths)
 def concat_pdfs(
-    pdf_source: Mapping[str, bytes],
-    save_filepath=None,
+    pdf_source: Union[Iterable[bytes], Mapping[str, bytes]],
+    save_filepath=False,
     *,
     filter_extensions=False,
     key_order: Union[Callable, Iterable] = None,
@@ -273,7 +274,7 @@ def concat_pdfs(
     Both the ordering function and the explicit list can also be used to filter
     out some keys.
 
-    :param pdf_source: Mapping of filepaths to pdf bytes
+    :param pdf_source: Mapping of filepaths to pdf bytes or an iterable of pdf bytes
     :param save_filepath: Filepath to save the concatenated pdf.
         If `None`, the save_filepath will be taken from the rootdir of the pdf_source
         that attribute exists, and no file of that name (+'.pdf') exists.
@@ -285,26 +286,32 @@ def concat_pdfs(
     :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes
 
     >>> s = Files('~/Downloads/')  # doctest: +SKIP
-    >>> concat_pdfs(s, key_order=sorted)  # doctest: +SKIP
+    >>> pdf_bytes = concat_pdfs(s, key_order=sorted)  # doctest: +SKIP
 
     """
-    filter_extensions = kwargs.get(
-        'filter_pdf_extension', filter_extensions
-    )  # backwards compatibility
+    if isinstance(pdf_source, Mapping):
+        filter_extensions = kwargs.get(
+            'filter_pdf_extension', filter_extensions
+        )  # backwards compatibility
 
-    if filter_extensions:
-        pdf_source = filter_pdfs_and_images(pdf_source)
+        if filter_extensions:
+            pdf_source = filter_pdfs_and_images(pdf_source)
 
-    if key_order is not None:
-        if callable(key_order):
-            keys = sorted(pdf_source.keys(), key=key_order)
-        else:
-            keys = key_order
-        pdf_source = {k: pdf_source[k] for k in keys}
+        if key_order is not None:
+            if callable(key_order):
+                keys = sorted(pdf_source.keys(), key=key_order)
+            else:
+                keys = key_order
+            pdf_source = {k: pdf_source[k] for k in keys}
 
-    _pdf_source = wrap_kvs(pdf_source, postget=key_and_bytes_to_pdf_bytes)
-    pdf_bytes = _pdf_source.values()
-    combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+        _pdf_source = wrap_kvs(pdf_source, postget=key_and_bytes_to_pdf_bytes)
+        pdf_bytes = _pdf_source.values()
+        combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+    else:
+        assert isinstance(pdf_source, Iterable), (
+            f"pdf_source must be an iterable (mapping or sequence), not {pdf_source}"
+        )
+        combined_pdf_bytes = concat_pdf_bytes(pdf_source)
 
     if save_filepath is False:
         return combined_pdf_bytes
