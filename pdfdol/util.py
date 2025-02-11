@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from contextlib import redirect_stderr, nullcontext, suppress
 
-from dol import Pipe, filt_iter, wrap_kvs
+from dol import Pipe, filt_iter, wrap_kvs, Files
 
 filter_pdfs = filt_iter.suffixes('.pdf')
 filter_pdfs_and_images = filt_iter.suffixes(
@@ -289,6 +289,7 @@ def concat_pdfs(
     >>> pdf_bytes = concat_pdfs(s, key_order=sorted)  # doctest: +SKIP
 
     """
+    _inputs = locals()
     if isinstance(pdf_source, Mapping):
         filter_extensions = kwargs.get(
             'filter_pdf_extension', filter_extensions
@@ -307,6 +308,9 @@ def concat_pdfs(
         _pdf_source = wrap_kvs(pdf_source, postget=key_and_bytes_to_pdf_bytes)
         pdf_bytes = _pdf_source.values()
         combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+    elif isinstance(pdf_source, str) and os.path.isdir(pdf_source):
+        _inputs['pdf_source'] = Files(pdf_source)
+        return concat_pdfs(**_inputs)
     else:
         assert isinstance(pdf_source, Iterable), (
             f"pdf_source must be an iterable (mapping or sequence), not {pdf_source}"
