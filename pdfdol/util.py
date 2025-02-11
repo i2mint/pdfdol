@@ -9,9 +9,9 @@ from contextlib import redirect_stderr, nullcontext, suppress
 
 from dol import Pipe, filt_iter, wrap_kvs, Files
 
-filter_pdfs = filt_iter.suffixes('.pdf')
+filter_pdfs = filt_iter.suffixes(".pdf")
 filter_pdfs_and_images = filt_iter.suffixes(
-    ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')
+    (".pdf", ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff")
 )
 
 PdfPages = Iterable[PageObject]
@@ -27,10 +27,10 @@ def add_affix(string: str, *, prefix: str = None, suffix: str = None):
     'new_file_for_you.pdf'
     """
     if suffix:
-        string = string.rsplit('.', 1)
-        string = f'{string[0]}{suffix}.{string[1]}'
+        string = string.rsplit(".", 1)
+        string = f"{string[0]}{suffix}.{string[1]}"
     if prefix:
-        string = f'{prefix}{string}'
+        string = f"{prefix}{string}"
     return string
 
 
@@ -81,7 +81,7 @@ def remove_empty_pages(
     if isinstance(pages, str) and output_path is None:
         filepath = pages
         output_path = affix_source_if_target_not_given(
-            filepath, output_path, suffix='_without_empty_pages'
+            filepath, output_path, suffix="_without_empty_pages"
         )
     assert isinstance(
         output_path, str
@@ -97,7 +97,7 @@ def remove_empty_pages(
     context_manager = (
         nullcontext()
         if not suppress_warnings
-        else redirect_stderr(open(os.devnull, 'w'))
+        else redirect_stderr(open(os.devnull, "w"))
     )
 
     with context_manager:
@@ -105,7 +105,7 @@ def remove_empty_pages(
             if not page_is_empty(page):
                 writer.add_page(page)
 
-    with open(output_path, 'wb') as out_pdf:
+    with open(output_path, "wb") as out_pdf:
         writer.write(out_pdf)
 
     return output_path
@@ -129,7 +129,7 @@ with suppress(ImportError, ModuleNotFoundError):
 
     def html_to_pdf_w_weasyprint(
         htmls: Union[Filepath, Iterable[Filepath]],
-        save_filepath='htmls_to_pdf.pdf',
+        save_filepath="htmls_to_pdf.pdf",
     ):
         """Convert one or several HTML files into a single PDF file."""
         if isinstance(htmls, Mapping):
@@ -157,14 +157,14 @@ with suppress(ImportError, ModuleNotFoundError):
     import pdfkit
 
     DFLT_OPTIONS = {
-        'enable-local-file-access': None,
-        'page-size': 'A4',  # Ensure consistent page size
-        'disable-smart-shrinking': None,  # Disable smart shrinking to avoid unexpected layout changes
+        "enable-local-file-access": None,
+        "page-size": "A4",  # Ensure consistent page size
+        "disable-smart-shrinking": None,  # Disable smart shrinking to avoid unexpected layout changes
     }
 
     def html_to_pdf_w_pdfkit(
         html_filepaths: Union[Filepath, Iterable[Filepath]],
-        save_filepath='htmls_to_pdf.pdf',
+        save_filepath="htmls_to_pdf.pdf",
         *,
         options=DFLT_OPTIONS,
     ):
@@ -175,7 +175,7 @@ with suppress(ImportError, ModuleNotFoundError):
 
 
 # choose the first available html_to_pdf function
-preferences_for_html_to_pdf = ['html_to_pdf_w_weasyprint', 'html_to_pdf_w_pdfkit']
+preferences_for_html_to_pdf = ["html_to_pdf_w_weasyprint", "html_to_pdf_w_pdfkit"]
 
 for pref in preferences_for_html_to_pdf:
     if pref in globals():
@@ -205,16 +205,16 @@ def image_bytes_to_pdf_bytes(image_bytes):
     from PIL import Image  # pip install Pillow
 
     image = Image.open(io.BytesIO(image_bytes))
-    if image.mode in ('RGBA', 'LA'):
-        image = image.convert('RGB')
+    if image.mode in ("RGBA", "LA"):
+        image = image.convert("RGB")
     output = io.BytesIO()
-    image.save(output, format='PDF')
+    image.save(output, format="PDF")
     return output.getvalue()
 
 
 def key_and_bytes_to_pdf_bytes(key, data_bytes):
     extension = get_file_extension(key)
-    if extension in {'.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff'}:
+    if extension in {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff"}:
         return image_bytes_to_pdf_bytes(data_bytes)
     return data_bytes
 
@@ -222,7 +222,7 @@ def key_and_bytes_to_pdf_bytes(key, data_bytes):
 from operator import methodcaller
 
 # equivalent to lambda pdf_filepath: Path(pdf_filepath).write_bytes():
-file_to_bytes = Pipe(Path, methodcaller('read_bytes'))
+file_to_bytes = Pipe(Path, methodcaller("read_bytes"))
 
 
 # TODO: Look at the concat patterns here and see how they can be generalized to
@@ -245,7 +245,7 @@ def concat_pdf_bytes(list_of_pdf_bytes: Iterable[bytes]) -> bytes:
     return output_buffer.getvalue()
 
 
-DFLT_SAVE_PDF_NAME = 'combined.pdf'
+DFLT_SAVE_PDF_NAME = "combined.pdf"
 
 
 def concat_pdf_files(pdf_filepaths: Iterable[str], save_filepath=DFLT_SAVE_PDF_NAME):
@@ -292,7 +292,7 @@ def concat_pdfs(
     _inputs = locals()
     if isinstance(pdf_source, Mapping):
         filter_extensions = kwargs.get(
-            'filter_pdf_extension', filter_extensions
+            "filter_pdf_extension", filter_extensions
         )  # backwards compatibility
 
         if filter_extensions:
@@ -309,23 +309,23 @@ def concat_pdfs(
         pdf_bytes = _pdf_source.values()
         combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
     elif isinstance(pdf_source, str) and os.path.isdir(pdf_source):
-        _inputs['pdf_source'] = Files(pdf_source)
+        _inputs["pdf_source"] = Files(pdf_source)
         return concat_pdfs(**_inputs)
     else:
-        assert isinstance(pdf_source, Iterable), (
-            f"pdf_source must be an iterable (mapping or sequence), not {pdf_source}"
-        )
+        assert isinstance(
+            pdf_source, Iterable
+        ), f"pdf_source must be an iterable (mapping or sequence), not {pdf_source}"
         combined_pdf_bytes = concat_pdf_bytes(pdf_source)
 
     if save_filepath is False:
         return combined_pdf_bytes
     elif save_filepath is None:
-        if hasattr(pdf_source, 'rootdir'):
+        if hasattr(pdf_source, "rootdir"):
             rootdir = pdf_source.rootdir
             rootdir_path = Path(rootdir)
             # get rootdir name and parent path
             parent, rootdir_name = rootdir_path.parent, rootdir_path.name
-            save_filepath = os.path.join(parent, rootdir_name + '.pdf')
+            save_filepath = os.path.join(parent, rootdir_name + ".pdf")
             if os.path.isfile(save_filepath):
                 raise ValueError(
                     f"File {save_filepath} already exists. Specify your save_filepath"

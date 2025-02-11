@@ -16,7 +16,7 @@ def read_pdf_text(pdf_reader):
 
 bytes_to_pdf_obj_wrap = wrap_kvs(obj_of_data=bytes_to_pdf_reader_obj)
 
-filter_for_pdf_extension = KeyCodecs.suffixed('.pdf')
+filter_for_pdf_extension = KeyCodecs.suffixed(".pdf")
 
 bytes_to_pdf_text_pages = Pipe(
     bytes_to_pdf_obj_wrap, wrap_kvs(obj_of_data=read_pdf_text)
