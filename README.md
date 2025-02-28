@@ -9,6 +9,8 @@ To install:	```pip install pdfdol```
 
 # Examples
 
+## Pdf "Stores"
+
 Get a dict-like object to list and read the pdfs of a folder, as text:
 
     >>> from pdfdol import PdfFilesReader
@@ -51,3 +53,29 @@ from pdfdol import concat_pdfs
 s = Files('~/Downloads/cosmograph_documentation_pdfs/')
 concat_pdfs(s, key_order=sorted)
 ```
+
+
+## Get pdf from various sources
+
+Example with a URL
+
+```py
+pdf_data = get_pdf("https://pypi.org", src_kind="url")
+print("Got PDF data of length:", len(pdf_data))
+```
+
+Example with HTML content
+
+```py
+html_content = "<html><body><h1>Hello, PDF!</h1></body></html>"
+pdf_data = get_pdf(html_content, src_kind="html")
+print("Got PDF data of length:", len(pdf_data))
+```
+
+Example saving to file
+
+```py
+filepath = get_pdf("https://pypi.org", egress="output.pdf", src_kind="url")
+print("PDF saved to:", filepath)
+```
+

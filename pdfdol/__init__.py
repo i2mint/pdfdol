@@ -12,5 +12,12 @@ r"""Data Object Layers for PDF data.
 
 """
 
-from pdfdol.base import PdfFilesReader, pdf_files_reader_wrap
-from pdfdol.util import concat_pdfs
+from pdfdol.base import (
+    PdfReader,  # just pypdf's PdfReader
+    PdfFilesReader,  # A Mapping giving you a dict-like API to pdf files in a folder.
+    pdf_files_reader_wrap,  # To create a PdfFilesReader for different sources than a folder.
+)
+from pdfdol.util import concat_pdfs  # concatenate pdfs
+from pdfdol.tools import (
+    get_pdf,  # Convert the given source to a PDF (bytes) and process it using the specified egress.
+)
