@@ -160,21 +160,24 @@ def get_pdf(
     """
     import pdfkit
 
-    # Determine the source kind if not explicitly provided.
-    if src_kind is None:
-        src_kind = _resolve_src_kind(src)
-
-    _add_options = lambda func: partial(
-        func,
+    _kwargs = dict(
         options=options,
         toc=toc,
         cover=cover,
         css=css,
         configuration=configuration,
         cover_first=cover_first,
-        verbose=verbose,
-        **kwargs,
+        verbose=verbose, 
     )
+
+    # Determine the source kind if not explicitly provided.
+    if src_kind is None:
+        src_kind = _resolve_src_kind(src)
+
+    if src_kind == "url":
+        _kwargs.pop("css", None)  # because from_url, for some reason, doesn't have a css argument
+
+    _add_options = lambda func: partial(func, **_kwargs, **kwargs)
     # Map the source kind to the corresponding pdfkit function.
     func_for_kind = {
         "url": _add_options(pdfkit.from_url),
@@ -191,19 +194,3 @@ def get_pdf(
     # Resolve the egress processing function and apply it.
     egress_func = _resolve_bytes_egress(egress)
     return egress_func(pdf_bytes)
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Example with a URL:
-    pdf_data = get_pdf("https://pypi.org", src_kind="url")
-    print("Got PDF data of length:", len(pdf_data))
-
-    # Example with HTML content:
-    html_content = "<html><body><h1>Hello, PDF!</h1></body></html>"
-    pdf_data = get_pdf(html_content, src_kind="html")
-    print("Got PDF data of length:", len(pdf_data))
-
-    # Example saving to file:
-    filepath = get_pdf("https://pypi.org", egress="output.pdf", src_kind="url")
-    print("PDF saved to:", filepath)

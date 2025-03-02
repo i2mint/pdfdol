@@ -1,6 +1,6 @@
 """Test the base.py module"""
 
-from pdfdol.base import PdfFilesReader, pdf_files_reader_wrap
+from pdfdol.base import PdfFilesReader
 from pdfdol.tests.utils_for_testing import get_test_pdf_folder
 
 
