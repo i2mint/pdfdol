@@ -19,8 +19,10 @@ read_pdf_text = pdf_reader_to_text_pages_list  # backwards compatibility alias
 
 pdf_bytes_to_text_pages = Pipe(bytes_to_pdf_reader_obj, pdf_reader_to_text_pages)
 
-page_sep = '\n\n-------------------------------------------------------------------\n\n'
-pdf_bytes_to_text = Pipe(pdf_bytes_to_text_pages, page_sep.join)  # TODO: Use Parametrizable Pipe to make page_sep a parameter
+page_sep = "\n\n-------------------------------------------------------------------\n\n"
+pdf_bytes_to_text = Pipe(
+    pdf_bytes_to_text_pages, page_sep.join
+)  # TODO: Use Parametrizable Pipe to make page_sep a parameter
 
 # wrappers ----------------------------------------------------
 
