@@ -15,7 +15,7 @@ r"""Data Object Layers for PDF data.
 from pdfdol.base import (
     PdfReader,  # just pypdf's PdfReader
     PdfFilesReader,  # A Mapping giving you a dict-like API to pdf files in a folder (values are lists of text pages).
-    PdfTextReader, #  A Mapping giving you a dict-like API to pdf text in a folder (values are strings (concatenated text pages)).
+    PdfTextReader,  #  A Mapping giving you a dict-like API to pdf text in a folder (values are strings (concatenated text pages)).
     pdf_bytes_to_text,  # A function to get the text "equivalent" of pdf bytes
     pdf_files_pages_reader_wrap,  # A store wrapper to get stores with list of pages as values
     pdf_files_text_reader_wrap,  # A store wrapper to get stores with aggregated pages text as values

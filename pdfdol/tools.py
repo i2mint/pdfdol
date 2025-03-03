@@ -169,7 +169,7 @@ def get_pdf(
         css=css,
         configuration=configuration,
         cover_first=cover_first,
-        verbose=verbose, 
+        verbose=verbose,
     )
 
     # Determine the source kind if not explicitly provided.
@@ -177,7 +177,9 @@ def get_pdf(
         src_kind = _resolve_src_kind(src)
 
     if src_kind == "url":
-        _kwargs.pop("css", None)  # because from_url, for some reason, doesn't have a css argument
+        _kwargs.pop(
+            "css", None
+        )  # because from_url, for some reason, doesn't have a css argument
 
     _add_options = lambda func: partial(func, **_kwargs, **kwargs)
     # Map the source kind to the corresponding pdfkit function.
