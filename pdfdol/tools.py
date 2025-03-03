@@ -3,6 +3,8 @@
 from functools import partial
 from typing import Literal, Callable, Union
 import os
+import io
+from dol import Pipe
 
 # Define the allowed source kinds
 SrcKind = Literal["url", "html", "file"]
@@ -42,8 +44,8 @@ def _resolve_src_kind(src: str) -> SrcKind:
     elif os.path.exists(s):
         return "file"
     else:
-        # Fallback: if it doesn't look like a URL or a file exists, assume HTML.
-        return "html"
+        # Fallback: if it doesn't look like a URL or a file exists, assume it's text.
+        return "text"
 
 
 def _resolve_bytes_egress(egress: Union[None, str, Callable]) -> Callable[[bytes], any]:
@@ -181,7 +183,8 @@ def get_pdf(
     # Map the source kind to the corresponding pdfkit function.
     func_for_kind = {
         "url": _add_options(pdfkit.from_url),
-        "html": _add_options(pdfkit.from_string),
+        "text": _add_options(pdfkit.from_string),
+        "html": Pipe(io.StringIO, _add_options(pdfkit.from_file)),
         "file": _add_options(pdfkit.from_file),
     }
     src_to_bytes_func = func_for_kind.get(src_kind)
@@ -189,7 +192,7 @@ def get_pdf(
         raise ValueError(f"Unsupported src_kind: {src_kind}")
 
     # Generate the PDF bytes; passing False returns the bytes instead of writing to a file.
-    pdf_bytes = src_to_bytes_func(src, False)
+    pdf_bytes = src_to_bytes_func(src)
 
     # Resolve the egress processing function and apply it.
     egress_func = _resolve_bytes_egress(egress)
