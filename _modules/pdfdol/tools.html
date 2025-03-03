@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfdol.tools &mdash; pdfdol 0.1.14 documentation</title>
+  <title>pdfdol.tools &mdash; pdfdol 0.1.15 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=468bc497"></script>
+      <script src="../../_static/documentation_options.js?v=e2f3408e"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -85,6 +85,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pipe</span>
 
 <span class="c1"># Define the allowed source kinds</span>
 <span class="n">SrcKind</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">]</span>
@@ -124,8 +126,8 @@
     <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Fallback: if it doesn&#39;t look like a URL or a file exists, assume HTML.</span>
-        <span class="k">return</span> <span class="s2">&quot;html&quot;</span>
+        <span class="c1"># Fallback: if it doesn&#39;t look like a URL or a file exists, assume it&#39;s text.</span>
+        <span class="k">return</span> <span class="s2">&quot;text&quot;</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_bytes_egress</span><span class="p">(</span><span class="n">egress</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="nb">any</span><span class="p">]:</span>
@@ -251,7 +253,7 @@
         <span class="n">css</span><span class="o">=</span><span class="n">css</span><span class="p">,</span>
         <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">,</span>
         <span class="n">cover_first</span><span class="o">=</span><span class="n">cover_first</span><span class="p">,</span>
-        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> 
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># Determine the source kind if not explicitly provided.</span>
@@ -259,13 +261,16 @@
         <span class="n">src_kind</span> <span class="o">=</span> <span class="n">_resolve_src_kind</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">src_kind</span> <span class="o">==</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span>
-        <span class="n">_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;css&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># because from_url, for some reason, doesn&#39;t have a css argument</span>
+        <span class="n">_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s2">&quot;css&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="p">)</span>  <span class="c1"># because from_url, for some reason, doesn&#39;t have a css argument</span>
 
     <span class="n">_add_options</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Map the source kind to the corresponding pdfkit function.</span>
     <span class="n">func_for_kind</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">_add_options</span><span class="p">(</span><span class="n">pdfkit</span><span class="o">.</span><span class="n">from_url</span><span class="p">),</span>
-        <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">_add_options</span><span class="p">(</span><span class="n">pdfkit</span><span class="o">.</span><span class="n">from_string</span><span class="p">),</span>
+        <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">_add_options</span><span class="p">(</span><span class="n">pdfkit</span><span class="o">.</span><span class="n">from_string</span><span class="p">),</span>
+        <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">Pipe</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">,</span> <span class="n">_add_options</span><span class="p">(</span><span class="n">pdfkit</span><span class="o">.</span><span class="n">from_file</span><span class="p">)),</span>
         <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">_add_options</span><span class="p">(</span><span class="n">pdfkit</span><span class="o">.</span><span class="n">from_file</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="n">src_to_bytes_func</span> <span class="o">=</span> <span class="n">func_for_kind</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">src_kind</span><span class="p">)</span>
@@ -273,7 +278,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported src_kind: </span><span class="si">{</span><span class="n">src_kind</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Generate the PDF bytes; passing False returns the bytes instead of writing to a file.</span>
-    <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">src_to_bytes_func</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">src_to_bytes_func</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
 
     <span class="c1"># Resolve the egress processing function and apply it.</span>
     <span class="n">egress_func</span> <span class="o">=</span> <span class="n">_resolve_bytes_egress</span><span class="p">(</span><span class="n">egress</span><span class="p">)</span>
