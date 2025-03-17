@@ -4,10 +4,14 @@ from functools import partial
 from typing import Literal, Callable, Union
 import os
 import io
+
+import markdown
+import pdfkit
+
 from dol import Pipe
 
 # Define the allowed source kinds
-SrcKind = Literal["url", "html", "file"]
+SrcKind = Literal["url", "html", "file", "md", "markdown", "text"]
 
 
 def _resolve_src_kind(src: str) -> SrcKind:
@@ -42,7 +46,10 @@ def _resolve_src_kind(src: str) -> SrcKind:
     elif "<html" in s.lower():
         return "html"
     elif os.path.exists(s):
-        return "file"
+        if s.endswith(".html") or s.endswith(".htm") or s.endswith(".xhtml"):
+            return "file"
+        else:
+            return "markdown"
     else:
         # Fallback: if it doesn't look like a URL or a file exists, assume it's text.
         return "text"
@@ -92,6 +99,73 @@ def _resolve_bytes_egress(egress: Union[None, str, Callable]) -> Callable[[bytes
         raise ValueError("egress must be None, a file path string, or a callable.")
 
 
+dflt_css = """
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid black;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
+"""
+
+
+def add_css(html_text: str, css=dflt_css) -> str:
+    return f"<html><head>{custom_css}</head><body>{html_text}</body></html>"
+
+
+# Save to PDF with pdfkit
+dflt_pdfkit_kwargs = {
+    "options": {
+        "encoding": "UTF-8",
+        "page-size": "A4",
+        "margin-top": "10mm",
+        "margin-right": "10mm",
+        "margin-bottom": "10mm",
+        "margin-left": "10mm",
+    }
+}
+
+dflt_markdown_kwargs = {
+    "extensions": ("extra", "tables"),
+}
+
+
+def markdown_to_pdf(
+    md_src: str,
+    egress: Union[None, str, Callable] = None,
+    *,
+    markdown_extensions=dflt_markdown_kwargs,
+    **pdfkit_kwargs,
+):
+    pdfkit_kwargs = {**dflt_pdfkit_kwargs, **pdfkit_kwargs}
+
+    if isinstance(md_src, str) and os.path.isfile(md_src):
+        md_file = md_src
+        with open(md_file, "r", encoding="utf-8") as f:
+            md_src = f.read()
+
+    # Convert Markdown to HTML
+    html_text = markdown.markdown(md_src, **dflt_markdown_kwargs)
+
+    if not callable(egress):
+        pdf_target = egress
+        return pdfkit.from_string(html_text, pdf_target, **pdfkit_kwargs)
+    else:
+        # if egress is a function, we'll get the bytes for the PDF
+        # and apply egress to them
+        pdf_bytes = pdfkit.from_string(html_text, None)
+        return egress(pdf_bytes)
+
+
 def get_pdf(
     src: str,
     egress: Union[None, str, Callable] = None,
@@ -136,7 +210,7 @@ def get_pdf(
         css: (optional) string with path to css file which will be added to a single input file
         configuration: (optional) instance of pdfkit.configuration.Configuration()
         cover_first: (optional) if True, cover always precedes TOC
-        :verbose: (optional) By default '--quiet' is passed to all calls, set this to False to get wkhtmltopdf output to stdout.
+        verbose: (optional) By default '--quiet' is passed to all calls, set this to False to get wkhtmltopdf output to stdout.
 
 
     Returns:
@@ -160,9 +234,8 @@ def get_pdf(
 
 
     """
-    import pdfkit
-
     _kwargs = dict(
+        dflt_pdfkit_kwargs,
         options=options,
         toc=toc,
         cover=cover,
@@ -175,19 +248,24 @@ def get_pdf(
     # Determine the source kind if not explicitly provided.
     if src_kind is None:
         src_kind = _resolve_src_kind(src)
+    elif src_kind == 'md':
+        src_kind = 'markdown'
 
     if src_kind == "url":
         _kwargs.pop(
             "css", None
         )  # because from_url, for some reason, doesn't have a css argument
 
-    _add_options = lambda func: partial(func, **_kwargs, **kwargs)
+    _pdfkit_kwargs = dict(**_kwargs, **kwargs)
+    _add_pdfkit_options = lambda func: partial(func, **_pdfkit_kwargs)
     # Map the source kind to the corresponding pdfkit function.
     func_for_kind = {
-        "url": _add_options(pdfkit.from_url),
-        "text": _add_options(pdfkit.from_string),
-        "html": Pipe(io.StringIO, _add_options(pdfkit.from_file)),
-        "file": _add_options(pdfkit.from_file),
+        "url": _add_pdfkit_options(pdfkit.from_url),
+        "text": _add_pdfkit_options(pdfkit.from_string),
+        "html": Pipe(io.StringIO, _add_pdfkit_options(pdfkit.from_file)),
+        "file": _add_pdfkit_options(pdfkit.from_file),
+        # egress=None to force bytes output in markdown:
+        "markdown": partial(markdown_to_pdf, egress=None, **_pdfkit_kwargs),
     }
     src_to_bytes_func = func_for_kind.get(src_kind)
     if src_to_bytes_func is None:
