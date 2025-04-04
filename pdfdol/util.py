@@ -276,9 +276,9 @@ def concat_pdfs(
 
     :param pdf_source: Mapping of filepaths to pdf bytes or an iterable of pdf bytes
     :param save_filepath: Filepath to save the concatenated pdf.
-        If `None`, the save_filepath will be taken from the rootdir of the pdf_source
+        If `True`, the save_filepath will be taken from the rootdir of the pdf_source
         that attribute exists, and no file of that name (+'.pdf') exists.
-        If False, the pdf bytes are returned.
+        If `False`, the pdf bytes are returned.
     :param filter_extensions: If True, only files with recognized extensions
         ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff') are considered
     :param key_order: Callable or iterable of keys to sort the mapping
@@ -319,7 +319,7 @@ def concat_pdfs(
 
     if save_filepath is False:
         return combined_pdf_bytes
-    elif save_filepath is None:
+    elif save_filepath is True:
         if hasattr(pdf_source, "rootdir"):
             rootdir = pdf_source.rootdir
             rootdir_path = Path(rootdir)
@@ -333,6 +333,16 @@ def concat_pdfs(
                 )
         else:
             save_filepath = DFLT_SAVE_PDF_NAME
+    elif save_filepath is None:
+        # TODO: Deprecating "None" as True as it was before. Change to None == False later
+        raise ValueError(
+            "save_filepath must be a string, not None. "
+            "Specify a filepath to save the concatenated pdf."
+        )
+    else:
+        assert isinstance(
+            save_filepath, str
+        ), f"save_filepath must be a boolean or a string, not {save_filepath}"
 
     Path(save_filepath).write_bytes(combined_pdf_bytes)
     return save_filepath
