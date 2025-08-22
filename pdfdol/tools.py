@@ -274,8 +274,8 @@ def get_pdf(
     # Determine the source kind if not explicitly provided.
     if src_kind is None:
         src_kind = _resolve_src_kind(src)
-    elif src_kind == 'md':
-        src_kind = 'markdown'
+    elif src_kind == "md":
+        src_kind = "markdown"
 
     if src_kind == "url":
         _kwargs.pop(
