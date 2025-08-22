@@ -220,7 +220,7 @@ def images_to_pdf(
         para = None
         # Try decreasing font sizes until paragraph fits the frame height
         for fs in range(start_font, min_font - 1, -1):
-            p_style = base_style.clone('caption')
+            p_style = base_style.clone("caption")
             p_style.fontSize = fs
             p_style.leading = fs * 1.2
             p = Paragraph(caption_html, p_style)
@@ -239,7 +239,7 @@ def images_to_pdf(
 
         if para is None:
             # last resort: use the minimum font size paragraph even if it overflows
-            p_style = base_style.clone('caption')
+            p_style = base_style.clone("caption")
             p_style.fontSize = min_font
             p_style.leading = min_font * 1.2
             para = Paragraph(caption_html, p_style)
