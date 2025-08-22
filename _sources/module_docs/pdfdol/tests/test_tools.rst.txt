@@ -1,0 +1,4 @@
+pdfdol.tests.test_tools
+=======================
+.. automodule:: pdfdol.tests.test_tools
+   :members:

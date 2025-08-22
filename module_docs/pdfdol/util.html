@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfdol.util &mdash; pdfdol 0.1.15 documentation</title>
+  <title>pdfdol.util &mdash; pdfdol 0.1.16 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=e2f3408e"></script>
+      <script src="../../_static/documentation_options.js?v=d50bcae4"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -50,8 +50,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../pdfdol.html">pdfdol</a></li>
 <li class="toctree-l1"><a class="reference internal" href="base.html">pdfdol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">pdfdol.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/aggregations.html">pdfdol.examples.aggregations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">pdfdol.tests</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests/test_base.html">pdfdol.tests.test_base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_tools.html">pdfdol.tests.test_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tools.html">pdfdol.tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">pdfdol.util</a><ul>
@@ -62,6 +65,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.concat_pdf_readers"><code class="docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.concat_pdfs"><code class="docutils literal notranslate"><span class="pre">concat_pdfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.ensure_pages"><code class="docutils literal notranslate"><span class="pre">ensure_pages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.html_to_pdf"><code class="docutils literal notranslate"><span class="pre">html_to_pdf()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.html_to_pdf_w_pdfkit"><code class="docutils literal notranslate"><span class="pre">html_to_pdf_w_pdfkit()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.image_bytes_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">image_bytes_to_pdf_bytes()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.is_page_empty"><code class="docutils literal notranslate"><span class="pre">is_page_empty()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.util.remove_empty_pages"><code class="docutils literal notranslate"><span class="pre">remove_empty_pages()</span></code></a></li>
@@ -155,9 +160,9 @@ out some keys.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pdf_source</strong> – Mapping of filepaths to pdf bytes or an iterable of pdf bytes</p></li>
 <li><p><strong>save_filepath</strong> – Filepath to save the concatenated pdf.
-If <cite>None</cite>, the save_filepath will be taken from the rootdir of the pdf_source
+If <cite>True</cite>, the save_filepath will be taken from the rootdir of the pdf_source
 that attribute exists, and no file of that name (+’.pdf’) exists.
-If False, the pdf bytes are returned.</p></li>
+If <cite>False</cite>, the pdf bytes are returned.</p></li>
 <li><p><strong>filter_extensions</strong> – If True, only files with recognized extensions
 (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered</p></li>
 <li><p><strong>key_order</strong> – Callable or iterable of keys to sort the mapping</p></li>
@@ -177,6 +182,18 @@ If False, the pdf bytes are returned.</p></li>
 <dt class="sig sig-object py" id="pdfdol.util.ensure_pages">
 <span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">ensure_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PageObject</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PageObject</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/pdfdol/util.html#ensure_pages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.ensure_pages" title="Link to this definition"></a></dt>
 <dd><p>Ensure that pages are given as a sequence of PageObject objects.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.util.html_to_pdf">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">html_to_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">html_filepaths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'htmls_to_pdf.pdf'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'disable-smart-shrinking':</span> <span class="pre">None,</span> <span class="pre">'enable-local-file-access':</span> <span class="pre">None,</span> <span class="pre">'page-size':</span> <span class="pre">'A4'}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/util.html#html_to_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.html_to_pdf" title="Link to this definition"></a></dt>
+<dd><p>Convert one or several HTML files into a single PDF file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.util.html_to_pdf_w_pdfkit">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.util.</span></span><span class="sig-name descname"><span class="pre">html_to_pdf_w_pdfkit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">html_filepaths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'htmls_to_pdf.pdf'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'disable-smart-shrinking':</span> <span class="pre">None,</span> <span class="pre">'enable-local-file-access':</span> <span class="pre">None,</span> <span class="pre">'page-size':</span> <span class="pre">'A4'}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/util.html#html_to_pdf_w_pdfkit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.util.html_to_pdf_w_pdfkit" title="Link to this definition"></a></dt>
+<dd><p>Convert one or several HTML files into a single PDF file.</p>
 </dd></dl>
 
 <dl class="py function">

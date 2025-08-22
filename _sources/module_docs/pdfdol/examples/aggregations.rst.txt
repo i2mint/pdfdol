@@ -1,0 +1,4 @@
+pdfdol.examples.aggregations
+============================
+.. automodule:: pdfdol.examples.aggregations
+   :members:

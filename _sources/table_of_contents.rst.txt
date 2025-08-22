@@ -4,8 +4,11 @@
 
    module_docs/pdfdol
    module_docs/pdfdol/base
+   module_docs/pdfdol/examples
+   module_docs/pdfdol/examples/aggregations
    module_docs/pdfdol/tests
    module_docs/pdfdol/tests/test_base
+   module_docs/pdfdol/tests/test_tools
    module_docs/pdfdol/tests/utils_for_testing
    module_docs/pdfdol/tools
    module_docs/pdfdol/util

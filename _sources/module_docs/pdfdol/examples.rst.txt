@@ -1,0 +1,4 @@
+pdfdol.examples
+===============
+.. automodule:: pdfdol.examples
+   :members:
