@@ -10,8 +10,8 @@ import pdfkit
 
 from dol import Pipe
 
-# Define the allowed source kinds
-SrcKind = Literal["url", "html", "file", "md", "markdown", "text"]
+# Define the allowed source kinds (added 'image')
+SrcKind = Literal["url", "html", "file", "md", "markdown", "text", "image"]
 
 
 def _resolve_src_kind(src: str) -> SrcKind:
@@ -40,16 +40,42 @@ def _resolve_src_kind(src: str) -> SrcKind:
         True
         >>> os.remove(tmp_name)
     """
+    # Accept bytes input as well (image bytes)
+    if isinstance(src, (bytes, bytearray)):
+        # try to quickly detect image bytes
+        try:
+            import imghdr
+
+            if imghdr.what(None, src) is not None:
+                return "image"
+        except Exception:
+            pass
+        # fallback to text
+        return "text"
+
     s = src.strip()
     if s.startswith("http://") or s.startswith("https://"):
         return "url"
     elif "<html" in s.lower():
         return "html"
     elif os.path.exists(s):
-        if s.endswith(".html") or s.endswith(".htm") or s.endswith(".xhtml"):
-            return "file"
-        else:
+        lower = s.lower()
+        # Recognize image file extensions first
+        image_exts = (".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif", ".webp")
+        if lower.endswith(image_exts):
+            return "image"
+        # Recognize markdown files explicitly
+        if lower.endswith(".md") or lower.endswith(".markdown"):
             return "markdown"
+        # Recognize html files explicitly
+        if (
+            lower.endswith(".html")
+            or lower.endswith(".htm")
+            or lower.endswith(".xhtml")
+        ):
+            return "file"
+        # Default for existing files (including no-extension temp files) is 'file'
+        return "file"
     else:
         # Fallback: if it doesn't look like a URL or a file exists, assume it's text.
         return "text"
@@ -258,7 +284,53 @@ def get_pdf(
 
     _pdfkit_kwargs = dict(**_kwargs, **kwargs)
     _add_pdfkit_options = lambda func: partial(func, **_pdfkit_kwargs)
-    # Map the source kind to the corresponding pdfkit function.
+
+    # Helper: convert image (path or bytes) to single-page PDF bytes
+    def _image_to_pdf_bytes(src_item):
+        # src_item may be a path string or bytes
+        try:
+            import img2pdf
+
+            if isinstance(src_item, (bytes, bytearray)):
+                return img2pdf.convert(src_item)
+            else:
+                # img2pdf can accept filenames
+                return img2pdf.convert(open(src_item, "rb"))
+        except Exception:
+            # Fallback to Pillow
+            try:
+                from PIL import Image
+
+                if isinstance(src_item, (bytes, bytearray)):
+                    buf = io.BytesIO(src_item)
+                    im = Image.open(buf)
+                else:
+                    im = Image.open(src_item)
+
+                try:
+                    # ensure RGB; handle alpha
+                    if im.mode in ("RGBA", "LA") or (
+                        im.mode == "P" and "transparency" in im.info
+                    ):
+                        bg = Image.new("RGB", im.size, (255, 255, 255))
+                        bg.paste(im, mask=im.split()[-1])
+                        im_out = bg
+                    else:
+                        im_out = im.convert("RGB")
+                    out = io.BytesIO()
+                    im_out.save(out, format="PDF")
+                    return out.getvalue()
+                finally:
+                    try:
+                        im.close()
+                    except Exception:
+                        pass
+            except Exception as e:
+                raise RuntimeError(
+                    "Cannot convert image to PDF bytes; please install img2pdf or Pillow"
+                ) from e
+
+    # Map the source kind to the corresponding pdfkit/function.
     func_for_kind = {
         "url": _add_pdfkit_options(pdfkit.from_url),
         "text": _add_pdfkit_options(pdfkit.from_string),
@@ -266,6 +338,7 @@ def get_pdf(
         "file": _add_pdfkit_options(pdfkit.from_file),
         # egress=None to force bytes output in markdown:
         "markdown": partial(markdown_to_pdf, egress=None, **_pdfkit_kwargs),
+        "image": lambda s: _image_to_pdf_bytes(s),
     }
     src_to_bytes_func = func_for_kind.get(src_kind)
     if src_to_bytes_func is None:
