@@ -7,6 +7,29 @@ and returns a (possibly filtered, reordered) list of paths. The default
 is the builtin `sorted` which preserves the usual behaviour; however a
 custom callable can be used to filter out non-image files or reorder
 entries before aggregation.
+
+if __name__ == "__main__":
+    # Assume you have a folder with image files.
+    # Replace the following path with the actual directory containing your images.
+    image_folder = Path("/path/to/your/images")
+    output_pdf = Path("demo_output.pdf")
+
+    # Optional: If you want to add captions, provide a list with one caption per image.
+    # Ensure the list length matches the number of images in the folder.
+    captions = [
+        "First image caption",
+        "Second image caption",
+        "Third image caption",
+        # ... add more captions as needed
+    ]
+
+    try:
+        # Create the PDF by aggregating images from the folder.
+        # The egress parameter is set to a file path to write the output.
+        result = images_to_pdf(image_folder, egress=output_pdf, captions=captions)
+        print("PDF successfully created at:", result)
+    except Exception as err:
+        print("An error occurred while creating PDF:", err)
 """
 
 from pathlib import Path
@@ -197,6 +220,7 @@ def images_to_pdf(
         # only a subset of tags and complex HTML (lists, <p>, etc.) can cause content to
         # not render. Instead, render plain text with <br/> for newlines.
         from xml.sax.saxutils import escape
+        from pathlib import Path
 
         raw = caption or ""
         # turn lines into escaped lines joined by <br/>
