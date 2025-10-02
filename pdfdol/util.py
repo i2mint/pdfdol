@@ -255,6 +255,9 @@ def concat_pdf_files(pdf_filepaths: Iterable[str], save_filepath=DFLT_SAVE_PDF_N
     Path(save_filepath).write_bytes(combined_pdf_bytes)
 
 
+from dol import cache_iter
+
+
 # TODO: Generalize to allow pdf_source to be a mapping of any keys to pdf bytes (not necessarily filepaths)
 def concat_pdfs(
     pdf_source: Union[Iterable[bytes], Mapping[str, bytes]],
@@ -289,7 +292,7 @@ def concat_pdfs(
     >>> pdf_bytes = concat_pdfs(s, key_order=sorted)  # doctest: +SKIP
 
     """
-    _inputs = locals()
+    _inputs = dict(locals())
     if isinstance(pdf_source, Mapping):
         filter_extensions = kwargs.get(
             "filter_pdf_extension", filter_extensions
@@ -301,9 +304,13 @@ def concat_pdfs(
         if key_order is not None:
             if callable(key_order):
                 keys = sorted(pdf_source.keys(), key=key_order)
-            else:
+            elif isinstance(key_order, bool):
+                reverse = not key_order
+                keys = sorted(pdf_source.keys(), reverse=reverse)
+            elif isinstance(key_order, Iterable):
                 keys = key_order
-            pdf_source = {k: pdf_source[k] for k in keys}
+            pdf_source = cache_iter(pdf_source, keys_cache=keys)
+            # pdf_source = {k: pdf_source[k] for k in keys}
 
         _pdf_source = wrap_kvs(pdf_source, postget=key_and_bytes_to_pdf_bytes)
         pdf_bytes = _pdf_source.values()
@@ -328,7 +335,7 @@ def concat_pdfs(
             save_filepath = os.path.join(parent, rootdir_name + ".pdf")
             if os.path.isfile(save_filepath):
                 raise ValueError(
-                    f"File {save_filepath} already exists. Specify your save_filepath"
+                    f"File {save_filepath} already exists. Specify your save_filepath "
                     "explicitly if you want to overwrite it."
                 )
         else:
