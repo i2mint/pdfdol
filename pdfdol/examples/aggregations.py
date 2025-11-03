@@ -34,7 +34,8 @@ if __name__ == "__main__":
 
 from pathlib import Path
 import os
-from typing import Iterable, Union, Callable, Optional
+from typing import Union, Optional
+from collections.abc import Iterable, Callable
 from ..util import concat_pdfs
 import base64
 import imghdr
@@ -63,17 +64,17 @@ def sorted_image_files(
 
 
 def images_to_pdf(
-    images: Union[str, Path, Iterable],
-    egress: Optional[Union[str, Path, Callable]] = None,
+    images: str | Path | Iterable,
+    egress: str | Path | Callable | None = None,
     *,
     sort_dir_files: Callable[[list], list] = sorted_image_files,
     _get_pdf_egress=None,
-    captions: Optional[Iterable[str]] = None,
+    captions: Iterable[str] | None = None,
     # Common layout controls forwarded to mk_image_and_caption_pdf_page
-    image_fraction: Optional[float] = None,
-    horizontal_margin: Optional[float] = None,
-    align: Optional[str] = None,
-    mk_page_kwargs: Optional[dict] = None,
+    image_fraction: float | None = None,
+    horizontal_margin: float | None = None,
+    align: str | None = None,
+    mk_page_kwargs: dict | None = None,
 ):
     """
     Aggregate a folder (or iterable) of images into a single PDF (one image per page).

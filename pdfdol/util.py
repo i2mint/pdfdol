@@ -1,7 +1,8 @@
 """Utils for pdfdol"""
 
 from pypdf import PdfReader, PdfWriter, PageObject
-from typing import Iterable, Mapping, Union, Callable, Iterable
+from typing import Union
+from collections.abc import Iterable, Mapping, Callable, Iterable
 import io
 import os
 from pathlib import Path
@@ -113,7 +114,8 @@ def remove_empty_pages(
 
 # ---------------------------------------------------------------------------------
 # Sourcing pdfs
-from typing import Mapping, Union, Iterable
+from typing import Union
+from collections.abc import Mapping, Iterable
 import io
 from dol import written_bytes
 
@@ -128,7 +130,7 @@ with suppress(ImportError, ModuleNotFoundError):
     html_bytes_to_pdf_bytes = written_bytes(_html_bytes_to_pdf_bytes_writer)
 
     def html_to_pdf_w_weasyprint(
-        htmls: Union[Filepath, Iterable[Filepath]],
+        htmls: Filepath | Iterable[Filepath],
         save_filepath="htmls_to_pdf.pdf",
     ):
         """Convert one or several HTML files into a single PDF file."""
@@ -163,7 +165,7 @@ with suppress(ImportError, ModuleNotFoundError):
     }
 
     def html_to_pdf_w_pdfkit(
-        html_filepaths: Union[Filepath, Iterable[Filepath]],
+        html_filepaths: Filepath | Iterable[Filepath],
         save_filepath="htmls_to_pdf.pdf",
         *,
         options=DFLT_OPTIONS,
@@ -260,13 +262,13 @@ from dol import cache_iter
 
 # TODO: Generalize to allow pdf_source to be a mapping of any keys to pdf bytes (not necessarily filepaths)
 def concat_pdfs(
-    pdf_source: Union[Iterable[bytes], Mapping[str, bytes]],
+    pdf_source: Iterable[bytes] | Mapping[str, bytes],
     save_filepath=False,
     *,
     filter_extensions=False,
-    key_order: Union[Callable, Iterable] = None,
+    key_order: Callable | Iterable = None,
     **kwargs,
-) -> Union[str, bytes]:
+) -> str | bytes:
     """
     Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.
 

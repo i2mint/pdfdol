@@ -1,6 +1,6 @@
 """Base objects for pdfdol"""
 
-from typing import Iterable
+from collections.abc import Iterable
 from dol import Files, wrap_kvs, Pipe, KeyCodecs, add_ipython_key_completions
 from pypdf import PdfReader
 from io import BytesIO

@@ -1,7 +1,8 @@
 """Pdf Tools."""
 
 from functools import partial
-from typing import Literal, Callable, Union
+from typing import Literal, Any
+from collections.abc import Callable
 import os
 import io
 
@@ -81,7 +82,7 @@ def _resolve_src_kind(src: str) -> SrcKind:
         return "text"
 
 
-def _resolve_bytes_egress(egress: Union[None, str, Callable]) -> Callable[[bytes], any]:
+def _resolve_bytes_egress(egress: None | str | Callable) -> Callable[[bytes], any]:
     """
     Return a callable that processes PDF bytes based on the given egress.
 
@@ -167,7 +168,7 @@ dflt_markdown_kwargs = {
 
 def markdown_to_pdf(
     md_src: str,
-    egress: Union[None, str, Callable] = None,
+    egress: None | str | Callable = None,
     *,
     markdown_extensions=dflt_markdown_kwargs,
     **pdfkit_kwargs,
@@ -176,7 +177,7 @@ def markdown_to_pdf(
 
     if isinstance(md_src, str) and os.path.isfile(md_src):
         md_file = md_src
-        with open(md_file, "r", encoding="utf-8") as f:
+        with open(md_file, encoding="utf-8") as f:
             md_src = f.read()
 
     # Convert Markdown to HTML
@@ -194,7 +195,7 @@ def markdown_to_pdf(
 
 def get_pdf(
     src: str,
-    egress: Union[None, str, Callable] = None,
+    egress: None | str | Callable = None,
     *,
     src_kind: SrcKind = None,
     # extra options for pdfkit.from_* functions
@@ -206,7 +207,7 @@ def get_pdf(
     cover_first=False,
     verbose=False,
     **kwargs,
-) -> Union[bytes, any]:
+) -> bytes | Any:
     """
     Convert the given source to a PDF (bytes) and process it using the specified egress.
 
