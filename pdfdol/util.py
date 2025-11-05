@@ -190,7 +190,6 @@ else:
             "You need to have either weasyprint or pdfkit installed to use html_to_pdf"
         )
 
-
 # ---------------------------------------------------------------------------------
 # Pdf concatenation
 # TODO: Add some functionality to prefix/suffix pdf pages (useful when concatenating)

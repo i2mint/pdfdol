@@ -5,7 +5,7 @@ r"""Data Object Layers for PDF data.
 >>> folder_path = get_test_pdf_folder()
 >>> s = PdfFilesReader(folder_path)
 >>> sorted(s)
-['sample_pdf_1', 'sample_pdf_2']
+['sample_pdf_1', 'sample_pdf_2', 'sample_with_title']
 >>> assert s['sample_pdf_2'] == [
 ...     'Page 1\nThis is a sample text for testing Python PDF tools.'
 ... ]
@@ -24,4 +24,5 @@ from pdfdol.base import (
 from pdfdol.util import concat_pdfs  # concatenate pdfs
 from pdfdol.tools import (
     get_pdf,  # Convert the given source to a PDF (bytes) and process it using the specified egress.
+    pdf_to_title,  # Extract the title from a PDF file's metadata.
 )

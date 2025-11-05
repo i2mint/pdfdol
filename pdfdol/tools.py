@@ -8,6 +8,7 @@ import io
 
 import markdown
 import pdfkit
+import pypdf
 
 from dol import Pipe
 
@@ -351,3 +352,140 @@ def get_pdf(
     # Resolve the egress processing function and apply it.
     egress_func = _resolve_bytes_egress(egress)
     return egress_func(pdf_bytes)
+
+
+# ---------------------------------------------------------------------------------
+# PDF metadata extraction
+
+from typing import Union
+
+
+def _resolve_pdf_src_to_reader(
+    pdf_src: Union[str, bytes, pypdf.PdfReader],
+) -> pypdf.PdfReader:
+    """
+    Convert various PDF source types to a PdfReader object.
+
+    Args:
+        pdf_src: Can be a file path (str), PDF bytes, or a PdfReader object
+
+    Returns:
+        pypdf.PdfReader: A PdfReader object
+
+    Raises:
+        ValueError: If pdf_src type is not supported or file doesn't exist
+
+    Examples:
+        >>> import tempfile
+        >>> from pypdf import PdfWriter
+        >>> # Create a temp PDF
+        >>> writer = PdfWriter()
+        >>> _ = writer.add_blank_page(width=200, height=200)
+        >>> with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:  # doctest: +ELLIPSIS
+        ...     _ = writer.write(tmp)
+        ...     tmp_path = tmp.name
+        >>> # Test with filepath
+        >>> reader = _resolve_pdf_src_to_reader(tmp_path)
+        >>> isinstance(reader, pypdf.PdfReader)
+        True
+        >>> # Test with bytes
+        >>> with open(tmp_path, 'rb') as f:
+        ...     pdf_bytes = f.read()
+        >>> reader = _resolve_pdf_src_to_reader(pdf_bytes)
+        >>> isinstance(reader, pypdf.PdfReader)
+        True
+        >>> # Test with PdfReader
+        >>> reader_in = pypdf.PdfReader(tmp_path)
+        >>> reader = _resolve_pdf_src_to_reader(reader_in)
+        >>> reader is reader_in
+        True
+        >>> import os
+        >>> os.remove(tmp_path)
+    """
+    if isinstance(pdf_src, pypdf.PdfReader):
+        return pdf_src
+    elif isinstance(pdf_src, bytes):
+        from pdfdol.base import bytes_to_pdf_reader_obj
+
+        return bytes_to_pdf_reader_obj(pdf_src)
+    elif isinstance(pdf_src, str):
+        if not os.path.exists(pdf_src):
+            raise ValueError(f"File not found: {pdf_src}")
+        return pypdf.PdfReader(pdf_src)
+    else:
+        raise ValueError(
+            f"pdf_src must be a file path (str), bytes, or PdfReader object, not {type(pdf_src)}"
+        )
+
+
+def pdf_to_metadata(pdf_src: Union[str, bytes, pypdf.PdfReader]) -> dict:
+    """
+    Extract metadata from a PDF source.
+
+    Args:
+        pdf_src: Can be a file path (str), PDF bytes, or a PdfReader object
+
+    Returns:
+        dict: Dictionary containing metadata fields (title, author, subject, etc.)
+              Returns empty dict if no metadata or an error occurs.
+
+    Examples:
+        >>> from pathlib import Path
+        >>> from pdfdol.tests.utils_for_testing import get_test_pdf_folder
+        >>> test_folder = Path(get_test_pdf_folder())
+        >>> pdf_path = test_folder / "sample_with_title.pdf"
+        >>> metadata = pdf_to_metadata(str(pdf_path))
+        >>> metadata.get('Title')
+        'Sample PDF with Title'
+        >>> metadata.get('Author')
+        'Test Author'
+    """
+    try:
+        reader = _resolve_pdf_src_to_reader(pdf_src)
+        if reader.metadata:
+            # Convert pypdf DocumentInformation to a regular dict
+            # and normalize the keys (remove leading slash)
+            return {key.lstrip('/'): value for key, value in reader.metadata.items()}
+        return {}
+    except Exception as e:
+        # Optionally log the error instead of printing
+        # For now, return empty dict on error
+        return {}
+
+
+def pdf_to_title(pdf_src: Union[str, bytes, pypdf.PdfReader]) -> str | None:
+    """
+    Extract the document title from a PDF source.
+
+    Args:
+        pdf_src: Can be a file path (str), PDF bytes, or a PdfReader object
+
+    Returns:
+        str | None: The title from the metadata, or None if not found or an error occurs.
+
+    Examples:
+        >>> from pathlib import Path
+        >>> from pdfdol.tests.utils_for_testing import get_test_pdf_folder
+        >>> test_folder = Path(get_test_pdf_folder())
+        >>> # Test with file path
+        >>> pdf_path = test_folder / "sample_with_title.pdf"
+        >>> pdf_to_title(str(pdf_path))
+        'Sample PDF with Title'
+        >>> # Test with bytes
+        >>> pdf_bytes = pdf_path.read_bytes()
+        >>> pdf_to_title(pdf_bytes)
+        'Sample PDF with Title'
+        >>> # Test with PdfReader
+        >>> reader = pypdf.PdfReader(str(pdf_path))
+        >>> pdf_to_title(reader)
+        'Sample PDF with Title'
+        >>> # Test with no title
+        >>> pdf_path_no_title = test_folder / "sample_pdf_1.pdf"
+        >>> pdf_to_title(str(pdf_path_no_title)) is None
+        True
+    """
+    metadata = pdf_to_metadata(pdf_src)
+    title = metadata.get('title') or metadata.get('Title')
+    if title:
+        return title.strip()
+    return None
