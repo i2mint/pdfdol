@@ -300,7 +300,7 @@ def images_to_pdf(
         # prefer raising so caller knows nothing was aggregated
         raise ValueError("No images found / provided to aggregate")
 
-    combined = concat_pdfs(pdf_blobs)
+    combined = concat_pdfs(pdf_blobs, save_filepath=False)
 
     # handle egress
     if callable(egress):

@@ -290,7 +290,7 @@ def concat_pdfs(
     :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes
 
     >>> s = Files('~/Downloads/')  # doctest: +SKIP
-    >>> pdf_bytes = concat_pdfs(s, key_order=sorted)  # doctest: +SKIP
+    >>> pdf_bytes = concat_pdfs(s, save_filepath=False, key_order=sorted)  # doctest: +SKIP
 
     """
     _inputs = dict(locals())
