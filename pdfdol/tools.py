@@ -54,7 +54,7 @@ def _resolve_src_kind(src: str) -> SrcKind:
         # Check for PDF first
         if src.startswith(b'%PDF'):
             return "file"  # treat as PDF file bytes
-        
+
         # try to quickly detect image bytes
         try:
             import imghdr
@@ -368,73 +368,107 @@ def get_pdf(
 def any_to_pdf_bytes(src, *, src_kind: SrcKind = None) -> bytes:
     """
     Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.
-    
+
     This is a convenience function that uses get_pdf with egress=None to always
     return PDF bytes regardless of the source type.
-    
+
     Args:
-        src: Source content - can be a file path, URL, HTML string, markdown, 
+        src: Source content - can be a file path, URL, HTML string, markdown,
              image bytes, etc.
         src_kind: Optional hint about the source type. If not provided, it will
                  be determined heuristically.
-                 
+
     Returns:
         bytes: PDF bytes
-        
+
     Examples:
         >>> # Convert image bytes to PDF
         >>> image_bytes = open('image.png', 'rb').read()  # doctest: +SKIP
         >>> pdf_bytes = any_to_pdf_bytes(image_bytes)  # doctest: +SKIP
-        
-        >>> # Convert HTML string to PDF  
+
+        >>> # Convert HTML string to PDF
         >>> html = "<h1>Hello World</h1>"
         >>> pdf_bytes = any_to_pdf_bytes(html, src_kind="html")  # doctest: +SKIP
     """
     # Special case: if src is already PDF bytes, return as-is
     if isinstance(src, (bytes, bytearray)) and src.startswith(b'%PDF'):
         return src
-    
+
     return get_pdf(src, egress=None, src_kind=src_kind)
 
 
 def key_and_value_to_pdf_bytes(key, value) -> bytes:
     """
     Convert a key-value pair to PDF bytes, using the key to determine the type.
-    
-    This replaces the old key_and_bytes_to_pdf_bytes function with a more general 
+
+    This replaces the old key_and_bytes_to_pdf_bytes function with a more general
     approach using any_to_pdf_bytes.
-    
+
     Args:
         key: The key (usually a filename) used to infer the source type
         value: The value (usually bytes) to convert
-        
+
     Returns:
         bytes: PDF bytes
+
+    Raises:
+        ValueError: If the file type is unsupported or conversion fails
     """
     # If it's already PDF bytes, return as-is
     if isinstance(value, bytes) and value.startswith(b'%PDF'):
         return value
-        
+
     # For file-like keys, use the key to determine the source type
     if isinstance(key, str):
         extension = os.path.splitext(key)[1].lower()
+
+        # Supported image formats
         if extension in {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp"}:
-            return any_to_pdf_bytes(value, src_kind="image")
+            try:
+                return any_to_pdf_bytes(value, src_kind="image")
+            except Exception as e:
+                raise ValueError(f"Failed to convert image file '{key}' to PDF: {e}")
+
+        # Supported text/markup formats
         elif extension in {".html", ".htm"}:
-            # HTML content should be string for pdfkit
-            if isinstance(value, bytes):
-                value = value.decode('utf-8', errors='ignore')
-            return any_to_pdf_bytes(value, src_kind="html")
+            try:
+                # HTML content should be string for pdfkit
+                if isinstance(value, bytes):
+                    value = value.decode('utf-8', errors='ignore')
+                return any_to_pdf_bytes(value, src_kind="html")
+            except Exception as e:
+                raise ValueError(f"Failed to convert HTML file '{key}' to PDF: {e}")
+
         elif extension in {".md", ".markdown"}:
-            # Markdown content should be string
-            if isinstance(value, bytes):
-                value = value.decode('utf-8', errors='ignore')
-            return any_to_pdf_bytes(value, src_kind="markdown")
+            try:
+                # Markdown content should be string
+                if isinstance(value, bytes):
+                    value = value.decode('utf-8', errors='ignore')
+                return any_to_pdf_bytes(value, src_kind="markdown")
+            except Exception as e:
+                raise ValueError(f"Failed to convert Markdown file '{key}' to PDF: {e}")
+
         elif extension == ".pdf":
-            return value  # Assume it's already PDF bytes
-    
-    # Default: try to auto-detect using the heuristic in _resolve_src_kind
-    return any_to_pdf_bytes(value)
+            # Verify it's actually a PDF
+            if isinstance(value, bytes) and value.startswith(b'%PDF'):
+                return value
+            else:
+                raise ValueError(
+                    f"File '{key}' has .pdf extension but is not a valid PDF"
+                )
+
+        # Unsupported file types
+        else:
+            raise ValueError(
+                f"Unsupported file type '{extension}' for file '{key}'. "
+                f"Supported types: .pdf, .png, .jpg, .jpeg, .bmp, .gif, .tiff, .webp, .html, .htm, .md, .markdown"
+            )
+
+    # If key is not a string, try auto-detection as last resort
+    try:
+        return any_to_pdf_bytes(value)
+    except Exception as e:
+        raise ValueError(f"Failed to convert value to PDF: {e}")
 
 
 # ---------------------------------------------------------------------------------
@@ -619,6 +653,7 @@ def concat_pdfs(
     *,
     filter_extensions=False,
     key_order: Callable | Iterable = None,
+    skip_errors=False,
     **kwargs,
 ) -> str | bytes:
     """
@@ -664,10 +699,19 @@ def concat_pdfs(
             elif isinstance(key_order, Iterable):
                 keys = key_order
             pdf_source = cache_iter(pdf_source, keys_cache=keys)
-            # pdf_source = {k: pdf_source[k] for k in keys}
 
-        _pdf_source = wrap_kvs(pdf_source, postget=key_and_value_to_pdf_bytes)
-        pdf_bytes = _pdf_source.values()
+        # Handle error skipping
+        if skip_errors:
+            def safe_converter(key, value):
+                return _safe_key_and_value_to_pdf_bytes(key, value, skip_errors=True)
+            
+            _pdf_source = wrap_kvs(pdf_source, postget=safe_converter)
+            # Filter out None values (skipped files)
+            pdf_bytes = [pdf for pdf in _pdf_source.values() if pdf is not None]
+        else:
+            _pdf_source = wrap_kvs(pdf_source, postget=key_and_value_to_pdf_bytes)
+            pdf_bytes = _pdf_source.values()
+            
         combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
     elif isinstance(pdf_source, str) and os.path.isdir(pdf_source):
         _inputs["pdf_source"] = Files(pdf_source)
@@ -707,3 +751,15 @@ def concat_pdfs(
 
     Path(save_filepath).write_bytes(combined_pdf_bytes)
     return save_filepath
+
+
+def _safe_key_and_value_to_pdf_bytes(key, value, skip_errors=False):
+    """Wrapper that optionally skips conversion errors."""
+    try:
+        return key_and_value_to_pdf_bytes(key, value)
+    except Exception as e:
+        if skip_errors:
+            print(f"Warning: Skipping file '{key}': {e}")
+            return None  # Return None to indicate skipped file
+        else:
+            raise  # Re-raise the original exception
