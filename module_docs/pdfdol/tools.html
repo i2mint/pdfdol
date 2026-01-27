@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfdol.tools &mdash; pdfdol 0.1.21 documentation</title>
+  <title>pdfdol.tools &mdash; pdfdol 0.1.22 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=b3d22ae5"></script>
+      <script src="../../_static/documentation_options.js?v=842aa08f"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -58,7 +58,15 @@
 <li class="toctree-l1"><a class="reference internal" href="tests/test_tools.html">pdfdol.tests.test_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">pdfdol.tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.any_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">any_to_pdf_bytes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">concat_pdf_bytes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdf_files"><code class="docutils literal notranslate"><span class="pre">concat_pdf_files()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdf_readers"><code class="docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdfs"><code class="docutils literal notranslate"><span class="pre">concat_pdfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.get_pdf"><code class="docutils literal notranslate"><span class="pre">get_pdf()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.key_and_value_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">key_and_value_to_pdf_bytes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.pdf_to_metadata"><code class="docutils literal notranslate"><span class="pre">pdf_to_metadata()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.pdf_to_title"><code class="docutils literal notranslate"><span class="pre">pdf_to_title()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="util.html">pdfdol.util</a></li>
@@ -92,8 +100,94 @@
 <span id="pdfdol-tools"></span><h1>pdfdol.tools<a class="headerlink" href="#module-pdfdol.tools" title="Link to this heading"></a></h1>
 <p>Pdf Tools.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.any_to_pdf_bytes">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">any_to_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#any_to_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.any_to_pdf_bytes" title="Link to this definition"></a></dt>
+<dd><p>Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.</p>
+<p>This is a convenience function that uses get_pdf with egress=None to always
+return PDF bytes regardless of the source type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – Source content - can be a file path, URL, HTML string, markdown,
+image bytes, etc.</p></li>
+<li><p><strong>src_kind</strong> – Optional hint about the source type. If not provided, it will
+be determined heuristically.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>PDF bytes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Convert image bytes to PDF</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_bytes</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;image.png&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">image_bytes</span><span class="p">)</span>  
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Convert HTML string to PDF</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&lt;h1&gt;Hello World&lt;/h1&gt;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>  
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.concat_pdf_bytes">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_of_pdf_bytes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#concat_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_bytes" title="Link to this definition"></a></dt>
+<dd><p>Concatenate multiple PDF bytes into a single PDF bytes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.concat_pdf_files">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_filepaths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'combined.pdf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/tools.html#concat_pdf_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_files" title="Link to this definition"></a></dt>
+<dd><p>Concatenate multiple PDF files into a single PDF file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.concat_pdf_readers">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_readers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_readers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">PdfReader</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PdfWriter</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#concat_pdf_readers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_readers" title="Link to this definition"></a></dt>
+<dd><p>Concatenate multiple PdfReader objects into a single PdfWriter object.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.concat_pdfs">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#concat_pdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdfs" title="Link to this definition"></a></dt>
+<dd><p>Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.</p>
+<p>Tip: Pdfs are aggregated in the order of the mapping’s iteration order.
+If you need these to be in a specific order, you can use the key_order argument
+to sort the mapping, specifying either a callable that will be called on the keys
+to sort them, or specifying an iterable of keys in the desired order.
+Both the ordering function and the explicit list can also be used to filter
+out some keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_source</strong> – Mapping of filepaths to pdf bytes or an iterable of pdf bytes</p></li>
+<li><p><strong>save_filepath</strong> – Filepath to save the concatenated pdf.
+If <cite>True</cite>, the save_filepath will be taken from the rootdir of the pdf_source
+that attribute exists, and no file of that name (+’.pdf’) exists.
+If <cite>False</cite>, the pdf bytes are returned.</p></li>
+<li><p><strong>filter_extensions</strong> – If True, only files with recognized extensions
+(‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered</p></li>
+<li><p><strong>key_order</strong> – Callable or iterable of keys to sort the mapping</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The save_filepath if it was specified, otherwise the concatenated pdf bytes</p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="s1">&#39;~/Downloads/&#39;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdfs</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">save_filepath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">key_order</span><span class="o">=</span><span class="nb">sorted</span><span class="p">)</span>  
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.get_pdf">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">get_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">egress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Callable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">css</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">any</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#get_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.get_pdf" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">get_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">egress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Callable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">css</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#get_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.get_pdf" title="Link to this definition"></a></dt>
 <dd><p>Convert the given source to a PDF (bytes) and process it using the specified egress.</p>
 <dl class="simple">
 <dt>The source (src) can be:</dt><dd><ul class="simple">
@@ -147,6 +241,103 @@ print(“Got PDF data of length:”, len(pdf_data))</p>
 <p># Example saving to file:
 filepath = get_pdf(”<a class="reference external" href="https://pypi.org">https://pypi.org</a>”, egress=”output.pdf”, src_kind=”url”)
 print(“PDF saved to:”, filepath)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.key_and_value_to_pdf_bytes">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">key_and_value_to_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#key_and_value_to_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.key_and_value_to_pdf_bytes" title="Link to this definition"></a></dt>
+<dd><p>Convert a key-value pair to PDF bytes, using the key to determine the type.</p>
+<p>This replaces the old key_and_bytes_to_pdf_bytes function with a more general
+approach using any_to_pdf_bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – The key (usually a filename) used to infer the source type</p></li>
+<li><p><strong>value</strong> – The value (usually bytes) to convert</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>PDF bytes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the file type is unsupported or conversion fails</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.pdf_to_metadata">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">pdf_to_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PdfReader</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#pdf_to_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.pdf_to_metadata" title="Link to this definition"></a></dt>
+<dd><p>Extract metadata from a PDF source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pdf_src</strong> – Can be a file path (str), PDF bytes, or a PdfReader object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Dictionary containing metadata fields (title, author, subject, etc.)</dt><dd><p>Returns empty dict if no metadata or an error occurs.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tests.utils_for_testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_test_pdf_folder</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">get_test_pdf_folder</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_path</span> <span class="o">=</span> <span class="n">test_folder</span> <span class="o">/</span> <span class="s2">&quot;sample_with_title.pdf&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_to_metadata</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">)</span>
+<span class="go">&#39;Sample PDF with Title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Author&#39;</span><span class="p">)</span>
+<span class="go">&#39;Test Author&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.pdf_to_title">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">pdf_to_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PdfReader</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#pdf_to_title"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.pdf_to_title" title="Link to this definition"></a></dt>
+<dd><p>Extract the document title from a PDF source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pdf_src</strong> – Can be a file path (str), PDF bytes, or a PdfReader object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The title from the metadata, or None if not found or an error occurs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str | None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tests.utils_for_testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_test_pdf_folder</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">get_test_pdf_folder</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test with file path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_path</span> <span class="o">=</span> <span class="n">test_folder</span> <span class="o">/</span> <span class="s2">&quot;sample_with_title.pdf&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_to_title</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+<span class="go">&#39;Sample PDF with Title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test with bytes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">pdf_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_to_title</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
+<span class="go">&#39;Sample PDF with Title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test with PdfReader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">pypdf</span><span class="o">.</span><span class="n">PdfReader</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_to_title</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+<span class="go">&#39;Sample PDF with Title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test with no title</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_path_no_title</span> <span class="o">=</span> <span class="n">test_folder</span> <span class="o">/</span> <span class="s2">&quot;sample_pdf_1.pdf&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf_to_title</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path_no_title</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

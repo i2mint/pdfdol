@@ -1,0 +1,232 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pdfdol.tests.test_base &mdash; pdfdol 0.1.22 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=842aa08f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            pdfdol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol.html">pdfdol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/base.html">pdfdol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/examples.html">pdfdol.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/examples/aggregations.html">pdfdol.examples.aggregations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/tests.html">pdfdol.tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/tests/test_base.html">pdfdol.tests.test_base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/tests/test_tools.html">pdfdol.tests.test_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/tools.html">pdfdol.tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../module_docs/pdfdol/util.html">pdfdol.util</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pdfdol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pdfdol.tests.test_base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pdfdol.tests.test_base</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Test the base.py module&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pypdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">PdfReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">PdfFilesReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tests.utils_for_testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_test_pdf_folder</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_files_reader</span><span class="p">():</span>
+    <span class="n">test_pdf_folder</span> <span class="o">=</span> <span class="n">get_test_pdf_folder</span><span class="p">()</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">PdfFilesReader</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">))</span>
+
+    <span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;sample_pdf_1&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_pdf_2&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_with_title&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;sample_pdf_2&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s2">&quot;Page 1</span><span class="se">\n</span><span class="s2">This is a sample text for testing Python PDF tools.&quot;</span>
+    <span class="p">]</span>
+
+
+<div class="viewcode-block" id="test_pdf_to_title_with_filepath">
+<a class="viewcode-back" href="../../../module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_with_filepath">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_to_title_with_filepath</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test pdf_to_title with a file path&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf_to_title</span>
+
+    <span class="n">test_pdf_folder</span> <span class="o">=</span> <span class="n">get_test_pdf_folder</span><span class="p">()</span>
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sample_with_title.pdf&quot;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">pdf_to_title</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">title</span> <span class="o">==</span> <span class="s2">&quot;Sample PDF with Title&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_pdf_to_title_with_bytes">
+<a class="viewcode-back" href="../../../module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_with_bytes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_to_title_with_bytes</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test pdf_to_title with PDF bytes&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf_to_title</span>
+
+    <span class="n">test_pdf_folder</span> <span class="o">=</span> <span class="n">get_test_pdf_folder</span><span class="p">()</span>
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sample_with_title.pdf&quot;</span>
+    <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">pdf_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">pdf_to_title</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">title</span> <span class="o">==</span> <span class="s2">&quot;Sample PDF with Title&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_pdf_to_title_with_pdf_reader">
+<a class="viewcode-back" href="../../../module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_with_pdf_reader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_to_title_with_pdf_reader</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test pdf_to_title with a PdfReader object&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf_to_title</span>
+
+    <span class="n">test_pdf_folder</span> <span class="o">=</span> <span class="n">get_test_pdf_folder</span><span class="p">()</span>
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sample_with_title.pdf&quot;</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">PdfReader</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">pdf_to_title</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">title</span> <span class="o">==</span> <span class="s2">&quot;Sample PDF with Title&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_pdf_to_title_no_title">
+<a class="viewcode-back" href="../../../module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_no_title">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_to_title_no_title</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test pdf_to_title when PDF has no title metadata&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf_to_title</span>
+
+    <span class="n">test_pdf_folder</span> <span class="o">=</span> <span class="n">get_test_pdf_folder</span><span class="p">()</span>
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sample_pdf_1.pdf&quot;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">pdf_to_title</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="test_pdf_to_title_nonexistent_file">
+<a class="viewcode-back" href="../../../module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_nonexistent_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_to_title_nonexistent_file</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test pdf_to_title with non-existent file&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf_to_title</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">pdf_to_title</span><span class="p">(</span><span class="s2">&quot;/nonexistent/path/to/file.pdf&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="test_pdf_to_metadata">
+<a class="viewcode-back" href="../../../module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_metadata">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_pdf_to_metadata</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test pdf_to_metadata function&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf_to_metadata</span>
+
+    <span class="n">test_pdf_folder</span> <span class="o">=</span> <span class="n">get_test_pdf_folder</span><span class="p">()</span>
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sample_with_title.pdf&quot;</span>
+
+    <span class="c1"># Test with filepath</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_to_metadata</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Sample PDF with Title&quot;</span>
+    <span class="k">assert</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Author&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Test Author&quot;</span>
+    <span class="k">assert</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Subject&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Testing PDF metadata extraction&quot;</span>
+
+    <span class="c1"># Test with bytes</span>
+    <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">pdf_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_to_metadata</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Sample PDF with Title&quot;</span>
+
+    <span class="c1"># Test with PdfReader</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">PdfReader</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">))</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_to_metadata</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Sample PDF with Title&quot;</span>
+
+    <span class="c1"># Test with PDF without metadata</span>
+    <span class="n">pdf_path_no_meta</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_pdf_folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sample_pdf_1.pdf&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_to_metadata</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path_no_meta</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>  <span class="c1"># Should return empty dict, not None</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

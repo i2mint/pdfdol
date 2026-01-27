@@ -5,16 +5,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfdol.util &mdash; pdfdol 0.1.21 documentation</title>
+  <title>pdfdol.util &mdash; pdfdol 0.1.22 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=b3d22ae5"></script>
+      <script src="../../_static/documentation_options.js?v=842aa08f"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -86,7 +86,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;Utils for pdfdol&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">PdfReader</span><span class="p">,</span> <span class="n">PdfWriter</span><span class="p">,</span> <span class="n">PageObject</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -209,270 +210,6 @@
 
     <span class="k">return</span> <span class="n">output_path</span></div>
 
-
-
-<span class="c1"># ---------------------------------------------------------------------------------</span>
-<span class="c1"># Sourcing pdfs</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Iterable</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">written_bytes</span>
-
-
-<span class="c1"># TODO: Generalize to allow html_filepaths to be mappings (with html as values)</span>
-<span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">weasyprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTML</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_html_bytes_to_pdf_bytes_writer</span><span class="p">(</span><span class="n">html_bytes</span><span class="p">,</span> <span class="n">buffer</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">html_bytes</span><span class="p">))</span><span class="o">.</span><span class="n">write_pdf</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
-
-    <span class="n">html_bytes_to_pdf_bytes</span> <span class="o">=</span> <span class="n">written_bytes</span><span class="p">(</span><span class="n">_html_bytes_to_pdf_bytes_writer</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">html_to_pdf_w_weasyprint</span><span class="p">(</span>
-        <span class="n">htmls</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Filepath</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Filepath</span><span class="p">]],</span>
-        <span class="n">save_filepath</span><span class="o">=</span><span class="s2">&quot;htmls_to_pdf.pdf&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert one or several HTML files into a single PDF file.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">htmls</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-            <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">html_bytes_to_pdf_bytes</span><span class="p">,</span> <span class="n">htmls</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">htmls</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">htmls</span> <span class="o">=</span> <span class="p">[</span><span class="n">htmls</span><span class="p">]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">htmls</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;htmls must be an iterable of filepaths or a mapping, not </span><span class="si">{</span><span class="n">htmls</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
-            <span class="n">html_file_bytes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Path</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span> <span class="n">htmls</span><span class="p">)</span>
-            <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">html_bytes_to_pdf_bytes</span><span class="p">,</span> <span class="n">html_file_bytes</span><span class="p">)</span>
-
-        <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">save_filepath</span><span class="p">:</span>
-            <span class="n">Path</span><span class="p">(</span><span class="n">save_filepath</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">combined_pdf_bytes</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">save_filepath</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">combined_pdf_bytes</span>
-
-
-<span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">pdfkit</span>
-
-    <span class="n">DFLT_OPTIONS</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;enable-local-file-access&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;page-size&quot;</span><span class="p">:</span> <span class="s2">&quot;A4&quot;</span><span class="p">,</span>  <span class="c1"># Ensure consistent page size</span>
-        <span class="s2">&quot;disable-smart-shrinking&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Disable smart shrinking to avoid unexpected layout changes</span>
-    <span class="p">}</span>
-
-<div class="viewcode-block" id="html_to_pdf_w_pdfkit">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.html_to_pdf_w_pdfkit">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">html_to_pdf_w_pdfkit</span><span class="p">(</span>
-        <span class="n">html_filepaths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Filepath</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Filepath</span><span class="p">]],</span>
-        <span class="n">save_filepath</span><span class="o">=</span><span class="s2">&quot;htmls_to_pdf.pdf&quot;</span><span class="p">,</span>
-        <span class="o">*</span><span class="p">,</span>
-        <span class="n">options</span><span class="o">=</span><span class="n">DFLT_OPTIONS</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert one or several HTML files into a single PDF file.&quot;&quot;&quot;</span>
-
-        <span class="n">pdfkit</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">html_filepaths</span><span class="p">,</span> <span class="n">save_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">save_filepath</span></div>
-
-
-
-<span class="c1"># choose the first available html_to_pdf function</span>
-<span class="n">preferences_for_html_to_pdf</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;html_to_pdf_w_weasyprint&quot;</span><span class="p">,</span> <span class="s2">&quot;html_to_pdf_w_pdfkit&quot;</span><span class="p">]</span>
-
-<span class="k">for</span> <span class="n">pref</span> <span class="ow">in</span> <span class="n">preferences_for_html_to_pdf</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">pref</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">():</span>
-        <span class="n">html_to_pdf</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">pref</span><span class="p">]</span>
-        <span class="k">break</span>
-<span class="k">else</span><span class="p">:</span>
-
-<div class="viewcode-block" id="html_to_pdf">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.html_to_pdf">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">html_to_pdf</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-            <span class="s2">&quot;You need to have either weasyprint or pdfkit installed to use html_to_pdf&quot;</span>
-        <span class="p">)</span></div>
-
-
-
-<span class="c1"># ---------------------------------------------------------------------------------</span>
-<span class="c1"># Pdf concatenation</span>
-<span class="c1"># TODO: Add some functionality to prefix/suffix pdf pages (useful when concatenating)</span>
-
-<span class="n">bytes_to_pdf_reader_obj</span> <span class="o">=</span> <span class="n">Pipe</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">,</span> <span class="n">PdfReader</span><span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">get_file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-
-
-<div class="viewcode-block" id="image_bytes_to_pdf_bytes">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.image_bytes_to_pdf_bytes">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">image_bytes_to_pdf_bytes</span><span class="p">(</span><span class="n">image_bytes</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert image bytes to PDF bytes.&quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># pip install Pillow</span>
-
-    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">image_bytes</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;RGBA&quot;</span><span class="p">,</span> <span class="s2">&quot;LA&quot;</span><span class="p">):</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-    <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;PDF&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">key_and_bytes_to_pdf_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data_bytes</span><span class="p">):</span>
-    <span class="n">extension</span> <span class="o">=</span> <span class="n">get_file_extension</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">extension</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="s2">&quot;.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;.jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;.bmp&quot;</span><span class="p">,</span> <span class="s2">&quot;.gif&quot;</span><span class="p">,</span> <span class="s2">&quot;.tiff&quot;</span><span class="p">}:</span>
-        <span class="k">return</span> <span class="n">image_bytes_to_pdf_bytes</span><span class="p">(</span><span class="n">data_bytes</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">data_bytes</span>
-
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">methodcaller</span>
-
-<span class="c1"># equivalent to lambda pdf_filepath: Path(pdf_filepath).write_bytes():</span>
-<span class="n">file_to_bytes</span> <span class="o">=</span> <span class="n">Pipe</span><span class="p">(</span><span class="n">Path</span><span class="p">,</span> <span class="n">methodcaller</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">))</span>
-
-
-<span class="c1"># TODO: Look at the concat patterns here and see how they can be generalized to</span>
-<span class="c1">#    other file types, by parametrizing the concat operation.</span>
-<div class="viewcode-block" id="concat_pdf_readers">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.concat_pdf_readers">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">concat_pdf_readers</span><span class="p">(</span><span class="n">pdf_readers</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">PdfReader</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">PdfWriter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate multiple PdfReader objects into a single PdfWriter object.&quot;&quot;&quot;</span>
-    <span class="n">writer</span> <span class="o">=</span> <span class="n">PdfWriter</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">reader</span> <span class="ow">in</span> <span class="n">pdf_readers</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">pages</span><span class="p">:</span>
-            <span class="n">writer</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">writer</span></div>
-
-
-
-<div class="viewcode-block" id="concat_pdf_bytes">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.concat_pdf_bytes">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">concat_pdf_bytes</span><span class="p">(</span><span class="n">list_of_pdf_bytes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate multiple PDF bytes into a single PDF bytes.&quot;&quot;&quot;</span>
-    <span class="n">pdf_readers</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">bytes_to_pdf_reader_obj</span><span class="p">,</span> <span class="n">list_of_pdf_bytes</span><span class="p">)</span>
-    <span class="n">writer</span> <span class="o">=</span> <span class="n">concat_pdf_readers</span><span class="p">(</span><span class="n">pdf_readers</span><span class="p">)</span>
-    <span class="n">output_buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-    <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_buffer</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">output_buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
-
-
-
-<span class="n">DFLT_SAVE_PDF_NAME</span> <span class="o">=</span> <span class="s2">&quot;combined.pdf&quot;</span>
-
-
-<div class="viewcode-block" id="concat_pdf_files">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.concat_pdf_files">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">concat_pdf_files</span><span class="p">(</span><span class="n">pdf_filepaths</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">save_filepath</span><span class="o">=</span><span class="n">DFLT_SAVE_PDF_NAME</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate multiple PDF files into a single PDF file.&quot;&quot;&quot;</span>
-    <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">file_to_bytes</span><span class="p">,</span> <span class="n">pdf_filepaths</span><span class="p">)</span>
-    <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
-    <span class="n">Path</span><span class="p">(</span><span class="n">save_filepath</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">combined_pdf_bytes</span><span class="p">)</span></div>
-
-
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache_iter</span>
-
-
-<span class="c1"># TODO: Generalize to allow pdf_source to be a mapping of any keys to pdf bytes (not necessarily filepaths)</span>
-<div class="viewcode-block" id="concat_pdfs">
-<a class="viewcode-back" href="../../module_docs/pdfdol/util.html#pdfdol.util.concat_pdfs">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">concat_pdfs</span><span class="p">(</span>
-    <span class="n">pdf_source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]],</span>
-    <span class="n">save_filepath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">filter_extensions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">key_order</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.</span>
-
-<span class="sd">    Tip: Pdfs are aggregated in the order of the mapping&#39;s iteration order.</span>
-<span class="sd">    If you need these to be in a specific order, you can use the key_order argument</span>
-<span class="sd">    to sort the mapping, specifying either a callable that will be called on the keys</span>
-<span class="sd">    to sort them, or specifying an iterable of keys in the desired order.</span>
-<span class="sd">    Both the ordering function and the explicit list can also be used to filter</span>
-<span class="sd">    out some keys.</span>
-
-<span class="sd">    :param pdf_source: Mapping of filepaths to pdf bytes or an iterable of pdf bytes</span>
-<span class="sd">    :param save_filepath: Filepath to save the concatenated pdf.</span>
-<span class="sd">        If `True`, the save_filepath will be taken from the rootdir of the pdf_source</span>
-<span class="sd">        that attribute exists, and no file of that name (+&#39;.pdf&#39;) exists.</span>
-<span class="sd">        If `False`, the pdf bytes are returned.</span>
-<span class="sd">    :param filter_extensions: If True, only files with recognized extensions</span>
-<span class="sd">        (&#39;.pdf&#39;, &#39;.png&#39;, &#39;.jpg&#39;, &#39;.jpeg&#39;, &#39;.bmp&#39;, &#39;.gif&#39;, &#39;.tiff&#39;) are considered</span>
-<span class="sd">    :param key_order: Callable or iterable of keys to sort the mapping</span>
-
-<span class="sd">    :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes</span>
-
-<span class="sd">    &gt;&gt;&gt; s = Files(&#39;~/Downloads/&#39;)  # doctest: +SKIP</span>
-<span class="sd">    &gt;&gt;&gt; pdf_bytes = concat_pdfs(s, key_order=sorted)  # doctest: +SKIP</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_inputs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">locals</span><span class="p">())</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-        <span class="n">filter_extensions</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s2">&quot;filter_pdf_extension&quot;</span><span class="p">,</span> <span class="n">filter_extensions</span>
-        <span class="p">)</span>  <span class="c1"># backwards compatibility</span>
-
-        <span class="k">if</span> <span class="n">filter_extensions</span><span class="p">:</span>
-            <span class="n">pdf_source</span> <span class="o">=</span> <span class="n">filter_pdfs_and_images</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">key_order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">key_order</span><span class="p">):</span>
-                <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pdf_source</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="n">key_order</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_order</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-                <span class="n">reverse</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">key_order</span>
-                <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pdf_source</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_order</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
-                <span class="n">keys</span> <span class="o">=</span> <span class="n">key_order</span>
-            <span class="n">pdf_source</span> <span class="o">=</span> <span class="n">cache_iter</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">keys_cache</span><span class="o">=</span><span class="n">keys</span><span class="p">)</span>
-            <span class="c1"># pdf_source = {k: pdf_source[k] for k in keys}</span>
-
-        <span class="n">_pdf_source</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">postget</span><span class="o">=</span><span class="n">key_and_bytes_to_pdf_bytes</span><span class="p">)</span>
-        <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">_pdf_source</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-        <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">):</span>
-        <span class="n">_inputs</span><span class="p">[</span><span class="s2">&quot;pdf_source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">concat_pdfs</span><span class="p">(</span><span class="o">**</span><span class="n">_inputs</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
-            <span class="n">pdf_source</span><span class="p">,</span> <span class="n">Iterable</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;pdf_source must be an iterable (mapping or sequence), not </span><span class="si">{</span><span class="n">pdf_source</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">save_filepath</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">combined_pdf_bytes</span>
-    <span class="k">elif</span> <span class="n">save_filepath</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="s2">&quot;rootdir&quot;</span><span class="p">):</span>
-            <span class="n">rootdir</span> <span class="o">=</span> <span class="n">pdf_source</span><span class="o">.</span><span class="n">rootdir</span>
-            <span class="n">rootdir_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span>
-            <span class="c1"># get rootdir name and parent path</span>
-            <span class="n">parent</span><span class="p">,</span> <span class="n">rootdir_name</span> <span class="o">=</span> <span class="n">rootdir_path</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">rootdir_path</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">save_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">rootdir_name</span> <span class="o">+</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">save_filepath</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">save_filepath</span><span class="si">}</span><span class="s2"> already exists. Specify your save_filepath &quot;</span>
-                    <span class="s2">&quot;explicitly if you want to overwrite it.&quot;</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">save_filepath</span> <span class="o">=</span> <span class="n">DFLT_SAVE_PDF_NAME</span>
-    <span class="k">elif</span> <span class="n">save_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># TODO: Deprecating &quot;None&quot; as True as it was before. Change to None == False later</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;save_filepath must be a string, not None. &quot;</span>
-            <span class="s2">&quot;Specify a filepath to save the concatenated pdf.&quot;</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
-            <span class="n">save_filepath</span><span class="p">,</span> <span class="nb">str</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;save_filepath must be a boolean or a string, not </span><span class="si">{</span><span class="n">save_filepath</span><span class="si">}</span><span class="s2">&quot;</span>
-
-    <span class="n">Path</span><span class="p">(</span><span class="n">save_filepath</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">combined_pdf_bytes</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">save_filepath</span></div>
 
 </pre></div>
 
