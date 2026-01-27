@@ -110,4 +110,3 @@ def remove_empty_pages(
         writer.write(out_pdf)
 
     return output_path
-

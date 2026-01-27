@@ -79,19 +79,19 @@ def test_pdf_to_metadata():
 
     # Test with filepath
     metadata = pdf_to_metadata(str(pdf_path))
-    assert metadata['Title'] == "Sample PDF with Title"
-    assert metadata['Author'] == "Test Author"
-    assert metadata['Subject'] == "Testing PDF metadata extraction"
+    assert metadata["Title"] == "Sample PDF with Title"
+    assert metadata["Author"] == "Test Author"
+    assert metadata["Subject"] == "Testing PDF metadata extraction"
 
     # Test with bytes
     pdf_bytes = pdf_path.read_bytes()
     metadata = pdf_to_metadata(pdf_bytes)
-    assert metadata['Title'] == "Sample PDF with Title"
+    assert metadata["Title"] == "Sample PDF with Title"
 
     # Test with PdfReader
     reader = PdfReader(str(pdf_path))
     metadata = pdf_to_metadata(reader)
-    assert metadata['Title'] == "Sample PDF with Title"
+    assert metadata["Title"] == "Sample PDF with Title"
 
     # Test with PDF without metadata
     pdf_path_no_meta = Path(test_pdf_folder) / "sample_pdf_1.pdf"
