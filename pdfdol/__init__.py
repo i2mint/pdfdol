@@ -21,8 +21,9 @@ from pdfdol.base import (
     pdf_files_pages_reader_wrap,  # A store wrapper to get stores with list of pages as values
     pdf_files_text_reader_wrap,  # A store wrapper to get stores with aggregated pages text as values
 )
-from pdfdol.util import concat_pdfs  # concatenate pdfs
 from pdfdol.tools import (
     get_pdf,  # Convert the given source to a PDF (bytes) and process it using the specified egress.
+    any_to_pdf_bytes,  # Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.
     pdf_to_title,  # Extract the title from a PDF file's metadata.
+    concat_pdfs,  # concatenate pdfs,
 )

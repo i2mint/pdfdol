@@ -10,7 +10,14 @@ import markdown
 import pdfkit
 import pypdf
 
-from dol import Pipe
+from dol import Pipe, cache_iter, wrap_kvs, Files, filt_iter
+from pathlib import Path
+from operator import methodcaller
+
+
+filter_pdfs_and_images = filt_iter.suffixes(
+    (".pdf", ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff")
+)
 
 # Define the allowed source kinds (added 'image')
 SrcKind = Literal["url", "html", "file", "md", "markdown", "text", "image"]
@@ -42,8 +49,12 @@ def _resolve_src_kind(src: str) -> SrcKind:
         True
         >>> os.remove(tmp_name)
     """
-    # Accept bytes input as well (image bytes)
+    # Accept bytes input as well (image/PDF bytes)
     if isinstance(src, (bytes, bytearray)):
+        # Check for PDF first
+        if src.startswith(b'%PDF'):
+            return "file"  # treat as PDF file bytes
+        
         # try to quickly detect image bytes
         try:
             import imghdr
@@ -354,6 +365,78 @@ def get_pdf(
     return egress_func(pdf_bytes)
 
 
+def any_to_pdf_bytes(src, *, src_kind: SrcKind = None) -> bytes:
+    """
+    Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.
+    
+    This is a convenience function that uses get_pdf with egress=None to always
+    return PDF bytes regardless of the source type.
+    
+    Args:
+        src: Source content - can be a file path, URL, HTML string, markdown, 
+             image bytes, etc.
+        src_kind: Optional hint about the source type. If not provided, it will
+                 be determined heuristically.
+                 
+    Returns:
+        bytes: PDF bytes
+        
+    Examples:
+        >>> # Convert image bytes to PDF
+        >>> image_bytes = open('image.png', 'rb').read()  # doctest: +SKIP
+        >>> pdf_bytes = any_to_pdf_bytes(image_bytes)  # doctest: +SKIP
+        
+        >>> # Convert HTML string to PDF  
+        >>> html = "<h1>Hello World</h1>"
+        >>> pdf_bytes = any_to_pdf_bytes(html, src_kind="html")  # doctest: +SKIP
+    """
+    # Special case: if src is already PDF bytes, return as-is
+    if isinstance(src, (bytes, bytearray)) and src.startswith(b'%PDF'):
+        return src
+    
+    return get_pdf(src, egress=None, src_kind=src_kind)
+
+
+def key_and_value_to_pdf_bytes(key, value) -> bytes:
+    """
+    Convert a key-value pair to PDF bytes, using the key to determine the type.
+    
+    This replaces the old key_and_bytes_to_pdf_bytes function with a more general 
+    approach using any_to_pdf_bytes.
+    
+    Args:
+        key: The key (usually a filename) used to infer the source type
+        value: The value (usually bytes) to convert
+        
+    Returns:
+        bytes: PDF bytes
+    """
+    # If it's already PDF bytes, return as-is
+    if isinstance(value, bytes) and value.startswith(b'%PDF'):
+        return value
+        
+    # For file-like keys, use the key to determine the source type
+    if isinstance(key, str):
+        extension = os.path.splitext(key)[1].lower()
+        if extension in {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp"}:
+            return any_to_pdf_bytes(value, src_kind="image")
+        elif extension in {".html", ".htm"}:
+            # HTML content should be string for pdfkit
+            if isinstance(value, bytes):
+                value = value.decode('utf-8', errors='ignore')
+            return any_to_pdf_bytes(value, src_kind="html")
+        elif extension in {".md", ".markdown"}:
+            # Markdown content should be string
+            if isinstance(value, bytes):
+                value = value.decode('utf-8', errors='ignore')
+            return any_to_pdf_bytes(value, src_kind="markdown")
+        elif extension == ".pdf":
+            return value  # Assume it's already PDF bytes
+    
+    # Default: try to auto-detect using the heuristic in _resolve_src_kind
+    return any_to_pdf_bytes(value)
+
+
 # ---------------------------------------------------------------------------------
 # PDF metadata extraction
 
@@ -489,3 +572,138 @@ def pdf_to_title(pdf_src: Union[str, bytes, pypdf.PdfReader]) -> str | None:
     if title:
         return title.strip()
     return None
+
+
+# ---------------------------------------------------------------------------------
+# Pdf concatenation helpers
+from typing import Iterable, Mapping
+import pypdf
+from pathlib import Path
+from operator import methodcaller
+
+# Core helpers for PDF concatenation
+bytes_to_pdf_reader_obj = Pipe(io.BytesIO, pypdf.PdfReader)
+file_to_bytes = Pipe(Path, methodcaller("read_bytes"))
+DFLT_SAVE_PDF_NAME = "combined.pdf"
+
+
+def concat_pdf_readers(pdf_readers: Iterable[pypdf.PdfReader]) -> pypdf.PdfWriter:
+    """Concatenate multiple PdfReader objects into a single PdfWriter object."""
+    writer = pypdf.PdfWriter()
+    for reader in pdf_readers:
+        for page in reader.pages:
+            writer.add_page(page)
+    return writer
+
+
+def concat_pdf_bytes(list_of_pdf_bytes: Iterable[bytes]) -> bytes:
+    """Concatenate multiple PDF bytes into a single PDF bytes."""
+    pdf_readers = map(bytes_to_pdf_reader_obj, list_of_pdf_bytes)
+    writer = concat_pdf_readers(pdf_readers)
+    output_buffer = io.BytesIO()
+    writer.write(output_buffer)
+    return output_buffer.getvalue()
+
+
+def concat_pdf_files(pdf_filepaths: Iterable[str], save_filepath=DFLT_SAVE_PDF_NAME):
+    """Concatenate multiple PDF files into a single PDF file."""
+    pdf_bytes = map(file_to_bytes, pdf_filepaths)
+    combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+    Path(save_filepath).write_bytes(combined_pdf_bytes)
+
+
+# TODO: Generalize to allow pdf_source to be a mapping of any keys to pdf bytes (not necessarily filepaths)
+def concat_pdfs(
+    pdf_source: Iterable[bytes] | Mapping[str, bytes],
+    save_filepath=False,
+    *,
+    filter_extensions=False,
+    key_order: Callable | Iterable = None,
+    **kwargs,
+) -> str | bytes:
+    """
+    Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.
+
+    Tip: Pdfs are aggregated in the order of the mapping's iteration order.
+    If you need these to be in a specific order, you can use the key_order argument
+    to sort the mapping, specifying either a callable that will be called on the keys
+    to sort them, or specifying an iterable of keys in the desired order.
+    Both the ordering function and the explicit list can also be used to filter
+    out some keys.
+
+    :param pdf_source: Mapping of filepaths to pdf bytes or an iterable of pdf bytes
+    :param save_filepath: Filepath to save the concatenated pdf.
+        If `True`, the save_filepath will be taken from the rootdir of the pdf_source
+        that attribute exists, and no file of that name (+'.pdf') exists.
+        If `False`, the pdf bytes are returned.
+    :param filter_extensions: If True, only files with recognized extensions
+        ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff') are considered
+    :param key_order: Callable or iterable of keys to sort the mapping
+
+    :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes
+
+    >>> s = Files('~/Downloads/')  # doctest: +SKIP
+    >>> pdf_bytes = concat_pdfs(s, save_filepath=False, key_order=sorted)  # doctest: +SKIP
+
+    """
+    _inputs = dict(locals())
+    if isinstance(pdf_source, Mapping):
+        filter_extensions = kwargs.get(
+            "filter_pdf_extension", filter_extensions
+        )  # backwards compatibility
+
+        if filter_extensions:
+            pdf_source = filter_pdfs_and_images(pdf_source)
+
+        if key_order is not None:
+            if callable(key_order):
+                keys = sorted(pdf_source.keys(), key=key_order)
+            elif isinstance(key_order, bool):
+                reverse = not key_order
+                keys = sorted(pdf_source.keys(), reverse=reverse)
+            elif isinstance(key_order, Iterable):
+                keys = key_order
+            pdf_source = cache_iter(pdf_source, keys_cache=keys)
+            # pdf_source = {k: pdf_source[k] for k in keys}
+
+        _pdf_source = wrap_kvs(pdf_source, postget=key_and_value_to_pdf_bytes)
+        pdf_bytes = _pdf_source.values()
+        combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+    elif isinstance(pdf_source, str) and os.path.isdir(pdf_source):
+        _inputs["pdf_source"] = Files(pdf_source)
+        return concat_pdfs(**_inputs)
+    else:
+        assert isinstance(
+            pdf_source, Iterable
+        ), f"pdf_source must be an iterable (mapping or sequence), not {pdf_source}"
+        combined_pdf_bytes = concat_pdf_bytes(pdf_source)
+
+    if save_filepath is False:
+        return combined_pdf_bytes
+    elif save_filepath is True:
+        if hasattr(pdf_source, "rootdir"):
+            rootdir = pdf_source.rootdir
+            rootdir_path = Path(rootdir)
+            # get rootdir name and parent path
+            parent, rootdir_name = rootdir_path.parent, rootdir_path.name
+            save_filepath = os.path.join(parent, rootdir_name + ".pdf")
+            if os.path.isfile(save_filepath):
+                raise ValueError(
+                    f"File {save_filepath} already exists. Specify your save_filepath "
+                    "explicitly if you want to overwrite it."
+                )
+        else:
+            save_filepath = DFLT_SAVE_PDF_NAME
+    elif save_filepath is None:
+        # TODO: Deprecating "None" as True as it was before. Change to None == False later
+        raise ValueError(
+            "save_filepath must be a string, not None. "
+            "Specify a filepath to save the concatenated pdf."
+        )
+    else:
+        assert isinstance(
+            save_filepath, str
+        ), f"save_filepath must be a boolean or a string, not {save_filepath}"
+
+    Path(save_filepath).write_bytes(combined_pdf_bytes)
+    return save_filepath

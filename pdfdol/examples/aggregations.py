@@ -36,7 +36,7 @@ from pathlib import Path
 import os
 from typing import Union, Optional
 from collections.abc import Iterable, Callable
-from ..util import concat_pdfs
+from pdfdol.tools import concat_pdfs
 import base64
 import imghdr
 import io

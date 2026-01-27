@@ -1,9 +1,12 @@
 """Base objects for pdfdol"""
 
+from contextlib import suppress
 from collections.abc import Iterable
 from dol import Files, wrap_kvs, Pipe, KeyCodecs, add_ipython_key_completions
 from pypdf import PdfReader
 from io import BytesIO
+
+from pdfdol.util import Filepath
 
 bytes_to_pdf_reader_obj = Pipe(BytesIO, PdfReader)
 
@@ -68,3 +71,18 @@ PdfTextReader = pdf_files_text_reader_wrap(Files)
 #     ('text_pages_iter', 'text_pages'): list,
 #     ('text_pages', 'string'): page_sep.join,
 # }
+
+
+# choose the first available html_to_pdf function
+preferences_for_html_to_pdf = ["html_to_pdf_w_weasyprint", "html_to_pdf_w_pdfkit"]
+
+for pref in preferences_for_html_to_pdf:
+    if pref in globals():
+        html_to_pdf = globals()[pref]
+        break
+else:
+
+    def html_to_pdf(*args, **kwargs):
+        raise ImportError(
+            "You need to have either weasyprint or pdfkit installed to use html_to_pdf"
+        )
