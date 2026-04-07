@@ -21,6 +21,10 @@ from pdfdol.base import (
     pdf_files_pages_reader_wrap,  # A store wrapper to get stores with list of pages as values
     pdf_files_text_reader_wrap,  # A store wrapper to get stores with aggregated pages text as values
 )
+from pdfdol.download import (
+    download_articles,  # Download PDF articles from markdown-formatted text
+    download_articles_by_section,  # Download articles organized by markdown sections
+)
 from pdfdol.tools import (
     get_pdf,  # Convert the given source to a PDF (bytes) and process it using the specified egress.
     any_to_pdf_bytes,  # Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.
