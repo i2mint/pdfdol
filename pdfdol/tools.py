@@ -18,7 +18,6 @@ from dol import Pipe, cache_iter, wrap_kvs, Files, filt_iter
 from pathlib import Path
 from operator import methodcaller
 
-
 # ---------------------------------------------------------------------------
 # Format Converter Registry
 # ---------------------------------------------------------------------------
@@ -38,8 +37,8 @@ _format_converters: dict[str, Callable] = {}
 def _normalize_extension(ext: str) -> str:
     """Normalize a file extension to lowercase with leading dot."""
     ext = ext.lower().strip()
-    if not ext.startswith('.'):
-        ext = f'.{ext}'
+    if not ext.startswith("."):
+        ext = f".{ext}"
     return ext
 
 
@@ -113,25 +112,44 @@ def supported_extensions() -> tuple[str, ...]:
 # Extensions ebook-convert can convert to PDF that pdfdol does not already
 # handle natively.  Native formats (html, htm, md, markdown, pdf, images)
 # are intentionally excluded to avoid overriding the lighter-weight converters.
-_ebook_convert_extensions = frozenset({
-    '.azw', '.azw3', '.azw4',
-    '.cb7', '.cbc', '.cbr', '.cbz',
-    '.chm',
-    '.djv', '.djvu',
-    '.docm', '.docx',
-    '.epub',
-    '.fb2', '.fbz',
-    '.htmlz',
-    '.kepub',
-    '.lit', '.lrf',
-    '.mobi',
-    '.odt', '.opf',
-    '.pdb', '.pml', '.pmlz', '.pobi', '.prc',
-    '.rb', '.rtf',
-    '.snb',
-    '.tcr', '.textile', '.txtz',
-    '.updb',
-})
+_ebook_convert_extensions = frozenset(
+    {
+        ".azw",
+        ".azw3",
+        ".azw4",
+        ".cb7",
+        ".cbc",
+        ".cbr",
+        ".cbz",
+        ".chm",
+        ".djv",
+        ".djvu",
+        ".docm",
+        ".docx",
+        ".epub",
+        ".fb2",
+        ".fbz",
+        ".htmlz",
+        ".kepub",
+        ".lit",
+        ".lrf",
+        ".mobi",
+        ".odt",
+        ".opf",
+        ".pdb",
+        ".pml",
+        ".pmlz",
+        ".pobi",
+        ".prc",
+        ".rb",
+        ".rtf",
+        ".snb",
+        ".tcr",
+        ".textile",
+        ".txtz",
+        ".updb",
+    }
+)
 
 
 def find_ebook_convert() -> str | None:
@@ -143,18 +161,18 @@ def find_ebook_convert() -> str | None:
     Returns:
         Path to the binary, or ``None`` if not found.
     """
-    path = shutil.which('ebook-convert')
+    path = shutil.which("ebook-convert")
     if path:
         return path
     # macOS: Calibre.app bundle
-    _mac_path = '/Applications/calibre.app/Contents/MacOS/ebook-convert'
+    _mac_path = "/Applications/calibre.app/Contents/MacOS/ebook-convert"
     if os.path.isfile(_mac_path):
         return _mac_path
     # Windows: common install locations
-    if os.name == 'nt':
+    if os.name == "nt":
         for template in (
-            r'%ProgramFiles%\Calibre2\ebook-convert.exe',
-            r'%ProgramFiles(x86)%\Calibre2\ebook-convert.exe',
+            r"%ProgramFiles%\Calibre2\ebook-convert.exe",
+            r"%ProgramFiles(x86)%\Calibre2\ebook-convert.exe",
         ):
             p = os.path.expandvars(template)
             if os.path.isfile(p):
@@ -209,7 +227,7 @@ def ebook_convert_to_pdf(source, *, extension=None, ebook_convert_path=None):
             if extension is None:
                 extension = os.path.splitext(input_path)[1]
 
-        fd, output_path = tempfile.mkstemp(suffix='.pdf')
+        fd, output_path = tempfile.mkstemp(suffix=".pdf")
         os.close(fd)
 
         result = subprocess.run(
@@ -628,35 +646,35 @@ def any_to_pdf_bytes(src, *, src_kind: SrcKind = None) -> bytes:
 
 
 def _image_to_pdf(source):
-    return any_to_pdf_bytes(source, src_kind='image')
+    return any_to_pdf_bytes(source, src_kind="image")
 
 
 def _html_to_pdf(source):
     if isinstance(source, bytes):
-        source = source.decode('utf-8', errors='ignore')
-    return any_to_pdf_bytes(source, src_kind='html')
+        source = source.decode("utf-8", errors="ignore")
+    return any_to_pdf_bytes(source, src_kind="html")
 
 
 def _markdown_to_pdf(source):
     if isinstance(source, bytes):
-        source = source.decode('utf-8', errors='ignore')
-    return any_to_pdf_bytes(source, src_kind='markdown')
+        source = source.decode("utf-8", errors="ignore")
+    return any_to_pdf_bytes(source, src_kind="markdown")
 
 
 def _pdf_passthrough(source):
     if isinstance(source, (bytes, bytearray)):
-        if source.startswith(b'%PDF'):
+        if source.startswith(b"%PDF"):
             return source
         raise ValueError("Bytes do not appear to be a valid PDF")
     return Path(source).read_bytes()
 
 
 register_format_converter(
-    ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.webp'], _image_to_pdf
+    [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp"], _image_to_pdf
 )
-register_format_converter(['.html', '.htm'], _html_to_pdf)
-register_format_converter(['.md', '.markdown'], _markdown_to_pdf)
-register_format_converter('.pdf', _pdf_passthrough)
+register_format_converter([".html", ".htm"], _html_to_pdf)
+register_format_converter([".md", ".markdown"], _markdown_to_pdf)
+register_format_converter(".pdf", _pdf_passthrough)
 
 
 def key_and_value_to_pdf_bytes(key, value) -> bytes:
@@ -684,9 +702,7 @@ def key_and_value_to_pdf_bytes(key, value) -> bytes:
             try:
                 return converter(value)
             except Exception as e:
-                raise ValueError(
-                    f"Failed to convert '{key}' to PDF: {e}"
-                ) from e
+                raise ValueError(f"Failed to convert '{key}' to PDF: {e}") from e
         raise ValueError(
             f"Unsupported file type '{extension}' for file '{key}'. "
             f"Natively supported: {', '.join(sorted(_format_converters))}. "

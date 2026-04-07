@@ -67,35 +67,47 @@ def test_get_pdf_save_to_file(tmp_path):
 
 
 def test_normalize_extension():
-    assert _normalize_extension('.PDF') == '.pdf'
-    assert _normalize_extension('epub') == '.epub'
-    assert _normalize_extension('.Epub') == '.epub'
-    assert _normalize_extension('  .TXT  ') == '.txt'
+    assert _normalize_extension(".PDF") == ".pdf"
+    assert _normalize_extension("epub") == ".epub"
+    assert _normalize_extension(".Epub") == ".epub"
+    assert _normalize_extension("  .TXT  ") == ".txt"
 
 
 def test_native_converters_registered():
     """Native extensions should be in the registry after import."""
-    for ext in ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.webp',
-                '.html', '.htm', '.md', '.markdown', '.pdf']:
+    for ext in [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".bmp",
+        ".gif",
+        ".tiff",
+        ".webp",
+        ".html",
+        ".htm",
+        ".md",
+        ".markdown",
+        ".pdf",
+    ]:
         assert ext in _format_converters, f"{ext} not registered"
 
 
 def test_get_format_converter_native():
     """get_format_converter should return a callable for native extensions."""
-    for ext in ['.png', '.html', '.md', '.pdf']:
+    for ext in [".png", ".html", ".md", ".pdf"]:
         assert callable(get_format_converter(ext))
 
 
 def test_get_format_converter_ebook():
     """get_format_converter should return a callable for ebook-convert extensions."""
-    for ext in ['.epub', '.mobi', '.docx']:
+    for ext in [".epub", ".mobi", ".docx"]:
         converter = get_format_converter(ext)
         assert callable(converter), f"No converter for {ext}"
 
 
 def test_get_format_converter_unknown():
     """Unknown extensions should return None."""
-    assert get_format_converter('.xyz_unknown_format') is None
+    assert get_format_converter(".xyz_unknown_format") is None
 
 
 def test_register_custom_converter():
@@ -105,23 +117,23 @@ def test_register_custom_converter():
     def custom(source):
         return sentinel
 
-    register_format_converter('.test_custom_ext', custom)
+    register_format_converter(".test_custom_ext", custom)
     try:
-        assert get_format_converter('.test_custom_ext') is custom
+        assert get_format_converter(".test_custom_ext") is custom
     finally:
-        _format_converters.pop('.test_custom_ext', None)
+        _format_converters.pop(".test_custom_ext", None)
 
 
 def test_register_no_override_without_force():
     """Existing converters should not be overridden without force=True."""
-    original = get_format_converter('.png')
-    register_format_converter('.png', lambda s: b'nope')
-    assert get_format_converter('.png') is original
+    original = get_format_converter(".png")
+    register_format_converter(".png", lambda s: b"nope")
+    assert get_format_converter(".png") is original
 
 
 def test_supported_extensions_includes_native():
     exts = supported_extensions()
-    for ext in ['.png', '.pdf', '.html', '.md']:
+    for ext in [".png", ".pdf", ".html", ".md"]:
         assert ext in exts, f"{ext} missing from supported_extensions()"
 
 
@@ -150,10 +162,10 @@ def test_find_ebook_convert():
 
 def test_resolve_src_kind_ebook_extensions(tmp_path):
     """_resolve_src_kind should detect ebook files as 'ebook'."""
-    for ext in ['.epub', '.mobi', '.docx', '.djvu']:
+    for ext in [".epub", ".mobi", ".docx", ".djvu"]:
         p = tmp_path / f"test{ext}"
         p.write_bytes(b"dummy content")
-        assert _resolve_src_kind(str(p)) == 'ebook', f"Expected 'ebook' for {ext}"
+        assert _resolve_src_kind(str(p)) == "ebook", f"Expected 'ebook' for {ext}"
 
 
 @pytest.mark.skipif(
@@ -178,8 +190,6 @@ def test_ebook_convert_to_pdf_from_file(tmp_path):
 
 def test_ebook_convert_to_pdf_not_installed(monkeypatch):
     """Should raise FileNotFoundError when ebook-convert is missing."""
-    monkeypatch.setattr(
-        'pdfdol.tools.find_ebook_convert', lambda: None
-    )
+    monkeypatch.setattr("pdfdol.tools.find_ebook_convert", lambda: None)
     with pytest.raises(FileNotFoundError, match="ebook-convert"):
-        ebook_convert_to_pdf(b"data", extension='.epub')
+        ebook_convert_to_pdf(b"data", extension=".epub")
