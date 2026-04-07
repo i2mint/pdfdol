@@ -4,6 +4,7 @@
 
    module_docs/pdfdol
    module_docs/pdfdol/base
+   module_docs/pdfdol/download
    module_docs/pdfdol/examples
    module_docs/pdfdol/examples/aggregations
    module_docs/pdfdol/tests

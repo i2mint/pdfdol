@@ -1,0 +1,190 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pdfdol.download &mdash; pdfdol 0.1.25 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=4fa33042"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pdfdol.examples" href="examples.html" />
+    <link rel="prev" title="pdfdol.base" href="base.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pdfdol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../pdfdol.html">pdfdol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base.html">pdfdol.base</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pdfdol.download</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.download.download_articles"><code class="docutils literal notranslate"><span class="pre">download_articles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.download.download_articles_by_section"><code class="docutils literal notranslate"><span class="pre">download_articles_by_section()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">pdfdol.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/aggregations.html">pdfdol.examples.aggregations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">pdfdol.tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_base.html">pdfdol.tests.test_base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_tools.html">pdfdol.tests.test_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">pdfdol.tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">pdfdol.util</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pdfdol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">pdfdol.download</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/pdfdol/download.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-pdfdol.download">
+<span id="pdfdol-download"></span><h1>pdfdol.download<a class="headerlink" href="#module-pdfdol.download" title="Link to this heading"></a></h1>
+<p>Download PDF articles from markdown-formatted text.</p>
+<p>Extracts <code class="docutils literal notranslate"><span class="pre">[title](url)</span></code> links from markdown and downloads the PDFs,
+with validation (Content-Type check + %PDF magic byte check).</p>
+<p>Main entry points:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">download_articles</span><span class="p">(</span><span class="n">md_string</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="s1">&#39;~/Downloads&#39;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">download_articles_by_section</span><span class="p">(</span><span class="n">md_string</span><span class="p">,</span> <span class="n">rootdir</span><span class="o">=</span><span class="s1">&#39;~/Downloads&#39;</span><span class="p">)</span>  
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.download.download_articles">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.download.</span></span><span class="sig-name descname"><span class="pre">download_articles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">md_string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/home/runner/Downloads'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_non_pdf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/download.html#download_articles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.download.download_articles" title="Link to this definition"></a></dt>
+<dd><p>Download articles from markdown-formatted text and save them as PDFs.</p>
+<p>Extracts links matching <code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">**[title](url)**</span></code> and downloads the URL.
+Only saves files whose Content-Type is <code class="docutils literal notranslate"><span class="pre">application/pdf</span></code> and whose
+first bytes are <code class="docutils literal notranslate"><span class="pre">%PDF</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>md_string</strong> (<em>str</em>) – Markdown text containing <code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">**[title](url)**</span></code> links.</p></li>
+<li><p><strong>save_dir</strong> (<em>str</em>) – Directory to save downloaded PDFs. Defaults to <code class="docutils literal notranslate"><span class="pre">~/Downloads</span></code>.</p></li>
+<li><p><strong>save_non_pdf</strong> (<em>bool</em>) – If True, save non-PDF responses with a <code class="docutils literal notranslate"><span class="pre">_non_pdf.html</span></code> suffix.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Print progress messages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – URLs that failed to download or were not valid PDFs.</p></li>
+<li><p><em>Tips</em></p></li>
+<li><p><em>—-</em></p></li>
+<li><p><em>When your knowledge base has many files, consider aggregating them</em></p></li>
+<li><p>into a single PDF with <code class="docutils literal notranslate"><span class="pre">pdfdol.concat_pdfs</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.download.download_articles_by_section">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.download.</span></span><span class="sig-name descname"><span class="pre">download_articles_by_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">md_string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rootdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_non_pdf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_marker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'###'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/download.html#download_articles_by_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.download.download_articles_by_section" title="Link to this definition"></a></dt>
+<dd><p>Download articles organized by markdown sections into subdirectories.</p>
+<p>Parses sections delimited by <code class="docutils literal notranslate"><span class="pre">section_marker</span></code> (default <code class="docutils literal notranslate"><span class="pre">###</span></code>) and
+creates a subdirectory for each section, then downloads articles within
+each section using <a class="reference internal" href="#pdfdol.download.download_articles" title="pdfdol.download.download_articles"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_articles()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>md_string</strong> (<em>str</em>) – Markdown text with sections and article links.</p></li>
+<li><p><strong>rootdir</strong> (<em>str</em>) – Root directory for section subdirectories. Defaults to <code class="docutils literal notranslate"><span class="pre">~/Downloads</span></code>.</p></li>
+<li><p><strong>save_non_pdf</strong> (<em>bool</em>) – Whether to save non-PDF content.</p></li>
+<li><p><strong>section_marker</strong> (<em>str</em>) – Regex pattern for section headings (default <code class="docutils literal notranslate"><span class="pre">###</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Section names as keys, lists of failed URLs as values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="base.html" class="btn btn-neutral float-left" title="pdfdol.base" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="pdfdol.examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

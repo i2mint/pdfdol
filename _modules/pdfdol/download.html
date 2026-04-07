@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pdfdol.download &mdash; pdfdol 0.1.25 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=4fa33042"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pdfdol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol.html">pdfdol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/base.html">pdfdol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/download.html">pdfdol.download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/examples.html">pdfdol.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/examples/aggregations.html">pdfdol.examples.aggregations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/tests.html">pdfdol.tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/tests/test_base.html">pdfdol.tests.test_base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/tests/test_tools.html">pdfdol.tests.test_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/tools.html">pdfdol.tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/pdfdol/util.html">pdfdol.util</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pdfdol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pdfdol.download</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pdfdol.download</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Download PDF articles from markdown-formatted text.</span>
+
+<span class="sd">Extracts ``[title](url)`` links from markdown and downloads the PDFs,</span>
+<span class="sd">with validation (Content-Type check + %PDF magic byte check).</span>
+
+<span class="sd">Main entry points::</span>
+
+<span class="sd">    &gt;&gt;&gt; download_articles(md_string, save_dir=&#39;~/Downloads&#39;)  # doctest: +SKIP</span>
+<span class="sd">    &gt;&gt;&gt; download_articles_by_section(md_string, rootdir=&#39;~/Downloads&#39;)  # doctest: +SKIP</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+
+<span class="n">DFLT_SAVE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~/Downloads&#39;</span><span class="p">)</span>
+
+<span class="n">DFLT_USER_AGENT</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;Mozilla/5.0 (compatible; pdfdol/0.1; &#39;</span>
+    <span class="s1">&#39;+https://github.com/i2mint/pdfdol)&#39;</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="download_articles">
+<a class="viewcode-back" href="../../module_docs/pdfdol/download.html#pdfdol.download.download_articles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_articles</span><span class="p">(</span>
+    <span class="n">md_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">save_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_SAVE_DIR</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">save_non_pdf</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download articles from markdown-formatted text and save them as PDFs.</span>
+
+<span class="sd">    Extracts links matching ``- **[title](url)**`` and downloads the URL.</span>
+<span class="sd">    Only saves files whose Content-Type is ``application/pdf`` and whose</span>
+<span class="sd">    first bytes are ``%PDF``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    md_string : str</span>
+<span class="sd">        Markdown text containing ``- **[title](url)**`` links.</span>
+<span class="sd">    save_dir : str</span>
+<span class="sd">        Directory to save downloaded PDFs. Defaults to ``~/Downloads``.</span>
+<span class="sd">    save_non_pdf : bool</span>
+<span class="sd">        If True, save non-PDF responses with a ``_non_pdf.html`` suffix.</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Print progress messages.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        URLs that failed to download or were not valid PDFs.</span>
+
+<span class="sd">    Tips</span>
+<span class="sd">    ----</span>
+<span class="sd">    When your knowledge base has many files, consider aggregating them</span>
+<span class="sd">    into a single PDF with ``pdfdol.concat_pdfs``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_dir</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;Directory not found: </span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">clog</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;- \*\*\[(.*?)\]\((.*?)\)\*\*&#39;</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">md_string</span><span class="p">)</span>
+
+    <span class="n">failed_urls</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+        <span class="n">sanitized_title</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^\w\-_\. ]&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sanitized_title</span><span class="si">}</span><span class="s1">.pdf&#39;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">url</span><span class="p">,</span>
+                <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="n">DFLT_USER_AGENT</span><span class="p">},</span>
+            <span class="p">)</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+            <span class="n">content_type</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;application/pdf&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content_type</span><span class="p">:</span>
+                <span class="n">clog</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Skipped (HTML or non-PDF): </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1"> &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;(Content-Type: </span><span class="si">{</span><span class="n">content_type</span><span class="si">}</span><span class="s1">)&#39;</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">save_non_pdf</span><span class="p">:</span>
+                    <span class="n">non_pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">save_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sanitized_title</span><span class="si">}</span><span class="s1">_non_pdf.html&#39;</span>
+                    <span class="p">)</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">non_pdf_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">8192</span><span class="p">):</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                    <span class="n">clog</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Non-PDF content saved to: </span><span class="si">{</span><span class="n">non_pdf_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">failed_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">first_chunk</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">8192</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">first_chunk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;%PDF&#39;</span><span class="p">):</span>
+                <span class="n">clog</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Invalid PDF content: </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">save_non_pdf</span><span class="p">:</span>
+                    <span class="n">invalid_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">save_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sanitized_title</span><span class="si">}</span><span class="s1">_invalid.pdf&#39;</span>
+                    <span class="p">)</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">invalid_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">first_chunk</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">8192</span><span class="p">):</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                    <span class="n">clog</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Invalid PDF content saved to: </span><span class="si">{</span><span class="n">invalid_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">failed_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">first_chunk</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">8192</span><span class="p">):</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+            <span class="n">clog</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Downloaded: </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1"> -&gt; </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">clog</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to download </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">failed_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">failed_urls</span></div>
+
+
+
+<div class="viewcode-block" id="download_articles_by_section">
+<a class="viewcode-back" href="../../module_docs/pdfdol/download.html#pdfdol.download.download_articles_by_section">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_articles_by_section</span><span class="p">(</span>
+    <span class="n">md_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">rootdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">save_non_pdf</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">section_marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;###&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download articles organized by markdown sections into subdirectories.</span>
+
+<span class="sd">    Parses sections delimited by ``section_marker`` (default ``###``) and</span>
+<span class="sd">    creates a subdirectory for each section, then downloads articles within</span>
+<span class="sd">    each section using :func:`download_articles`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    md_string : str</span>
+<span class="sd">        Markdown text with sections and article links.</span>
+<span class="sd">    rootdir : str</span>
+<span class="sd">        Root directory for section subdirectories. Defaults to ``~/Downloads``.</span>
+<span class="sd">    save_non_pdf : bool</span>
+<span class="sd">        Whether to save non-PDF content.</span>
+<span class="sd">    section_marker : str</span>
+<span class="sd">        Regex pattern for section headings (default ``###``).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Section names as keys, lists of failed URLs as values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">rootdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rootdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~/Downloads&#39;</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">rootdir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">section_pattern</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">section_marker</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39; (.*?)\n(.*?)(?=\n&#39;</span> <span class="o">+</span> <span class="n">section_marker</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;|\Z)&#39;</span>
+    <span class="p">)</span>
+    <span class="n">sections</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">section_pattern</span><span class="p">,</span> <span class="n">md_string</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+
+    <span class="n">failed_urls_by_section</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">section_title</span><span class="p">,</span> <span class="n">section_content</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+        <span class="n">sanitized</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^\w\s]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">section_title</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">section_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rootdir</span><span class="p">,</span> <span class="n">sanitized</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">section_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Processing section: </span><span class="si">{</span><span class="n">section_title</span><span class="si">}</span><span class="s1"> (Directory: </span><span class="si">{</span><span class="n">section_dir</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+        <span class="n">failed_urls</span> <span class="o">=</span> <span class="n">download_articles</span><span class="p">(</span>
+            <span class="n">section_content</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="n">section_dir</span><span class="p">,</span> <span class="n">save_non_pdf</span><span class="o">=</span><span class="n">save_non_pdf</span>
+        <span class="p">)</span>
+        <span class="n">failed_urls_by_section</span><span class="p">[</span><span class="n">section_title</span><span class="p">]</span> <span class="o">=</span> <span class="n">failed_urls</span>
+
+    <span class="k">return</span> <span class="n">failed_urls_by_section</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
