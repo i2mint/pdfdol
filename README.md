@@ -66,6 +66,18 @@ install [Calibre](https://calibre-ebook.com/download), which provides the
 pdfdol does **not** depend on Calibre; it auto-detects the tool at runtime
 and uses it only for formats that have no built-in converter.
 
+**Installing ebook-convert:**
+
+| Platform | Command |
+|----------|---------|
+| macOS (Homebrew) | `brew install --cask calibre` |
+| Debian / Ubuntu | `sudo apt install calibre` |
+| Fedora / RHEL | `sudo dnf install calibre` |
+| Linux servers (headless) | `sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh \| sudo sh /dev/stdin` |
+
+The Linux CLI installer is self-contained (no GUI/X11 needed) and recommended
+for servers.  See https://calibre-ebook.com/download for all options.
+
 ```python
 from pdfdol import ebook_convert_to_pdf, find_ebook_convert
 

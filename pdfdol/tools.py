@@ -204,7 +204,12 @@ def ebook_convert_to_pdf(source, *, extension=None, ebook_convert_path=None):
     if ebook_convert_path is None:
         raise FileNotFoundError(
             "Calibre's ebook-convert is required for this conversion but was "
-            "not found. Install Calibre from https://calibre-ebook.com/download"
+            "not found. Install it via:\n"
+            "  macOS:  brew install --cask calibre\n"
+            "  Linux:  sudo apt install calibre  (or dnf)\n"
+            "  Server: sudo -v && wget -nv -O- "
+            "https://download.calibre-ebook.com/linux-installer.sh | sudo sh\n"
+            "  All:    https://calibre-ebook.com/download"
         )
 
     output_path = None
