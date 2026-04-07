@@ -55,6 +55,53 @@ concat_pdfs(s, key_order=sorted)
 ```
 
 
+## Converting ebooks and documents to PDF (optional Calibre integration)
+
+pdfdol natively converts images, HTML, and Markdown to PDF.
+For additional formats -- EPUB, MOBI, DOCX, ODT, DJVU, RTF, and 
+[many more](https://manual.calibre-ebook.com/conversion.html) -- 
+install [Calibre](https://calibre-ebook.com/download), which provides the
+`ebook-convert` command-line tool.
+
+pdfdol does **not** depend on Calibre; it auto-detects the tool at runtime
+and uses it only for formats that have no built-in converter.
+
+```python
+from pdfdol import ebook_convert_to_pdf, find_ebook_convert
+
+# Check whether Calibre is available
+if find_ebook_convert():
+    pdf_bytes = ebook_convert_to_pdf("book.epub")
+```
+
+You can also go through the usual `get_pdf` entry point -- it will
+automatically route to `ebook-convert` when it recognises the file extension:
+
+```python
+from pdfdol import get_pdf
+pdf_bytes = get_pdf("book.epub")                     # returns PDF bytes
+get_pdf("book.epub", egress="book.pdf")              # saves to file
+```
+
+### Custom converters
+
+pdfdol maintains a **format converter registry** that maps file extensions to
+converter functions.  You can register your own:
+
+```python
+from pdfdol import register_format_converter, supported_extensions
+
+def my_custom_converter(source):
+    """source is a filepath (str) or raw bytes; must return PDF bytes."""
+    ...
+
+register_format_converter('.xyz', my_custom_converter)
+
+# See everything that's currently supported
+print(supported_extensions())
+```
+
+
 ## Get pdf from various sources
 
 Example with a URL

@@ -5,6 +5,10 @@ from typing import Literal, Any
 from collections.abc import Callable
 import os
 import io
+import shutil
+import subprocess
+import tempfile
+from contextlib import suppress
 
 import markdown
 import pdfkit
@@ -14,12 +18,227 @@ from dol import Pipe, cache_iter, wrap_kvs, Files, filt_iter
 from pathlib import Path
 from operator import methodcaller
 
+
+# ---------------------------------------------------------------------------
+# Format Converter Registry
+# ---------------------------------------------------------------------------
+# Maps file extensions to converter functions.  This is the central mechanism
+# for adding PDF-conversion support for new file formats.
+#
+# Converter signature: ``(source: str | bytes) -> bytes``
+#   - *source* is either a file path (str) or raw file content (bytes).
+#   - Returns PDF bytes.
+#
+# Use ``register_format_converter`` to add converters and
+# ``get_format_converter`` to look them up.
+
+_format_converters: dict[str, Callable] = {}
+
+
+def _normalize_extension(ext: str) -> str:
+    """Normalize a file extension to lowercase with leading dot."""
+    ext = ext.lower().strip()
+    if not ext.startswith('.'):
+        ext = f'.{ext}'
+    return ext
+
+
+def register_format_converter(
+    extensions,
+    converter,
+    *,
+    force: bool = False,
+):
+    """Register a PDF converter function for one or more file extensions.
+
+    Args:
+        extensions: File extension(s) to register (e.g. ``'.epub'`` or
+            ``['.epub', '.mobi']``).
+        converter: Callable that takes a source (filepath str or content bytes)
+            and returns PDF bytes.
+        force: If True, overwrite any existing converter for these extensions.
+    """
+    if isinstance(extensions, str):
+        extensions = [extensions]
+    for ext in extensions:
+        ext = _normalize_extension(ext)
+        if force or ext not in _format_converters:
+            _format_converters[ext] = converter
+
+
+def get_format_converter(extension: str) -> Callable | None:
+    """Get the registered PDF converter for a file extension.
+
+    Checks the built-in registry first.  For extensions supported by
+    Calibre's ``ebook-convert`` (but not natively by pdfdol), returns an
+    ebook-convert-based converter on the fly.
+
+    Args:
+        extension: File extension (e.g. ``'.epub'`` or ``'epub'``).
+
+    Returns:
+        Converter callable, or ``None`` if the format is not supported.
+    """
+    ext = _normalize_extension(extension)
+    converter = _format_converters.get(ext)
+    if converter is not None:
+        return converter
+    # Fallback: delegate to ebook-convert for known extensions
+    if ext in _ebook_convert_extensions:
+        return lambda source: ebook_convert_to_pdf(source, extension=ext)
+    return None
+
+
+def supported_extensions() -> tuple[str, ...]:
+    """Return file extensions that have registered PDF converters.
+
+    Includes natively supported extensions and, when Calibre's ebook-convert
+    is installed, additional ebook and document format extensions.
+    """
+    exts = set(_format_converters)
+    if find_ebook_convert() is not None:
+        exts |= _ebook_convert_extensions
+    return tuple(sorted(exts))
+
+
+# ---------------------------------------------------------------------------
+# Calibre ebook-convert integration
+# ---------------------------------------------------------------------------
+# ``ebook-convert`` is the CLI conversion tool bundled with Calibre
+# (https://calibre-ebook.com).  pdfdol uses it as an *optional* backend:
+# formats already handled natively (images, HTML, Markdown) keep their
+# built-in converters, while ebook-convert extends coverage to ebook and
+# document formats such as EPUB, MOBI, DOCX, ODT, DJVU, and many more.
+
+# Extensions ebook-convert can convert to PDF that pdfdol does not already
+# handle natively.  Native formats (html, htm, md, markdown, pdf, images)
+# are intentionally excluded to avoid overriding the lighter-weight converters.
+_ebook_convert_extensions = frozenset({
+    '.azw', '.azw3', '.azw4',
+    '.cb7', '.cbc', '.cbr', '.cbz',
+    '.chm',
+    '.djv', '.djvu',
+    '.docm', '.docx',
+    '.epub',
+    '.fb2', '.fbz',
+    '.htmlz',
+    '.kepub',
+    '.lit', '.lrf',
+    '.mobi',
+    '.odt', '.opf',
+    '.pdb', '.pml', '.pmlz', '.pobi', '.prc',
+    '.rb', '.rtf',
+    '.snb',
+    '.tcr', '.textile', '.txtz',
+    '.updb',
+})
+
+
+def find_ebook_convert() -> str | None:
+    """Find the ``ebook-convert`` binary from Calibre.
+
+    Checks the system PATH first, then common platform-specific install
+    locations (macOS ``Calibre.app``, Windows ``Program Files``).
+
+    Returns:
+        Path to the binary, or ``None`` if not found.
+    """
+    path = shutil.which('ebook-convert')
+    if path:
+        return path
+    # macOS: Calibre.app bundle
+    _mac_path = '/Applications/calibre.app/Contents/MacOS/ebook-convert'
+    if os.path.isfile(_mac_path):
+        return _mac_path
+    # Windows: common install locations
+    if os.name == 'nt':
+        for template in (
+            r'%ProgramFiles%\Calibre2\ebook-convert.exe',
+            r'%ProgramFiles(x86)%\Calibre2\ebook-convert.exe',
+        ):
+            p = os.path.expandvars(template)
+            if os.path.isfile(p):
+                return p
+    return None
+
+
+def ebook_convert_to_pdf(source, *, extension=None, ebook_convert_path=None):
+    """Convert a file to PDF using Calibre's ``ebook-convert``.
+
+    Requires Calibre to be installed (https://calibre-ebook.com/download).
+
+    Args:
+        source: File path (str/Path) or file content (bytes).
+        extension: File extension hint (e.g. ``'.epub'``).  Required when
+            *source* is bytes; auto-detected from file path otherwise.
+        ebook_convert_path: Explicit path to the ``ebook-convert`` binary.
+            Auto-detected if not provided.
+
+    Returns:
+        bytes: PDF content.
+
+    Raises:
+        FileNotFoundError: If ebook-convert is not installed.
+        RuntimeError: If the conversion fails.
+    """
+    if ebook_convert_path is None:
+        ebook_convert_path = find_ebook_convert()
+    if ebook_convert_path is None:
+        raise FileNotFoundError(
+            "Calibre's ebook-convert is required for this conversion but was "
+            "not found. Install Calibre from https://calibre-ebook.com/download"
+        )
+
+    output_path = None
+    cleanup_input = False
+
+    try:
+        if isinstance(source, (bytes, bytearray)):
+            if not extension:
+                raise ValueError(
+                    "extension is required when source is bytes "
+                    "(e.g. extension='.epub')"
+                )
+            ext = _normalize_extension(extension)
+            fd, input_path = tempfile.mkstemp(suffix=ext)
+            os.close(fd)
+            Path(input_path).write_bytes(source)
+            cleanup_input = True
+        else:
+            input_path = str(source)
+            if extension is None:
+                extension = os.path.splitext(input_path)[1]
+
+        fd, output_path = tempfile.mkstemp(suffix='.pdf')
+        os.close(fd)
+
+        result = subprocess.run(
+            [ebook_convert_path, input_path, output_path],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"ebook-convert failed (exit code {result.returncode}):\n"
+                f"{result.stderr}"
+            )
+
+        return Path(output_path).read_bytes()
+    finally:
+        if cleanup_input:
+            with suppress(OSError):
+                os.unlink(input_path)
+        if output_path is not None:
+            with suppress(OSError):
+                os.unlink(output_path)
+
+
 filter_pdfs_and_images = filt_iter.suffixes(
     (".pdf", ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff")
 )
 
 # Define the allowed source kinds (added 'image')
-SrcKind = Literal["url", "html", "file", "md", "markdown", "text", "image"]
+SrcKind = Literal["url", "html", "file", "md", "markdown", "text", "image", "ebook"]
 
 
 def _resolve_src_kind(src: str) -> SrcKind:
@@ -86,6 +305,10 @@ def _resolve_src_kind(src: str) -> SrcKind:
             or lower.endswith(".xhtml")
         ):
             return "file"
+        # Check for ebook/document formats handled by Calibre's ebook-convert
+        ext = os.path.splitext(lower)[1]
+        if ext in _ebook_convert_extensions:
+            return "ebook"
         # Default for existing files (including no-extension temp files) is 'file'
         return "file"
     else:
@@ -351,6 +574,7 @@ def get_pdf(
         # egress=None to force bytes output in markdown:
         "markdown": partial(markdown_to_pdf, egress=None, **_pdfkit_kwargs),
         "image": lambda s: _image_to_pdf_bytes(s),
+        "ebook": ebook_convert_to_pdf,
     }
     src_to_bytes_func = func_for_kind.get(src_kind)
     if src_to_bytes_func is None:
@@ -396,72 +620,79 @@ def any_to_pdf_bytes(src, *, src_kind: SrcKind = None) -> bytes:
     return get_pdf(src, egress=None, src_kind=src_kind)
 
 
+# ---------------------------------------------------------------------------
+# Register native format converters
+# ---------------------------------------------------------------------------
+# These registrations appear after any_to_pdf_bytes is defined, since the
+# converter callables reference it.
+
+
+def _image_to_pdf(source):
+    return any_to_pdf_bytes(source, src_kind='image')
+
+
+def _html_to_pdf(source):
+    if isinstance(source, bytes):
+        source = source.decode('utf-8', errors='ignore')
+    return any_to_pdf_bytes(source, src_kind='html')
+
+
+def _markdown_to_pdf(source):
+    if isinstance(source, bytes):
+        source = source.decode('utf-8', errors='ignore')
+    return any_to_pdf_bytes(source, src_kind='markdown')
+
+
+def _pdf_passthrough(source):
+    if isinstance(source, (bytes, bytearray)):
+        if source.startswith(b'%PDF'):
+            return source
+        raise ValueError("Bytes do not appear to be a valid PDF")
+    return Path(source).read_bytes()
+
+
+register_format_converter(
+    ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.webp'], _image_to_pdf
+)
+register_format_converter(['.html', '.htm'], _html_to_pdf)
+register_format_converter(['.md', '.markdown'], _markdown_to_pdf)
+register_format_converter('.pdf', _pdf_passthrough)
+
+
 def key_and_value_to_pdf_bytes(key, value) -> bytes:
     """
-    Convert a key-value pair to PDF bytes, using the key to determine the type.
-
-    This replaces the old key_and_bytes_to_pdf_bytes function with a more general
-    approach using any_to_pdf_bytes.
+    Convert a key-value pair to PDF bytes, using the key's file extension to
+    select a converter from the format converter registry.
 
     Args:
-        key: The key (usually a filename) used to infer the source type
-        value: The value (usually bytes) to convert
+        key: The key (usually a filename) whose extension determines the converter.
+        value: The value (usually bytes) to convert.
 
     Returns:
         bytes: PDF bytes
 
     Raises:
-        ValueError: If the file type is unsupported or conversion fails
+        ValueError: If the file type is unsupported or conversion fails.
     """
-    # If it's already PDF bytes, return as-is
     if isinstance(value, bytes) and value.startswith(b"%PDF"):
         return value
 
-    # For file-like keys, use the key to determine the source type
     if isinstance(key, str):
         extension = os.path.splitext(key)[1].lower()
-
-        # Supported image formats
-        if extension in {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp"}:
+        converter = get_format_converter(extension)
+        if converter is not None:
             try:
-                return any_to_pdf_bytes(value, src_kind="image")
+                return converter(value)
             except Exception as e:
-                raise ValueError(f"Failed to convert image file '{key}' to PDF: {e}")
-
-        # Supported text/markup formats
-        elif extension in {".html", ".htm"}:
-            try:
-                # HTML content should be string for pdfkit
-                if isinstance(value, bytes):
-                    value = value.decode("utf-8", errors="ignore")
-                return any_to_pdf_bytes(value, src_kind="html")
-            except Exception as e:
-                raise ValueError(f"Failed to convert HTML file '{key}' to PDF: {e}")
-
-        elif extension in {".md", ".markdown"}:
-            try:
-                # Markdown content should be string
-                if isinstance(value, bytes):
-                    value = value.decode("utf-8", errors="ignore")
-                return any_to_pdf_bytes(value, src_kind="markdown")
-            except Exception as e:
-                raise ValueError(f"Failed to convert Markdown file '{key}' to PDF: {e}")
-
-        elif extension == ".pdf":
-            # Verify it's actually a PDF
-            if isinstance(value, bytes) and value.startswith(b"%PDF"):
-                return value
-            else:
                 raise ValueError(
-                    f"File '{key}' has .pdf extension but is not a valid PDF"
-                )
-
-        # Unsupported file types
-        else:
-            raise ValueError(
-                f"Unsupported file type '{extension}' for file '{key}'. "
-                f"Supported types: .pdf, .png, .jpg, .jpeg, .bmp, .gif, .tiff, .webp, .html, .htm, .md, .markdown"
-            )
+                    f"Failed to convert '{key}' to PDF: {e}"
+                ) from e
+        raise ValueError(
+            f"Unsupported file type '{extension}' for file '{key}'. "
+            f"Natively supported: {', '.join(sorted(_format_converters))}. "
+            f"Install Calibre for more: "
+            f"{', '.join(sorted(_ebook_convert_extensions))}"
+        )
 
     # If key is not a string, try auto-detection as last resort
     try:
