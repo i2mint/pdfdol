@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfdol.tools &mdash; pdfdol 0.1.22 documentation</title>
+  <title>pdfdol.tools &mdash; pdfdol 0.1.23 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=842aa08f"></script>
+      <script src="../../_static/documentation_options.js?v=20522496"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -63,10 +63,15 @@
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdf_files"><code class="docutils literal notranslate"><span class="pre">concat_pdf_files()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdf_readers"><code class="docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.concat_pdfs"><code class="docutils literal notranslate"><span class="pre">concat_pdfs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.ebook_convert_to_pdf"><code class="docutils literal notranslate"><span class="pre">ebook_convert_to_pdf()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.find_ebook_convert"><code class="docutils literal notranslate"><span class="pre">find_ebook_convert()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.get_format_converter"><code class="docutils literal notranslate"><span class="pre">get_format_converter()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.get_pdf"><code class="docutils literal notranslate"><span class="pre">get_pdf()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.key_and_value_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">key_and_value_to_pdf_bytes()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.pdf_to_metadata"><code class="docutils literal notranslate"><span class="pre">pdf_to_metadata()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.pdf_to_title"><code class="docutils literal notranslate"><span class="pre">pdf_to_title()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.register_format_converter"><code class="docutils literal notranslate"><span class="pre">register_format_converter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfdol.tools.supported_extensions"><code class="docutils literal notranslate"><span class="pre">supported_extensions()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="util.html">pdfdol.util</a></li>
@@ -101,7 +106,7 @@
 <p>Pdf Tools.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.any_to_pdf_bytes">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">any_to_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#any_to_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.any_to_pdf_bytes" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">any_to_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ebook'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#any_to_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.any_to_pdf_bytes" title="Link to this definition"></a></dt>
 <dd><p>Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.</p>
 <p>This is a convenience function that uses get_pdf with egress=None to always
 return PDF bytes regardless of the source type.</p>
@@ -186,8 +191,68 @@ If <cite>False</cite>, the pdf bytes are returned.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.ebook_convert_to_pdf">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">ebook_convert_to_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ebook_convert_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/tools.html#ebook_convert_to_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.ebook_convert_to_pdf" title="Link to this definition"></a></dt>
+<dd><p>Convert a file to PDF using Calibre’s <code class="docutils literal notranslate"><span class="pre">ebook-convert</span></code>.</p>
+<p>Requires Calibre to be installed (<a class="reference external" href="https://calibre-ebook.com/download">https://calibre-ebook.com/download</a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> – File path (str/Path) or file content (bytes).</p></li>
+<li><p><strong>extension</strong> – File extension hint (e.g. <code class="docutils literal notranslate"><span class="pre">'.epub'</span></code>).  Required when
+<em>source</em> is bytes; auto-detected from file path otherwise.</p></li>
+<li><p><strong>ebook_convert_path</strong> – Explicit path to the <code class="docutils literal notranslate"><span class="pre">ebook-convert</span></code> binary.
+Auto-detected if not provided.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>PDF content.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileNotFoundError</strong> – If ebook-convert is not installed.</p></li>
+<li><p><strong>RuntimeError</strong> – If the conversion fails.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.find_ebook_convert">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">find_ebook_convert</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#find_ebook_convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.find_ebook_convert" title="Link to this definition"></a></dt>
+<dd><p>Find the <code class="docutils literal notranslate"><span class="pre">ebook-convert</span></code> binary from Calibre.</p>
+<p>Checks the system PATH first, then common platform-specific install
+locations (macOS <code class="docutils literal notranslate"><span class="pre">Calibre.app</span></code>, Windows <code class="docutils literal notranslate"><span class="pre">Program</span> <span class="pre">Files</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to the binary, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.get_format_converter">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">get_format_converter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#get_format_converter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.get_format_converter" title="Link to this definition"></a></dt>
+<dd><p>Get the registered PDF converter for a file extension.</p>
+<p>Checks the built-in registry first.  For extensions supported by
+Calibre’s <code class="docutils literal notranslate"><span class="pre">ebook-convert</span></code> (but not natively by pdfdol), returns an
+ebook-convert-based converter on the fly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>extension</strong> – File extension (e.g. <code class="docutils literal notranslate"><span class="pre">'.epub'</span></code> or <code class="docutils literal notranslate"><span class="pre">'epub'</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Converter callable, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the format is not supported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.get_pdf">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">get_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">egress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Callable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">css</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#get_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.get_pdf" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">get_pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">egress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Callable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'url'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'html'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'file'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'md'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'markdown'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'text'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'image'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ebook'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">css</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cover_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#get_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.get_pdf" title="Link to this definition"></a></dt>
 <dd><p>Convert the given source to a PDF (bytes) and process it using the specified egress.</p>
 <dl class="simple">
 <dt>The source (src) can be:</dt><dd><ul class="simple">
@@ -246,14 +311,13 @@ print(“PDF saved to:”, filepath)</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.key_and_value_to_pdf_bytes">
 <span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">key_and_value_to_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#key_and_value_to_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.key_and_value_to_pdf_bytes" title="Link to this definition"></a></dt>
-<dd><p>Convert a key-value pair to PDF bytes, using the key to determine the type.</p>
-<p>This replaces the old key_and_bytes_to_pdf_bytes function with a more general
-approach using any_to_pdf_bytes.</p>
+<dd><p>Convert a key-value pair to PDF bytes, using the key’s file extension to
+select a converter from the format converter registry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong> – The key (usually a filename) used to infer the source type</p></li>
-<li><p><strong>value</strong> – The value (usually bytes) to convert</p></li>
+<li><p><strong>key</strong> – The key (usually a filename) whose extension determines the converter.</p></li>
+<li><p><strong>value</strong> – The value (usually bytes) to convert.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -263,7 +327,7 @@ approach using any_to_pdf_bytes.</p>
 <dd class="field-odd"><p>bytes</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the file type is unsupported or conversion fails</p>
+<dd class="field-even"><p><strong>ValueError</strong> – If the file type is unsupported or conversion fails.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -338,6 +402,31 @@ approach using any_to_pdf_bytes.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.register_format_converter">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">register_format_converter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converter</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pdfdol/tools.html#register_format_converter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.register_format_converter" title="Link to this definition"></a></dt>
+<dd><p>Register a PDF converter function for one or more file extensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extensions</strong> – File extension(s) to register (e.g. <code class="docutils literal notranslate"><span class="pre">'.epub'</span></code> or
+<code class="docutils literal notranslate"><span class="pre">['.epub',</span> <span class="pre">'.mobi']</span></code>).</p></li>
+<li><p><strong>converter</strong> – Callable that takes a source (filepath str or content bytes)
+and returns PDF bytes.</p></li>
+<li><p><strong>force</strong> – If True, overwrite any existing converter for these extensions.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.tools.supported_extensions">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">supported_extensions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/pdfdol/tools.html#supported_extensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.supported_extensions" title="Link to this definition"></a></dt>
+<dd><p>Return file extensions that have registered PDF converters.</p>
+<p>Includes natively supported extensions and, when Calibre’s ebook-convert
+is installed, additional ebook and document format extensions.</p>
 </dd></dl>
 
 </section>

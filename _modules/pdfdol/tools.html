@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfdol.tools &mdash; pdfdol 0.1.22 documentation</title>
+  <title>pdfdol.tools &mdash; pdfdol 0.1.23 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=842aa08f"></script>
+      <script src="../../_static/documentation_options.js?v=20522496"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -90,6 +90,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">suppress</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">markdown</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pdfkit</span>
@@ -100,12 +104,241 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">methodcaller</span>
 
 
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Format Converter Registry</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Maps file extensions to converter functions.  This is the central mechanism</span>
+<span class="c1"># for adding PDF-conversion support for new file formats.</span>
+<span class="c1">#</span>
+<span class="c1"># Converter signature: ``(source: str | bytes) -&gt; bytes``</span>
+<span class="c1">#   - *source* is either a file path (str) or raw file content (bytes).</span>
+<span class="c1">#   - Returns PDF bytes.</span>
+<span class="c1">#</span>
+<span class="c1"># Use ``register_format_converter`` to add converters and</span>
+<span class="c1"># ``get_format_converter`` to look them up.</span>
+
+<span class="n">_format_converters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_extension</span><span class="p">(</span><span class="n">ext</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize a file extension to lowercase with leading dot.&quot;&quot;&quot;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ext</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;.</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">ext</span>
+
+
+<div class="viewcode-block" id="register_format_converter">
+<a class="viewcode-back" href="../../module_docs/pdfdol/tools.html#pdfdol.tools.register_format_converter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_format_converter</span><span class="p">(</span>
+    <span class="n">extensions</span><span class="p">,</span>
+    <span class="n">converter</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Register a PDF converter function for one or more file extensions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        extensions: File extension(s) to register (e.g. ``&#39;.epub&#39;`` or</span>
+<span class="sd">            ``[&#39;.epub&#39;, &#39;.mobi&#39;]``).</span>
+<span class="sd">        converter: Callable that takes a source (filepath str or content bytes)</span>
+<span class="sd">            and returns PDF bytes.</span>
+<span class="sd">        force: If True, overwrite any existing converter for these extensions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extensions</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">extensions</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">extensions</span><span class="p">:</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">_normalize_extension</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">force</span> <span class="ow">or</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_format_converters</span><span class="p">:</span>
+            <span class="n">_format_converters</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span> <span class="o">=</span> <span class="n">converter</span></div>
+
+
+
+<div class="viewcode-block" id="get_format_converter">
+<a class="viewcode-back" href="../../module_docs/pdfdol/tools.html#pdfdol.tools.get_format_converter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_format_converter</span><span class="p">(</span><span class="n">extension</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the registered PDF converter for a file extension.</span>
+
+<span class="sd">    Checks the built-in registry first.  For extensions supported by</span>
+<span class="sd">    Calibre&#39;s ``ebook-convert`` (but not natively by pdfdol), returns an</span>
+<span class="sd">    ebook-convert-based converter on the fly.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        extension: File extension (e.g. ``&#39;.epub&#39;`` or ``&#39;epub&#39;``).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Converter callable, or ``None`` if the format is not supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">_normalize_extension</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span>
+    <span class="n">converter</span> <span class="o">=</span> <span class="n">_format_converters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">converter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">converter</span>
+    <span class="c1"># Fallback: delegate to ebook-convert for known extensions</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">_ebook_convert_extensions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">source</span><span class="p">:</span> <span class="n">ebook_convert_to_pdf</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="supported_extensions">
+<a class="viewcode-back" href="../../module_docs/pdfdol/tools.html#pdfdol.tools.supported_extensions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">supported_extensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return file extensions that have registered PDF converters.</span>
+
+<span class="sd">    Includes natively supported extensions and, when Calibre&#39;s ebook-convert</span>
+<span class="sd">    is installed, additional ebook and document format extensions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">exts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">_format_converters</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">find_ebook_convert</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">exts</span> <span class="o">|=</span> <span class="n">_ebook_convert_extensions</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">exts</span><span class="p">))</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Calibre ebook-convert integration</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># ``ebook-convert`` is the CLI conversion tool bundled with Calibre</span>
+<span class="c1"># (https://calibre-ebook.com).  pdfdol uses it as an *optional* backend:</span>
+<span class="c1"># formats already handled natively (images, HTML, Markdown) keep their</span>
+<span class="c1"># built-in converters, while ebook-convert extends coverage to ebook and</span>
+<span class="c1"># document formats such as EPUB, MOBI, DOCX, ODT, DJVU, and many more.</span>
+
+<span class="c1"># Extensions ebook-convert can convert to PDF that pdfdol does not already</span>
+<span class="c1"># handle natively.  Native formats (html, htm, md, markdown, pdf, images)</span>
+<span class="c1"># are intentionally excluded to avoid overriding the lighter-weight converters.</span>
+<span class="n">_ebook_convert_extensions</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span>
+    <span class="s1">&#39;.azw&#39;</span><span class="p">,</span> <span class="s1">&#39;.azw3&#39;</span><span class="p">,</span> <span class="s1">&#39;.azw4&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.cb7&#39;</span><span class="p">,</span> <span class="s1">&#39;.cbc&#39;</span><span class="p">,</span> <span class="s1">&#39;.cbr&#39;</span><span class="p">,</span> <span class="s1">&#39;.cbz&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.chm&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.djv&#39;</span><span class="p">,</span> <span class="s1">&#39;.djvu&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.docm&#39;</span><span class="p">,</span> <span class="s1">&#39;.docx&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.epub&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.fb2&#39;</span><span class="p">,</span> <span class="s1">&#39;.fbz&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.htmlz&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.kepub&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.lit&#39;</span><span class="p">,</span> <span class="s1">&#39;.lrf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.mobi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.odt&#39;</span><span class="p">,</span> <span class="s1">&#39;.opf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.pdb&#39;</span><span class="p">,</span> <span class="s1">&#39;.pml&#39;</span><span class="p">,</span> <span class="s1">&#39;.pmlz&#39;</span><span class="p">,</span> <span class="s1">&#39;.pobi&#39;</span><span class="p">,</span> <span class="s1">&#39;.prc&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.rb&#39;</span><span class="p">,</span> <span class="s1">&#39;.rtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.snb&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;.textile&#39;</span><span class="p">,</span> <span class="s1">&#39;.txtz&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;.updb&#39;</span><span class="p">,</span>
+<span class="p">})</span>
+
+
+<div class="viewcode-block" id="find_ebook_convert">
+<a class="viewcode-back" href="../../module_docs/pdfdol/tools.html#pdfdol.tools.find_ebook_convert">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_ebook_convert</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the ``ebook-convert`` binary from Calibre.</span>
+
+<span class="sd">    Checks the system PATH first, then common platform-specific install</span>
+<span class="sd">    locations (macOS ``Calibre.app``, Windows ``Program Files``).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path to the binary, or ``None`` if not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s1">&#39;ebook-convert&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span>
+    <span class="c1"># macOS: Calibre.app bundle</span>
+    <span class="n">_mac_path</span> <span class="o">=</span> <span class="s1">&#39;/Applications/calibre.app/Contents/MacOS/ebook-convert&#39;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">_mac_path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_mac_path</span>
+    <span class="c1"># Windows: common install locations</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="sa">r</span><span class="s1">&#39;%ProgramFiles%\Calibre2\ebook-convert.exe&#39;</span><span class="p">,</span>
+            <span class="sa">r</span><span class="s1">&#39;%ProgramFiles(x86)%\Calibre2\ebook-convert.exe&#39;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">p</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="ebook_convert_to_pdf">
+<a class="viewcode-back" href="../../module_docs/pdfdol/tools.html#pdfdol.tools.ebook_convert_to_pdf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ebook_convert_to_pdf</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ebook_convert_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a file to PDF using Calibre&#39;s ``ebook-convert``.</span>
+
+<span class="sd">    Requires Calibre to be installed (https://calibre-ebook.com/download).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source: File path (str/Path) or file content (bytes).</span>
+<span class="sd">        extension: File extension hint (e.g. ``&#39;.epub&#39;``).  Required when</span>
+<span class="sd">            *source* is bytes; auto-detected from file path otherwise.</span>
+<span class="sd">        ebook_convert_path: Explicit path to the ``ebook-convert`` binary.</span>
+<span class="sd">            Auto-detected if not provided.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bytes: PDF content.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        FileNotFoundError: If ebook-convert is not installed.</span>
+<span class="sd">        RuntimeError: If the conversion fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ebook_convert_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ebook_convert_path</span> <span class="o">=</span> <span class="n">find_ebook_convert</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ebook_convert_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+            <span class="s2">&quot;Calibre&#39;s ebook-convert is required for this conversion but was &quot;</span>
+            <span class="s2">&quot;not found. Install Calibre from https://calibre-ebook.com/download&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">output_path</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">cleanup_input</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">extension</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;extension is required when source is bytes &quot;</span>
+                    <span class="s2">&quot;(e.g. extension=&#39;.epub&#39;)&quot;</span>
+                <span class="p">)</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">_normalize_extension</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span>
+            <span class="n">fd</span><span class="p">,</span> <span class="n">input_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="n">Path</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="n">cleanup_input</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">extension</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">input_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">fd</span><span class="p">,</span> <span class="n">output_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pdf&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ebook_convert_path</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ebook-convert failed (exit code </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cleanup_input</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">OSError</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">OSError</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span></div>
+
+
+
 <span class="n">filter_pdfs_and_images</span> <span class="o">=</span> <span class="n">filt_iter</span><span class="o">.</span><span class="n">suffixes</span><span class="p">(</span>
     <span class="p">(</span><span class="s2">&quot;.pdf&quot;</span><span class="p">,</span> <span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="s2">&quot;.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;.jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;.bmp&quot;</span><span class="p">,</span> <span class="s2">&quot;.gif&quot;</span><span class="p">,</span> <span class="s2">&quot;.tiff&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="c1"># Define the allowed source kinds (added &#39;image&#39;)</span>
-<span class="n">SrcKind</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;md&quot;</span><span class="p">,</span> <span class="s2">&quot;markdown&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">]</span>
+<span class="n">SrcKind</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;md&quot;</span><span class="p">,</span> <span class="s2">&quot;markdown&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;ebook&quot;</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_src_kind</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SrcKind</span><span class="p">:</span>
@@ -137,7 +370,7 @@
     <span class="c1"># Accept bytes input as well (image/PDF bytes)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)):</span>
         <span class="c1"># Check for PDF first</span>
-        <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;%PDF&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;%PDF&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="s2">&quot;file&quot;</span>  <span class="c1"># treat as PDF file bytes</span>
 
         <span class="c1"># try to quickly detect image bytes</span>
@@ -172,6 +405,10 @@
             <span class="ow">or</span> <span class="n">lower</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.xhtml&quot;</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
+        <span class="c1"># Check for ebook/document formats handled by Calibre&#39;s ebook-convert</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">lower</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">_ebook_convert_extensions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;ebook&quot;</span>
         <span class="c1"># Default for existing files (including no-extension temp files) is &#39;file&#39;</span>
         <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
     <span class="k">else</span><span class="p">:</span>
@@ -439,6 +676,7 @@
         <span class="c1"># egress=None to force bytes output in markdown:</span>
         <span class="s2">&quot;markdown&quot;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">markdown_to_pdf</span><span class="p">,</span> <span class="n">egress</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">_pdfkit_kwargs</span><span class="p">),</span>
         <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">_image_to_pdf_bytes</span><span class="p">(</span><span class="n">s</span><span class="p">),</span>
+        <span class="s2">&quot;ebook&quot;</span><span class="p">:</span> <span class="n">ebook_convert_to_pdf</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">src_to_bytes_func</span> <span class="o">=</span> <span class="n">func_for_kind</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">src_kind</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">src_to_bytes_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -481,81 +719,88 @@
 <span class="sd">        &gt;&gt;&gt; pdf_bytes = any_to_pdf_bytes(html, src_kind=&quot;html&quot;)  # doctest: +SKIP</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Special case: if src is already PDF bytes, return as-is</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">))</span> <span class="ow">and</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;%PDF&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">))</span> <span class="ow">and</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;%PDF&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">src</span>
 
     <span class="k">return</span> <span class="n">get_pdf</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">egress</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="n">src_kind</span><span class="p">)</span></div>
 
 
 
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Register native format converters</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># These registrations appear after any_to_pdf_bytes is defined, since the</span>
+<span class="c1"># converter callables reference it.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_image_to_pdf</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_html_to_pdf</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s1">&#39;html&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_markdown_to_pdf</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s1">&#39;markdown&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pdf_passthrough</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;%PDF&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">source</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bytes do not appear to be a valid PDF&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+
+
+<span class="n">register_format_converter</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpeg&#39;</span><span class="p">,</span> <span class="s1">&#39;.bmp&#39;</span><span class="p">,</span> <span class="s1">&#39;.gif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.webp&#39;</span><span class="p">],</span> <span class="n">_image_to_pdf</span>
+<span class="p">)</span>
+<span class="n">register_format_converter</span><span class="p">([</span><span class="s1">&#39;.html&#39;</span><span class="p">,</span> <span class="s1">&#39;.htm&#39;</span><span class="p">],</span> <span class="n">_html_to_pdf</span><span class="p">)</span>
+<span class="n">register_format_converter</span><span class="p">([</span><span class="s1">&#39;.md&#39;</span><span class="p">,</span> <span class="s1">&#39;.markdown&#39;</span><span class="p">],</span> <span class="n">_markdown_to_pdf</span><span class="p">)</span>
+<span class="n">register_format_converter</span><span class="p">(</span><span class="s1">&#39;.pdf&#39;</span><span class="p">,</span> <span class="n">_pdf_passthrough</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="key_and_value_to_pdf_bytes">
 <a class="viewcode-back" href="../../module_docs/pdfdol/tools.html#pdfdol.tools.key_and_value_to_pdf_bytes">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">key_and_value_to_pdf_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Convert a key-value pair to PDF bytes, using the key to determine the type.</span>
-
-<span class="sd">    This replaces the old key_and_bytes_to_pdf_bytes function with a more general</span>
-<span class="sd">    approach using any_to_pdf_bytes.</span>
+<span class="sd">    Convert a key-value pair to PDF bytes, using the key&#39;s file extension to</span>
+<span class="sd">    select a converter from the format converter registry.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        key: The key (usually a filename) used to infer the source type</span>
-<span class="sd">        value: The value (usually bytes) to convert</span>
+<span class="sd">        key: The key (usually a filename) whose extension determines the converter.</span>
+<span class="sd">        value: The value (usually bytes) to convert.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        bytes: PDF bytes</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If the file type is unsupported or conversion fails</span>
+<span class="sd">        ValueError: If the file type is unsupported or conversion fails.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># If it&#39;s already PDF bytes, return as-is</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;%PDF&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;%PDF&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">value</span>
 
-    <span class="c1"># For file-like keys, use the key to determine the source type</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">key</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-
-        <span class="c1"># Supported image formats</span>
-        <span class="k">if</span> <span class="n">extension</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="s2">&quot;.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;.jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;.bmp&quot;</span><span class="p">,</span> <span class="s2">&quot;.gif&quot;</span><span class="p">,</span> <span class="s2">&quot;.tiff&quot;</span><span class="p">,</span> <span class="s2">&quot;.webp&quot;</span><span class="p">}:</span>
+        <span class="n">converter</span> <span class="o">=</span> <span class="n">get_format_converter</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">converter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">converter</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to convert image file &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; to PDF: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Supported text/markup formats</span>
-        <span class="k">elif</span> <span class="n">extension</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;.html&quot;</span><span class="p">,</span> <span class="s2">&quot;.htm&quot;</span><span class="p">}:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># HTML content should be string for pdfkit</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to convert HTML file &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; to PDF: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="n">extension</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;.md&quot;</span><span class="p">,</span> <span class="s2">&quot;.markdown&quot;</span><span class="p">}:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># Markdown content should be string</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to convert Markdown file &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; to PDF: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">:</span>
-            <span class="c1"># Verify it&#39;s actually a PDF</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;%PDF&#39;</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">value</span>
-            <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;File &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; has .pdf extension but is not a valid PDF&quot;</span>
-                <span class="p">)</span>
-
-        <span class="c1"># Unsupported file types</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Unsupported file type &#39;</span><span class="si">{</span><span class="n">extension</span><span class="si">}</span><span class="s2">&#39; for file &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Supported types: .pdf, .png, .jpg, .jpeg, .bmp, .gif, .tiff, .webp, .html, .htm, .md, .markdown&quot;</span>
-            <span class="p">)</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to convert &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; to PDF: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unsupported file type &#39;</span><span class="si">{</span><span class="n">extension</span><span class="si">}</span><span class="s2">&#39; for file &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Natively supported: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_format_converters</span><span class="p">))</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Install Calibre for more: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_ebook_convert_extensions</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
     <span class="c1"># If key is not a string, try auto-detection as last resort</span>
     <span class="k">try</span><span class="p">:</span>
@@ -658,7 +903,7 @@
         <span class="k">if</span> <span class="n">reader</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
             <span class="c1"># Convert pypdf DocumentInformation to a regular dict</span>
             <span class="c1"># and normalize the keys (remove leading slash)</span>
-            <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="k">return</span> <span class="p">{}</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Optionally log the error instead of printing</span>
@@ -701,7 +946,7 @@
 <span class="sd">        True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_to_metadata</span><span class="p">(</span><span class="n">pdf_src</span><span class="p">)</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Title&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">title</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">return</span> <span class="kc">None</span></div>
@@ -813,16 +1058,17 @@
 
         <span class="c1"># Handle error skipping</span>
         <span class="k">if</span> <span class="n">skip_errors</span><span class="p">:</span>
+
             <span class="k">def</span><span class="w"> </span><span class="nf">safe_converter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">_safe_key_and_value_to_pdf_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">skip_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            
+
             <span class="n">_pdf_source</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">postget</span><span class="o">=</span><span class="n">safe_converter</span><span class="p">)</span>
             <span class="c1"># Filter out None values (skipped files)</span>
             <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="p">[</span><span class="n">pdf</span> <span class="k">for</span> <span class="n">pdf</span> <span class="ow">in</span> <span class="n">_pdf_source</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_pdf_source</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">postget</span><span class="o">=</span><span class="n">key_and_value_to_pdf_bytes</span><span class="p">)</span>
             <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">_pdf_source</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-            
+
         <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">):</span>
         <span class="n">_inputs</span><span class="p">[</span><span class="s2">&quot;pdf_source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
