@@ -95,6 +95,14 @@ pdf_bytes = get_pdf("book.epub")                     # returns PDF bytes
 get_pdf("book.epub", egress="book.pdf")              # saves to file
 ```
 
+### What cannot be converted
+
+DRM-protected ebooks (Amazon KFX/AZW, Adobe-DRM EPUB) are encrypted, so neither
+Calibre nor pdfdol can read them; the DRM has to be removed first, where you are
+legally entitled to do so. Image-only sources (CBZ/CBR, DJVU, scanned PDF) do
+convert, but carry no text layer -- extracting their words needs OCR, which
+pdfdol does not do.
+
 ### Custom converters
 
 pdfdol maintains a **format converter registry** that maps file extensions to
