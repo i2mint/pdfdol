@@ -2,7 +2,14 @@
 
 from contextlib import suppress
 from collections.abc import Iterable
-from dol import Files, wrap_kvs, Pipe, KeyCodecs, add_ipython_key_completions
+from dol import (
+    Files,
+    wrap_kvs,
+    Pipe,
+    KeyCodecs,
+    add_ipython_key_completions,
+    filt_iter,
+)
 from pypdf import PdfReader
 from io import BytesIO
 
@@ -31,7 +38,11 @@ pdf_bytes_to_text = Pipe(
 
 bytes_to_pdf_obj_wrap = wrap_kvs(obj_of_data=bytes_to_pdf_reader_obj)
 
-filter_for_pdf_extension = KeyCodecs.suffixed(".pdf")
+# Keep only the .pdf keys, THEN strip the suffix: a suffix codec alone would turn a
+# stray 'notes.txt' into the bogus key 'notes.' (and, in dol >= the #114 fix, raise).
+filter_for_pdf_extension = Pipe(
+    filt_iter(filt=lambda k: k.endswith(".pdf")), KeyCodecs.suffixed(".pdf")
+)
 
 # bytes to pdf text pages ----------------------------------------------------
 bytes_to_pdf_text_pages_wrap = Pipe(

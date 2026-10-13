@@ -97,3 +97,14 @@ def test_pdf_to_metadata():
     pdf_path_no_meta = Path(test_pdf_folder) / "sample_pdf_1.pdf"
     metadata = pdf_to_metadata(str(pdf_path_no_meta))
     assert isinstance(metadata, dict)  # Should return empty dict, not None
+
+
+def test_pdf_files_reader_ignores_non_pdf_files(tmp_path):
+    """Stray non-pdf files are skipped, not turned into bogus keys (or errors)."""
+    import shutil
+
+    for f in Path(get_test_pdf_folder()).glob("*.pdf"):
+        shutil.copy(f, tmp_path)
+    (tmp_path / "notes.txt").write_text("not a pdf")
+    s = PdfFilesReader(str(tmp_path))
+    assert sorted(s) == ["sample_pdf_1", "sample_pdf_2", "sample_with_title"]
