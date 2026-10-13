@@ -1,183 +1,551 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to pdfdol’s documentation! &mdash; pdfdol 0.1.26 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
 
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="index.html.md">
+<link rel="describedby" href="llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="index.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>pdfdol &#8212; pdfdol</title>
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=785bba28"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-      <script src="_static/toggleprompt.js?v=d7ede5d2"></script>
-      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-      <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/js/theme.js"></script>
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/epythet.css?v=8f815a76" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="_static/documentation_options.js?v=34399df3"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="pdfdol" href="module_docs/pdfdol.html" /> 
-</head>
+    <link rel="next" title="API reference" href="api.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.28" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
 
-          
-          
-          <a href="#" class="icon icon-home">
-            pdfdol
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol.html">pdfdol</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/base.html">pdfdol.base</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/download.html">pdfdol.download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/examples.html">pdfdol.examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/examples/aggregations.html">pdfdol.examples.aggregations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests.html">pdfdol.tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html">pdfdol.tests.test_base</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests/test_tools.html">pdfdol.tests.test_tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tools.html">pdfdol.tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/util.html">pdfdol.util</a></li>
-</ul>
 
-        </div>
-      </div>
-    </nav>
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">pdfdol</a>
-      </nav>
+  
+    
+  
 
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Welcome to pdfdol’s documentation!</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
-      </li>
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pdfdol</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
   </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
-  <section id="welcome-to-pdfdol-s-documentation">
-<h1>Welcome to pdfdol’s documentation!<a class="headerlink" href="#welcome-to-pdfdol-s-documentation" title="Link to this heading"></a></h1>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol.html">pdfdol</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/base.html">pdfdol.base</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/download.html">pdfdol.download</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/download.html#pdfdol.download.download_articles"><code class="docutils literal notranslate"><span class="pre">download_articles()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/download.html#pdfdol.download.download_articles_by_section"><code class="docutils literal notranslate"><span class="pre">download_articles_by_section()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/examples.html">pdfdol.examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/examples/aggregations.html">pdfdol.examples.aggregations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests.html">pdfdol.tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html">pdfdol.tests.test_base</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_metadata"><code class="docutils literal notranslate"><span class="pre">test_pdf_to_metadata()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_no_title"><code class="docutils literal notranslate"><span class="pre">test_pdf_to_title_no_title()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_nonexistent_file"><code class="docutils literal notranslate"><span class="pre">test_pdf_to_title_nonexistent_file()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_with_bytes"><code class="docutils literal notranslate"><span class="pre">test_pdf_to_title_with_bytes()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_with_filepath"><code class="docutils literal notranslate"><span class="pre">test_pdf_to_title_with_filepath()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tests/test_base.html#pdfdol.tests.test_base.test_pdf_to_title_with_pdf_reader"><code class="docutils literal notranslate"><span class="pre">test_pdf_to_title_with_pdf_reader()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests/test_tools.html">pdfdol.tests.test_tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tests/utils_for_testing.html">pdfdol.tests.utils_for_testing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/tools.html">pdfdol.tools</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.any_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">any_to_pdf_bytes()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.concat_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">concat_pdf_bytes()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.concat_pdf_files"><code class="docutils literal notranslate"><span class="pre">concat_pdf_files()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.concat_pdf_readers"><code class="docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.concat_pdfs"><code class="docutils literal notranslate"><span class="pre">concat_pdfs()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.ebook_convert_to_pdf"><code class="docutils literal notranslate"><span class="pre">ebook_convert_to_pdf()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.find_ebook_convert"><code class="docutils literal notranslate"><span class="pre">find_ebook_convert()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.get_format_converter"><code class="docutils literal notranslate"><span class="pre">get_format_converter()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.get_pdf"><code class="docutils literal notranslate"><span class="pre">get_pdf()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.key_and_value_to_pdf_bytes"><code class="docutils literal notranslate"><span class="pre">key_and_value_to_pdf_bytes()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.pdf_to_metadata"><code class="docutils literal notranslate"><span class="pre">pdf_to_metadata()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.pdf_to_title"><code class="docutils literal notranslate"><span class="pre">pdf_to_title()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.register_format_converter"><code class="docutils literal notranslate"><span class="pre">register_format_converter()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/tools.html#pdfdol.tools.supported_extensions"><code class="docutils literal notranslate"><span class="pre">supported_extensions()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/pdfdol/util.html">pdfdol.util</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/util.html#pdfdol.util.add_affix"><code class="docutils literal notranslate"><span class="pre">add_affix()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/util.html#pdfdol.util.affix_source_if_target_not_given"><code class="docutils literal notranslate"><span class="pre">affix_source_if_target_not_given()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/util.html#pdfdol.util.ensure_pages"><code class="docutils literal notranslate"><span class="pre">ensure_pages()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/util.html#pdfdol.util.is_page_empty"><code class="docutils literal notranslate"><span class="pre">is_page_empty()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/pdfdol/util.html#pdfdol.util.remove_empty_pages"><code class="docutils literal notranslate"><span class="pre">remove_empty_pages()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</div>
-</section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
-<p>Release: 0.1.26</p>
-<p>Last change: Aug 20, 2026</p>
-</section>
-
-
-           </div>
-          </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="module_docs/pdfdol.html" class="btn btn-neutral float-right" title="pdfdol" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+</nav></div>
+      
     </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p></p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
-      </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+      
+      
+        <div class="navbar-item">
 
-</body>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!-- generated by epythet -->
+<section id="pdfdol">
+<h1>pdfdol<a class="headerlink" href="#pdfdol" title="Link to this heading">#</a></h1>
+<p>Data Object Layer for PDF data</p>
+<p>To install:	<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pdfdol</span></code></p>
+<p><a class="reference external" href="https://i2mint.github.io/pdfdol/">Documentation</a></p>
+</section>
+<section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h1>
+<section id="pdf-stores">
+<h2>Pdf “Stores”<a class="headerlink" href="#pdf-stores" title="Link to this heading">#</a></h2>
+<p>Get a dict-like object to list and read the pdfs of a folder, as text:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; from pdfdol import PdfFilesReader
+&gt;&gt;&gt; from pdfdol.tests import get_test_pdf_folder
+&gt;&gt;&gt; folder_path = get_test_pdf_folder()
+&gt;&gt;&gt; pdfs = PdfFilesReader(folder_path)
+&gt;&gt;&gt; sorted(pdfs)
+['sample_pdf_1', 'sample_pdf_2']
+&gt;&gt;&gt; assert pdfs['sample_pdf_2'] == [
+...     'Page 1\nThis is a sample text for testing Python PDF tools.'
+... ]
+</pre></div>
+</div>
+<p>See that the values of a <code class="docutils literal notranslate"><span class="pre">PdfFilesReader</span></code> are lists of pages.
+If you need strings (i.e. all the pages together) you can add a decoder like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_decoder</span>
+<span class="n">page_separator</span> <span class="o">=</span> <span class="s1">'---------------------'</span>
+<span class="n">pdfs</span> <span class="o">=</span> <span class="n">add_decoder</span><span class="p">(</span><span class="n">pdfs</span><span class="p">,</span> <span class="n">decoder</span><span class="o">=</span><span class="n">page_separator</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you need this at the level of the class, just do this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_decoder</span>
+<span class="n">page_separator</span> <span class="o">=</span> <span class="s1">'---------------------'</span>
+<span class="n">FilesReader</span> <span class="o">=</span> <span class="n">add_decoder</span><span class="p">(</span><span class="n">PdfFilesReader</span><span class="p">,</span> <span class="n">decoder</span><span class="o">=</span><span class="n">page_separator</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
+<span class="c1"># and then</span>
+<span class="n">pdfs</span> <span class="o">=</span> <span class="n">FilesReader</span><span class="p">(</span><span class="n">folder_path</span><span class="p">)</span>
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+<p>If you need to concatinate a bunch of pdfs together, you can do so in many
+ways. Here’s one:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol</span><span class="w"> </span><span class="kn">import</span> <span class="n">concat_pdfs</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="s1">'~/Downloads/cosmograph_documentation_pdfs/'</span><span class="p">)</span>
+<span class="n">concat_pdfs</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">key_order</span><span class="o">=</span><span class="nb">sorted</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="converting-ebooks-and-documents-to-pdf-optional-calibre-integration">
+<h2>Converting ebooks and documents to PDF (optional Calibre integration)<a class="headerlink" href="#converting-ebooks-and-documents-to-pdf-optional-calibre-integration" title="Link to this heading">#</a></h2>
+<p>pdfdol natively converts images, HTML, and Markdown to PDF.
+For additional formats – EPUB, MOBI, DOCX, ODT, DJVU, RTF, and
+<a class="reference external" href="https://manual.calibre-ebook.com/conversion.html">many more</a> –
+install <a class="reference external" href="https://calibre-ebook.com/download">Calibre</a>, which provides the
+<code class="docutils literal notranslate"><span class="pre">ebook-convert</span></code> command-line tool.</p>
+<p>pdfdol does <strong>not</strong> depend on Calibre; it auto-detects the tool at runtime
+and uses it only for formats that have no built-in converter.</p>
+<p><strong>Installing ebook-convert:</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Platform</p></th>
+<th class="head"><p>Command</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>macOS (Homebrew)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">--cask</span> <span class="pre">calibre</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Debian / Ubuntu</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">calibre</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Fedora / RHEL</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">dnf</span> <span class="pre">install</span> <span class="pre">calibre</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Linux servers (headless)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-v</span> <span class="pre">&amp;&amp;</span> <span class="pre">wget</span> <span class="pre">-nv</span> <span class="pre">-O-</span> <span class="pre">https://download.calibre-ebook.com/linux-installer.sh</span> <span class="pre">|</span> <span class="pre">sudo</span> <span class="pre">sh</span> <span class="pre">/dev/stdin</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The Linux CLI installer is self-contained (no GUI/X11 needed) and recommended
+for servers.  See https://calibre-ebook.com/download for all options.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol</span><span class="w"> </span><span class="kn">import</span> <span class="n">ebook_convert_to_pdf</span><span class="p">,</span> <span class="n">find_ebook_convert</span>
+
+<span class="c1"># Check whether Calibre is available</span>
+<span class="k">if</span> <span class="n">find_ebook_convert</span><span class="p">():</span>
+    <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">ebook_convert_to_pdf</span><span class="p">(</span><span class="s2">"book.epub"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also go through the usual <code class="docutils literal notranslate"><span class="pre">get_pdf</span></code> entry point – it will
+automatically route to <code class="docutils literal notranslate"><span class="pre">ebook-convert</span></code> when it recognises the file extension:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_pdf</span>
+<span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">get_pdf</span><span class="p">(</span><span class="s2">"book.epub"</span><span class="p">)</span>                     <span class="c1"># returns PDF bytes</span>
+<span class="n">get_pdf</span><span class="p">(</span><span class="s2">"book.epub"</span><span class="p">,</span> <span class="n">egress</span><span class="o">=</span><span class="s2">"book.pdf"</span><span class="p">)</span>              <span class="c1"># saves to file</span>
+</pre></div>
+</div>
+<section id="what-cannot-be-converted">
+<h3>What cannot be converted<a class="headerlink" href="#what-cannot-be-converted" title="Link to this heading">#</a></h3>
+<p>DRM-protected ebooks (Amazon KFX/AZW, Adobe-DRM EPUB) are encrypted, so neither
+Calibre nor pdfdol can read them; the DRM has to be removed first, where you are
+legally entitled to do so. Image-only sources (CBZ/CBR, DJVU, scanned PDF) do
+convert, but carry no text layer – extracting their words needs OCR, which
+pdfdol does not do.</p>
+</section>
+<section id="custom-converters">
+<h3>Custom converters<a class="headerlink" href="#custom-converters" title="Link to this heading">#</a></h3>
+<p>pdfdol maintains a <strong>format converter registry</strong> that maps file extensions to
+converter functions.  You can register your own:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_format_converter</span><span class="p">,</span> <span class="n">supported_extensions</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_custom_converter</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""source is a filepath (str) or raw bytes; must return PDF bytes."""</span>
+    <span class="o">...</span>
+
+<span class="n">register_format_converter</span><span class="p">(</span><span class="s1">'.xyz'</span><span class="p">,</span> <span class="n">my_custom_converter</span><span class="p">)</span>
+
+<span class="c1"># See everything that's currently supported</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">supported_extensions</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="get-pdf-from-various-sources">
+<h2>Get pdf from various sources<a class="headerlink" href="#get-pdf-from-various-sources" title="Link to this heading">#</a></h2>
+<p>Example with a URL</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">pdf_data</span> <span class="o">=</span> <span class="n">get_pdf</span><span class="p">(</span><span class="s2">"https://pypi.org"</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">"url"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Got PDF data of length:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pdf_data</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Example with HTML content</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">html_content</span> <span class="o">=</span> <span class="s2">"&lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello, PDF!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;"</span>
+<span class="n">pdf_data</span> <span class="o">=</span> <span class="n">get_pdf</span><span class="p">(</span><span class="n">html_content</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">"html"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Got PDF data of length:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pdf_data</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Example saving to file</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">filepath</span> <span class="o">=</span> <span class="n">get_pdf</span><span class="p">(</span><span class="s2">"https://pypi.org"</span><span class="p">,</span> <span class="n">egress</span><span class="o">=</span><span class="s2">"output.pdf"</span><span class="p">,</span> <span class="n">src_kind</span><span class="o">=</span><span class="s2">"url"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"PDF saved to:"</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="epythet-aggregates">This documentation as a single file: <a href="pdfdol.md">pdfdol.md</a> (Markdown, for agents).</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-13 03:39 UTC from <a href="https://github.com/i2mint/pdfdol/commit/e7ba281dd42a78f91652e3c06ad81b26d06f0f06">e7ba281</a> (master) · pdfdol 0.1.28 · <a href="about-this-build.html">about this build</a></p>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">pdfdol</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pdf-stores">Pdf “Stores”</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-ebooks-and-documents-to-pdf-optional-calibre-integration">Converting ebooks and documents to PDF (optional Calibre integration)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-cannot-be-converted">What cannot be converted</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-converters">Custom converters</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#get-pdf-from-various-sources">Get pdf from various sources</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/index.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
 </html>

@@ -1,0 +1,13 @@
+pdfdol.download
+===============
+
+.. automodule:: pdfdol.download
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      download_articles
+      download_articles_by_section
+   

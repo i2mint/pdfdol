@@ -1,0 +1,13 @@
+pdfdol.base
+===========
+
+.. automodule:: pdfdol.base
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      html_to_pdf
+      pdf_reader_to_text_pages
+   

@@ -1,0 +1,27 @@
+pdfdol.tools
+============
+
+.. automodule:: pdfdol.tools
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_css
+      any_to_pdf_bytes
+      concat_pdf_bytes
+      concat_pdf_files
+      concat_pdf_readers
+      concat_pdfs
+      ebook_convert_to_pdf
+      find_ebook_convert
+      get_format_converter
+      get_pdf
+      key_and_value_to_pdf_bytes
+      markdown_to_pdf
+      pdf_to_metadata
+      pdf_to_title
+      register_format_converter
+      supported_extensions
+   

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "built_at": "2026-10-13T03:39:21Z",
+  "package": {
+    "name": "pdfdol",
+    "version": "0.1.28",
+    "display_name": "pdfdol",
+    "source": "setup.cfg"
+  },
+  "git": {
+    "available": true,
+    "commit": "e7ba281dd42a78f91652e3c06ad81b26d06f0f06",
+    "short_commit": "e7ba281",
+    "branch": "master",
+    "tags": [
+      "0.1.28"
+    ],
+    "dirty": false,
+    "remote_url": "https://github.com/i2mint/pdfdol",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/e7ba281dd42a78f91652e3c06ad81b26d06f0f06",
+    "error": null
+  },
+  "ci": {
+    "provider": "github",
+    "repository": "i2mint/pdfdol",
+    "sha": "6e6aaf4aa1b9c6d82c468ea495688703bc730d6a",
+    "sha_in_history": true,
+    "ref": "refs/heads/master",
+    "ref_name": "master",
+    "run_id": "38342617996",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/38342617996",
+    "server_url": "https://github.com"
+  },
+  "tools": {
+    "epythet": "0.2.13",
+    "sphinx": "9.1.0",
+    "docutils": "0.22.4",
+    "python": "3.12.15"
+  },
+  "config": {
+    "theme": "auto",
+    "html_theme": "pydata_sphinx_theme",
+    "accent": "#006883",
+    "mode": "auto",
+    "api_generator": "autosummary",
+    "ignore": [
+      "tests/",
+      "scrap/",
+      "examples/"
+    ],
+    "agent_outputs": true,
+    "aggregates": [
+      "md"
+    ],
+    "ai_artifacts": true,
+    "provenance": true,
+    "docs_dir": "docsrc"
+  },
+  "site": {
+    "modules_documented": 5,
+    "objects_documented": 21
+  },
+  "pypi": {
+    "checked": true,
+    "latest": "0.1.27",
+    "relation": "ahead",
+    "error": null
+  },
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout e7ba281dd42a78f91652e3c06ad81b26d06f0f06\npip install \"epythet==0.2.13\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "warnings": [],
+  "alignment": {
+    "aligned": false,
+    "notes": [
+      "The documented version (0.1.28) is ahead of the latest release on PyPI (0.1.27): these docs describe unreleased code."
+    ]
+  }
+}

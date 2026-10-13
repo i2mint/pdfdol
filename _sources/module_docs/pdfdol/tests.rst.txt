@@ -1,4 +1,0 @@
-pdfdol.tests
-============
-.. automodule:: pdfdol.tests
-   :members:

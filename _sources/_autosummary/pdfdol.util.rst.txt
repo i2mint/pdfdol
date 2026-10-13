@@ -1,0 +1,16 @@
+pdfdol.util
+===========
+
+.. automodule:: pdfdol.util
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_affix
+      affix_source_if_target_not_given
+      ensure_pages
+      is_page_empty
+      remove_empty_pages
+   

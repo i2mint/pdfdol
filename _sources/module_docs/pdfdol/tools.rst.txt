@@ -1,4 +1,0 @@
-pdfdol.tools
-============
-.. automodule:: pdfdol.tools
-   :members:
