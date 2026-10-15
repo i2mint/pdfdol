@@ -29,7 +29,7 @@ from pdfdol.tools import (
     get_pdf,  # Convert the given source to a PDF (bytes) and process it using the specified egress.
     any_to_pdf_bytes,  # Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.
     pdf_to_title,  # Extract the title from a PDF file's metadata.
-    concat_pdfs,  # concatenate pdfs,
+    concat_pdfs,  # concatenate pdfs (optionally with contents page, headers, bookmarks),
     # Format converter registry
     register_format_converter,  # Register a PDF converter for file extension(s).
     get_format_converter,  # Get the registered PDF converter for an extension.
@@ -37,4 +37,8 @@ from pdfdol.tools import (
     # Calibre ebook-convert (optional)
     find_ebook_convert,  # Find the ebook-convert binary from Calibre.
     ebook_convert_to_pdf,  # Convert a file to PDF using Calibre's ebook-convert.
+)
+
+from pdfdol.bundle import (
+    bundle_pdf_bytes,  # Join PDFs with a contents page, per-document headers and bookmarks.
 )

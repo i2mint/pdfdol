@@ -674,9 +674,8 @@ def _pdf_passthrough(source):
     return Path(source).read_bytes()
 
 
-register_format_converter(
-    [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp"], _image_to_pdf
-)
+IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff", ".webp")
+register_format_converter(list(IMAGE_EXTENSIONS), _image_to_pdf)
 register_format_converter([".html", ".htm"], _html_to_pdf)
 register_format_converter([".md", ".markdown"], _markdown_to_pdf)
 register_format_converter(".pdf", _pdf_passthrough)
@@ -905,6 +904,11 @@ def concat_pdfs(
     filter_extensions=False,
     key_order: Callable | Iterable = None,
     skip_errors=False,
+    toc=False,
+    doc_header=None,
+    outline=False,
+    image_page_size=None,
+    title=None,
     **kwargs,
 ) -> str | bytes:
     """
@@ -925,6 +929,19 @@ def concat_pdfs(
     :param filter_extensions: If True, only files with recognized extensions
         ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff') are considered
     :param key_order: Callable or iterable of keys to sort the mapping
+    :param toc: Add a contents page whose lines link to each document. ``True``, or a
+        renderer callable (see ``pdfdol.bundle.bundle_pdf_bytes``). Needs reportlab.
+    :param doc_header: Text of a band added above each document's first page (so no
+        content is covered): ``True`` for the key, a format string with ``{key}``,
+        ``{start_page}``, ``{n_pages}``, or a callable ``key -> str``. Needs reportlab.
+    :param outline: Add one bookmark per document.
+    :param image_page_size: Fit and center each image on a page of this size
+        (``'A4'``, ``'letter'``, ... or ``(w, h)`` points; landscape for wide images)
+        instead of a page sized from its pixels. ``None``: current behavior.
+    :param title: PDF title metadata (and contents page title).
+
+    The ``toc``, ``doc_header``, ``outline`` and ``title`` options are implemented in
+    ``pdfdol.bundle.bundle_pdf_bytes``, which you can call directly on converted pdfs.
 
     :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes
 
@@ -933,6 +950,10 @@ def concat_pdfs(
 
     """
     _inputs = dict(locals())
+    bundle_opts = dict(
+        toc=toc, doc_header=doc_header, outline=outline, title=title
+    )
+    bundling = any(bundle_opts.values())
     if isinstance(pdf_source, Mapping):
         filter_extensions = kwargs.get(
             "filter_pdf_extension", filter_extensions
@@ -951,8 +972,31 @@ def concat_pdfs(
                 keys = key_order
             pdf_source = cache_iter(pdf_source, keys_cache=keys)
 
+        if bundling or image_page_size is not None:
+            from pdfdol.bundle import bundle_pdf_bytes, fit_pdf_to_page
+
+            def _converted_items():
+                for key, value in pdf_source.items():
+                    try:
+                        pdf = key_and_value_to_pdf_bytes(key, value)
+                    except Exception as e:
+                        if not skip_errors:
+                            raise
+                        print(f"Warning: Skipping file '{key}': {e}")
+                        continue
+                    if (
+                        image_page_size is not None
+                        and isinstance(key, str)
+                        and os.path.splitext(key)[1].lower() in IMAGE_EXTENSIONS
+                    ):
+                        pdf = fit_pdf_to_page(pdf, image_page_size)
+                    yield key, pdf
+
+            combined_pdf_bytes = bundle_pdf_bytes(
+                _converted_items(), **bundle_opts
+            )
         # Handle error skipping
-        if skip_errors:
+        elif skip_errors:
 
             def safe_converter(key, value):
                 return _safe_key_and_value_to_pdf_bytes(key, value, skip_errors=True)
@@ -964,7 +1008,8 @@ def concat_pdfs(
             _pdf_source = wrap_kvs(pdf_source, postget=key_and_value_to_pdf_bytes)
             pdf_bytes = _pdf_source.values()
 
-        combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
+        if not (bundling or image_page_size is not None):
+            combined_pdf_bytes = concat_pdf_bytes(pdf_bytes)
     elif isinstance(pdf_source, str) and os.path.isdir(pdf_source):
         _inputs["pdf_source"] = Files(pdf_source)
         return concat_pdfs(**_inputs)
@@ -972,7 +1017,15 @@ def concat_pdfs(
         assert isinstance(
             pdf_source, Iterable
         ), f"pdf_source must be an iterable (mapping or sequence), not {pdf_source}"
-        combined_pdf_bytes = concat_pdf_bytes(pdf_source)
+        if bundling:
+            from pdfdol.bundle import bundle_pdf_bytes
+
+            combined_pdf_bytes = bundle_pdf_bytes(
+                ((f"document {i}", any_to_pdf_bytes(b)) for i, b in enumerate(pdf_source, 1)),
+                **bundle_opts,
+            )
+        else:
+            combined_pdf_bytes = concat_pdf_bytes(pdf_source)
 
     if save_filepath is False:
         return combined_pdf_bytes
