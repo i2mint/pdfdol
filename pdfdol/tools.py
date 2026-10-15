@@ -930,10 +930,10 @@ def concat_pdfs(
         ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff') are considered
     :param key_order: Callable or iterable of keys to sort the mapping
     :param toc: Add a contents page whose lines link to each document. ``True``, or a
-        renderer callable (see ``pdfdol.bundle.bundle_pdf_bytes``). Needs reportlab.
+        renderer callable (see ``pdfdol.bundle.bundle_pdf_bytes``). Uses reportlab.
     :param doc_header: Text of a band added above each document's first page (so no
         content is covered): ``True`` for the key, a format string with ``{key}``,
-        ``{start_page}``, ``{n_pages}``, or a callable ``key -> str``. Needs reportlab.
+        ``{start_page}``, ``{n_pages}``, or a callable ``key -> str``. Uses reportlab.
     :param outline: Add one bookmark per document.
     :param image_page_size: Fit and center each image on a page of this size
         (``'A4'``, ``'letter'``, ... or ``(w, h)`` points; landscape for wide images)

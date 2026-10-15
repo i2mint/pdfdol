@@ -9,8 +9,8 @@ page each document starts on while joining, which is what makes these possible:
   no content is covered;
 - ``outline``: one bookmark per document.
 
-Rendering text needs ``reportlab`` (``pip install pdfdol[bundle]``). Without
-``toc`` and ``doc_header``, only ``pypdf`` is used.
+Rendering text uses ``reportlab``, imported lazily: without ``toc`` and
+``doc_header``, only ``pypdf`` is used.
 
 >>> import io, pypdf
 >>> def blank(n, w=200, h=300):
@@ -76,7 +76,7 @@ def _require_reportlab(feature):
         import reportlab  # noqa: F401
     except ImportError as e:
         raise ImportError(
-            f"{feature} needs reportlab: pip install reportlab (or pdfdol[bundle])"
+            f"{feature} needs reportlab: pip install reportlab"
         ) from e
 
 
