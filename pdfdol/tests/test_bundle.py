@@ -92,7 +92,10 @@ def test_custom_toc_renderer_without_links():
 def test_fit_pdf_to_page():
     wide = _reader(fit_pdf_to_page(_pdf(1, 1000, 500), "A4")).pages[0]
     tall = _reader(fit_pdf_to_page(_pdf(1, 500, 1000), (400, 600))).pages[0]
-    assert (round(float(wide.mediabox.width)), round(float(wide.mediabox.height))) == (842, 595)
+    assert (round(float(wide.mediabox.width)), round(float(wide.mediabox.height))) == (
+        842,
+        595,
+    )
     assert (float(tall.mediabox.width), float(tall.mediabox.height)) == (400, 600)
     with pytest.raises(ValueError):
         fit_pdf_to_page(_pdf(1), "nope")
@@ -105,11 +108,18 @@ def test_concat_pdfs_with_images_and_options(tmp_path):
     assert len(plain.pages) == 3
     out = _reader(
         concat_pdfs(
-            src, key_order=sorted, toc=True, doc_header=True, outline=True,
+            src,
+            key_order=sorted,
+            toc=True,
+            doc_header=True,
+            outline=True,
             image_page_size="A4",
         )
     )
-    sizes = [(round(float(p.mediabox.width)), round(float(p.mediabox.height))) for p in out.pages]
+    sizes = [
+        (round(float(p.mediabox.width)), round(float(p.mediabox.height)))
+        for p in out.pages
+    ]
     assert sizes[1] == (200, 330)
     assert sizes[2] == (842, 595 + 30)
     assert sizes[3] == (595, 842 + 30)

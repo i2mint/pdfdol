@@ -950,9 +950,7 @@ def concat_pdfs(
 
     """
     _inputs = dict(locals())
-    bundle_opts = dict(
-        toc=toc, doc_header=doc_header, outline=outline, title=title
-    )
+    bundle_opts = dict(toc=toc, doc_header=doc_header, outline=outline, title=title)
     bundling = any(bundle_opts.values())
     if isinstance(pdf_source, Mapping):
         filter_extensions = kwargs.get(
@@ -992,9 +990,7 @@ def concat_pdfs(
                         pdf = fit_pdf_to_page(pdf, image_page_size)
                     yield key, pdf
 
-            combined_pdf_bytes = bundle_pdf_bytes(
-                _converted_items(), **bundle_opts
-            )
+            combined_pdf_bytes = bundle_pdf_bytes(_converted_items(), **bundle_opts)
         # Handle error skipping
         elif skip_errors:
 
@@ -1021,7 +1017,10 @@ def concat_pdfs(
             from pdfdol.bundle import bundle_pdf_bytes
 
             combined_pdf_bytes = bundle_pdf_bytes(
-                ((f"document {i}", any_to_pdf_bytes(b)) for i, b in enumerate(pdf_source, 1)),
+                (
+                    (f"document {i}", any_to_pdf_bytes(b))
+                    for i, b in enumerate(pdf_source, 1)
+                ),
                 **bundle_opts,
             )
         else:

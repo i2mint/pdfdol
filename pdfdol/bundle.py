@@ -75,9 +75,7 @@ def _require_reportlab(feature):
     try:
         import reportlab  # noqa: F401
     except ImportError as e:
-        raise ImportError(
-            f"{feature} needs reportlab: pip install reportlab"
-        ) from e
+        raise ImportError(f"{feature} needs reportlab: pip install reportlab") from e
 
 
 def resolve_page_size(page_size: PageSize) -> tuple[float, float]:
@@ -123,9 +121,13 @@ def fit_pdf_to_page(
     for src in pypdf.PdfReader(io.BytesIO(pdf_bytes)).pages:
         src.transfer_rotation_to_content()
         sw, sh = float(src.mediabox.width), float(src.mediabox.height)
-        pw, ph = (max(pw0, ph0), min(pw0, ph0)) if (landscape_if_wider and sw > sh) else (
-            min(pw0, ph0),
-            max(pw0, ph0),
+        pw, ph = (
+            (max(pw0, ph0), min(pw0, ph0))
+            if (landscape_if_wider and sw > sh)
+            else (
+                min(pw0, ph0),
+                max(pw0, ph0),
+            )
         )
         scale = min((pw - 2 * margin) / sw, (ph - 2 * margin) / sh)
         dx = (pw - sw * scale) / 2 - float(src.mediabox.left) * scale
@@ -312,7 +314,10 @@ def bundle_pdf_bytes(
         toc = render_contents_pdf
     if toc:
         entries, toc_bytes, rects = _layout(
-            toc, readers, keys, title if title and toc_title == DFLT_TOC_TITLE else toc_title
+            toc,
+            readers,
+            keys,
+            title if title and toc_title == DFLT_TOC_TITLE else toc_title,
         )
         toc_pages = pypdf.PdfReader(io.BytesIO(toc_bytes)).pages
     else:
