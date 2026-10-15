@@ -5,21 +5,21 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-10-13 03:39 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/e7ba281dd42a78f91652e3c06ad81b26d06f0f06"><code>e7ba281</code></a> on branch <code>master</code>, for **pdfdol 0.1.28** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-15 02:14 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6"><code>3971001</code></a> on branch <code>master</code>, for **pdfdol 0.1.29** (from <code>setup.cfg</code>).
 
 :::{warning}
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.28) is ahead of the latest release on PyPI (0.1.27): these docs describe unreleased code.
+- The documented version (0.1.29) is ahead of the latest release on PyPI (0.1.28): these docs describe unreleased code.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/i2mint/pdfdol/commit/e7ba281dd42a78f91652e3c06ad81b26d06f0f06"><code>e7ba281dd42a78f91652e3c06ad81b26d06f0f06</code></a> |
+| Commit | <a href="https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6"><code>39710016009154968a8d2d74ee3503b834d60cf6</code></a> |
 | Branch | <code>master</code> |
-| Tags at this commit | <code>0.1.28</code> |
+| Tags at this commit | <code>0.1.29</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/i2mint/pdfdol</code> |
 
@@ -28,15 +28,15 @@ The documentation and the package may be misaligned:
 | | |
 |---|---|
 | Repository | <code>i2mint/pdfdol</code> |
-| Run | <a href="https://github.com/i2mint/pdfdol/actions/runs/38342617996">38342617996</a> |
+| Run | <a href="https://github.com/i2mint/pdfdol/actions/runs/38669822244">38669822244</a> |
 | Ref | <code>refs/heads/master</code> |
-| Event commit | <code>6e6aaf4aa1b9c6d82c468ea495688703bc730d6a</code> (in the history of the built commit) |
+| Event commit | <code>bd17e3066b6d73a17d79b3a655310a683f68fd8d</code> (in the history of the built commit) |
 
 ## Tools
 
 | | |
 |---|---|
-| epythet | 0.2.13 |
+| epythet | 0.2.17 |
 | Sphinx | 9.1.0 |
 | docutils | 0.22.4 |
 | Python | 3.12.15 |
@@ -55,14 +55,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.27/">0.1.27</a>, older than the documented version (0.1.28).
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.28/">0.1.28</a>, older than the documented version (0.1.29).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout e7ba281dd42a78f91652e3c06ad81b26d06f0f06
-pip install "epythet==0.2.13"
+git checkout 39710016009154968a8d2d74ee3503b834d60cf6
+pip install "epythet==0.2.17"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

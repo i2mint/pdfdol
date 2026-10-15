@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=34399df3"></script>
+    <script src="../../_static/documentation_options.js?v=904119ea"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.28" />
+  <meta name="docsearch:version" content="0.1.29" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1378,9 +1378,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
 
 
-<span class="n">register_format_converter</span><span class="p">(</span>
-    <span class="p">[</span><span class="s2">".png"</span><span class="p">,</span> <span class="s2">".jpg"</span><span class="p">,</span> <span class="s2">".jpeg"</span><span class="p">,</span> <span class="s2">".bmp"</span><span class="p">,</span> <span class="s2">".gif"</span><span class="p">,</span> <span class="s2">".tiff"</span><span class="p">,</span> <span class="s2">".webp"</span><span class="p">],</span> <span class="n">_image_to_pdf</span>
-<span class="p">)</span>
+<span class="n">IMAGE_EXTENSIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">".png"</span><span class="p">,</span> <span class="s2">".jpg"</span><span class="p">,</span> <span class="s2">".jpeg"</span><span class="p">,</span> <span class="s2">".bmp"</span><span class="p">,</span> <span class="s2">".gif"</span><span class="p">,</span> <span class="s2">".tiff"</span><span class="p">,</span> <span class="s2">".webp"</span><span class="p">)</span>
+<span class="n">register_format_converter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">IMAGE_EXTENSIONS</span><span class="p">),</span> <span class="n">_image_to_pdf</span><span class="p">)</span>
 <span class="n">register_format_converter</span><span class="p">([</span><span class="s2">".html"</span><span class="p">,</span> <span class="s2">".htm"</span><span class="p">],</span> <span class="n">_html_to_pdf</span><span class="p">)</span>
 <span class="n">register_format_converter</span><span class="p">([</span><span class="s2">".md"</span><span class="p">,</span> <span class="s2">".markdown"</span><span class="p">],</span> <span class="n">_markdown_to_pdf</span><span class="p">)</span>
 <span class="n">register_format_converter</span><span class="p">(</span><span class="s2">".pdf"</span><span class="p">,</span> <span class="n">_pdf_passthrough</span><span class="p">)</span>
@@ -1629,6 +1628,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">filter_extensions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">key_order</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">skip_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">toc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">doc_header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">outline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">image_page_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1649,6 +1653,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    :param filter_extensions: If True, only files with recognized extensions</span>
 <span class="sd">        ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff') are considered</span>
 <span class="sd">    :param key_order: Callable or iterable of keys to sort the mapping</span>
+<span class="sd">    :param toc: Add a contents page whose lines link to each document. ``True``, or a</span>
+<span class="sd">        renderer callable (see ``pdfdol.bundle.bundle_pdf_bytes``). Uses reportlab.</span>
+<span class="sd">    :param doc_header: Text of a band added above each document's first page (so no</span>
+<span class="sd">        content is covered): ``True`` for the key, a format string with ``{key}``,</span>
+<span class="sd">        ``{start_page}``, ``{n_pages}``, or a callable ``key -&gt; str``. Uses reportlab.</span>
+<span class="sd">    :param outline: Add one bookmark per document.</span>
+<span class="sd">    :param image_page_size: Fit and center each image on a page of this size</span>
+<span class="sd">        (``'A4'``, ``'letter'``, ... or ``(w, h)`` points; landscape for wide images)</span>
+<span class="sd">        instead of a page sized from its pixels. ``None``: current behavior.</span>
+<span class="sd">    :param title: PDF title metadata (and contents page title).</span>
+
+<span class="sd">    The ``toc``, ``doc_header``, ``outline`` and ``title`` options are implemented in</span>
+<span class="sd">    ``pdfdol.bundle.bundle_pdf_bytes``, which you can call directly on converted pdfs.</span>
 
 <span class="sd">    :return: The save_filepath if it was specified, otherwise the concatenated pdf bytes</span>
 
@@ -1657,6 +1674,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    """</span>
     <span class="n">_inputs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">locals</span><span class="p">())</span>
+    <span class="n">bundle_opts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">toc</span><span class="o">=</span><span class="n">toc</span><span class="p">,</span> <span class="n">doc_header</span><span class="o">=</span><span class="n">doc_header</span><span class="p">,</span> <span class="n">outline</span><span class="o">=</span><span class="n">outline</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">bundling</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">bundle_opts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
         <span class="n">filter_extensions</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s2">"filter_pdf_extension"</span><span class="p">,</span> <span class="n">filter_extensions</span>
@@ -1675,8 +1694,29 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">key_order</span>
             <span class="n">pdf_source</span> <span class="o">=</span> <span class="n">cache_iter</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">keys_cache</span><span class="o">=</span><span class="n">keys</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">bundling</span> <span class="ow">or</span> <span class="n">image_page_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundle_pdf_bytes</span><span class="p">,</span> <span class="n">fit_pdf_to_page</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_converted_items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">pdf_source</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">pdf</span> <span class="o">=</span> <span class="n">key_and_value_to_pdf_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_errors</span><span class="p">:</span>
+                            <span class="k">raise</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warning: Skipping file '</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">image_page_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+                        <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">key</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">IMAGE_EXTENSIONS</span>
+                    <span class="p">):</span>
+                        <span class="n">pdf</span> <span class="o">=</span> <span class="n">fit_pdf_to_page</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="n">image_page_size</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">pdf</span>
+
+            <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">bundle_pdf_bytes</span><span class="p">(</span><span class="n">_converted_items</span><span class="p">(),</span> <span class="o">**</span><span class="n">bundle_opts</span><span class="p">)</span>
         <span class="c1"># Handle error skipping</span>
-        <span class="k">if</span> <span class="n">skip_errors</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">skip_errors</span><span class="p">:</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">safe_converter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">_safe_key_and_value_to_pdf_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">skip_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1688,7 +1728,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">_pdf_source</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="n">postget</span><span class="o">=</span><span class="n">key_and_value_to_pdf_bytes</span><span class="p">)</span>
             <span class="n">pdf_bytes</span> <span class="o">=</span> <span class="n">_pdf_source</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
-        <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">bundling</span> <span class="ow">or</span> <span class="n">image_page_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_bytes</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">):</span>
         <span class="n">_inputs</span><span class="p">[</span><span class="s2">"pdf_source"</span><span class="p">]</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">concat_pdfs</span><span class="p">(</span><span class="o">**</span><span class="n">_inputs</span><span class="p">)</span>
@@ -1696,7 +1737,18 @@ window.runMermaid = runMermaid;</script>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
             <span class="n">pdf_source</span><span class="p">,</span> <span class="n">Iterable</span>
         <span class="p">),</span> <span class="sa">f</span><span class="s2">"pdf_source must be an iterable (mapping or sequence), not </span><span class="si">{</span><span class="n">pdf_source</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bundling</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundle_pdf_bytes</span>
+
+            <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">bundle_pdf_bytes</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="p">(</span><span class="sa">f</span><span class="s2">"document </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">any_to_pdf_bytes</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="o">**</span><span class="n">bundle_opts</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">combined_pdf_bytes</span> <span class="o">=</span> <span class="n">concat_pdf_bytes</span><span class="p">(</span><span class="n">pdf_source</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">save_filepath</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">combined_pdf_bytes</span>

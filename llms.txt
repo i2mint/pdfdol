@@ -9,11 +9,12 @@
 - [API reference](api.html.md): | &#96;pdfdol&#96;   | Data Object Layers for PDF data.   |
 - [pdfdol](_autosummary/pdfdol.html.md): Data Object Layers for PDF data.
 - [pdfdol.base](_autosummary/pdfdol.base.html.md): Base objects for pdfdol
+- [pdfdol.bundle](_autosummary/pdfdol.bundle.html.md): Bundle several PDFs into one, with a contents page, per-document headers and bookmarks.
 - [pdfdol.download](_autosummary/pdfdol.download.html.md): Download PDF articles from markdown-formatted text.
 - [pdfdol.tools](_autosummary/pdfdol.tools.html.md): | &#96;add_css&#96;(html_text&#91;, css&#93;)                                                                       ...
 - [pdfdol.util](_autosummary/pdfdol.util.html.md): Utils for pdfdol
 - [For AI agents](ai-agents.html.md): &#96;pdfdol&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-13 03:39 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-15 02:14 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
 
 ## Optional
 

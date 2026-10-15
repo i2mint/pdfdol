@@ -7,6 +7,7 @@
 
 - [pdfdol](pdfdol.html.md): Data Object Layers for PDF data.
 - [pdfdol.base](pdfdol.base.html.md): Base objects for pdfdol
+- [pdfdol.bundle](pdfdol.bundle.html.md): Bundle several PDFs into one, with a contents page, per-document headers and bookmarks.
 - [pdfdol.download](pdfdol.download.html.md): Download PDF articles from markdown-formatted text.
 - [pdfdol.tools](pdfdol.tools.html.md): | &#96;add_css&#96;(html_text&#91;, css&#93;)                                                                       ...
 - [pdfdol.util](pdfdol.util.html.md): Utils for pdfdol

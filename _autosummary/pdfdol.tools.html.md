@@ -71,7 +71,7 @@ Concatenate multiple PdfReader objects into a single PdfWriter object.
 * **Return type:**
   `PdfWriter`
 
-### pdfdol.tools.concat_pdfs(pdf_source, save_filepath=False, , filter_extensions=False, key_order=None, skip_errors=False, \*\*kwargs)
+### pdfdol.tools.concat_pdfs(pdf_source, save_filepath=False, , filter_extensions=False, key_order=None, skip_errors=False, toc=False, doc_header=None, outline=False, image_page_size=None, title=None, \*\*kwargs)
 
 Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.
 
@@ -92,6 +92,22 @@ out some keys.
   * **filter_extensions** – If True, only files with recognized extensions
     (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered
   * **key_order** (`Union`[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
+  * **toc** – Add a contents page whose lines link to each document. `True`, or a
+    renderer callable (see `pdfdol.bundle.bundle_pdf_bytes`). Uses reportlab.
+  * **doc_header** – Text of a band added above each document’s first page (so no
+    content is covered): `True` for the key, a format string with `{key}`,
+    `{start_page}`, `{n_pages}`, or a callable `key -> str`. Uses reportlab.
+  * **outline** – Add one bookmark per document.
+  * **image_page_size** – Fit and center each image on a page of this size
+    (`'A4'`, `'letter'`, … or `(w, h)` points; landscape for wide images)
+    instead of a page sized from its pixels. `None`: current behavior.
+  * **title** – PDF title metadata (and contents page title).
+* **Return type:**
+  [*str*](https://docs.python.org/3/builtins/stdtypes.html#str) | [*bytes*](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+The `toc`, `doc_header`, `outline` and `title` options are implemented in
+`pdfdol.bundle.bundle_pdf_bytes`, which you can call directly on converted pdfs.
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 * **Returns:**

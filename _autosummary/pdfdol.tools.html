@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=34399df3"></script>
+    <script src="../_static/documentation_options.js?v=904119ea"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.28" />
+  <meta name="docsearch:version" content="0.1.29" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -290,6 +290,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="pdfdol.html">pdfdol</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pdfdol.base.html">pdfdol.base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pdfdol.bundle.html">pdfdol.bundle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pdfdol.download.html">pdfdol.download</a></li>
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">pdfdol.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pdfdol.util.html">pdfdol.util</a></li>
@@ -482,7 +483,7 @@ be determined heuristically.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.concat_pdfs">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/tools.html#concat_pdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdfs" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/tools.html#concat_pdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdfs" title="Link to this definition">#</a></dt>
 <dd><p>Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -504,13 +505,30 @@ If <code class="code docutils literal notranslate"><span class="pre">False</span
 <li><p><strong>filter_extensions</strong> – If True, only files with recognized extensions
 (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered</p></li>
 <li><p><strong>key_order</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>]</span>) – Callable or iterable of keys to sort the mapping</p></li>
+<li><p><strong>toc</strong> – Add a contents page whose lines link to each document. <code class="docutils literal notranslate"><span class="pre">True</span></code>, or a
+renderer callable (see <code class="docutils literal notranslate"><span class="pre">pdfdol.bundle.bundle_pdf_bytes</span></code>). Uses reportlab.</p></li>
+<li><p><strong>doc_header</strong> – Text of a band added above each document’s first page (so no
+content is covered): <code class="docutils literal notranslate"><span class="pre">True</span></code> for the key, a format string with <code class="docutils literal notranslate"><span class="pre">{key}</span></code>,
+<code class="docutils literal notranslate"><span class="pre">{start_page}</span></code>, <code class="docutils literal notranslate"><span class="pre">{n_pages}</span></code>, or a callable <code class="docutils literal notranslate"><span class="pre">key</span> <span class="pre">-&gt;</span> <span class="pre">str</span></code>. Uses reportlab.</p></li>
+<li><p><strong>outline</strong> – Add one bookmark per document.</p></li>
+<li><p><strong>image_page_size</strong> – Fit and center each image on a page of this size
+(<code class="docutils literal notranslate"><span class="pre">'A4'</span></code>, <code class="docutils literal notranslate"><span class="pre">'letter'</span></code>, … or <code class="docutils literal notranslate"><span class="pre">(w,</span> <span class="pre">h)</span></code> points; landscape for wide images)
+instead of a page sized from its pixels. <code class="docutils literal notranslate"><span class="pre">None</span></code>: current behavior.</p></li>
+<li><p><strong>title</strong> – PDF title metadata (and contents page title).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a> | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><em>bytes</em></a></p>
 </dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The save_filepath if it was specified, otherwise the concatenated pdf bytes</p>
+</dl>
+<p>The <code class="docutils literal notranslate"><span class="pre">toc</span></code>, <code class="docutils literal notranslate"><span class="pre">doc_header</span></code>, <code class="docutils literal notranslate"><span class="pre">outline</span></code> and <code class="docutils literal notranslate"><span class="pre">title</span></code> options are implemented in
+<code class="docutils literal notranslate"><span class="pre">pdfdol.bundle.bundle_pdf_bytes</span></code>, which you can call directly on converted pdfs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The save_filepath if it was specified, otherwise the concatenated pdf bytes</p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="s1">'~/Downloads/'</span><span class="p">)</span>

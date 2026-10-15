@@ -1,4 +1,4 @@
-> built 2026-10-13 03:39 UTC from e7ba281 (master) · pdfdol 0.1.28. Details: build_info.json
+> built 2026-10-15 02:14 UTC from 3971001 (master) · pdfdol 0.1.29. Details: build_info.json
 
 # index.html.md
 
@@ -167,6 +167,167 @@ Base objects for pdfdol
 | `pdf_reader_to_text_pages`(pdf_reader) |    |
 
 
+# _autosummary/pdfdol.bundle.html.md
+
+# pdfdol.bundle
+
+Bundle several PDFs into one, with a contents page, per-document headers and bookmarks.
+
+`concat_pdfs` just joins documents. `bundle_pdf_bytes` keeps track of which
+page each document starts on while joining, which is what makes these possible:
+
+- `toc`: a contents page (several pages if needed) whose lines link to the
+  documents’ first pages;
+- `doc_header`: a band naming the document, added *above* its first page, so
+  no content is covered;
+- `outline`: one bookmark per document.
+
+Rendering text uses `reportlab`, imported lazily: without `toc` and
+`doc_header`, only `pypdf` is used.
+
+```pycon
+>>> import io, pypdf
+>>> def blank(n, w=200, h=300):
+...     writer = pypdf.PdfWriter()
+...     for _ in range(n):
+...         _ = writer.add_blank_page(width=w, height=h)
+...     buf = io.BytesIO(); _ = writer.write(buf); return buf.getvalue()
+>>> out = bundle_pdf_bytes({'a.pdf': blank(2), 'b.pdf': blank(1)}, outline=True)
+>>> reader = pypdf.PdfReader(io.BytesIO(out))
+>>> len(reader.pages), [o.title for o in reader.outline]
+(3, ['a.pdf', 'b.pdf'])
+```
+
+### Module Attributes
+
+| [`PAGE_SIZES`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.PAGE_SIZES)   | Page sizes in points (1/72 inch), portrait.                                                                                                                                                                                              |
+|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`TocRenderer`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.TocRenderer)  | A contents renderer maps `(entries, title)` to the contents PDF bytes, or to `(pdf_bytes, link_rects)` where `link_rects[i]` is `(toc_page_index, (x0, y0, x1, y1))` for entry `i`, making that region a link to the entry's first page. |
+
+### Functions
+
+| [`add_header_band`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.add_header_band)(page, text, \*[, height, ...])   | Extend `page` upward by `height` and draw `text` in the new band (in place).          |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`bundle_pdf_bytes`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.bundle_pdf_bytes)(items, \*[, toc, ...])          | Join PDFs, optionally adding a contents page, document headers and bookmarks.         |
+| [`fit_pdf_to_page`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.fit_pdf_to_page)(pdf_bytes[, page_size, ...])     | Put each page of `pdf_bytes` on a `page_size` page, scaled to fit and centered.       |
+| [`render_contents_pdf`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.render_contents_pdf)(entries[, title, ...])       | Default `TocRenderer`: a title, then one line per entry with its page range at right. |
+| [`resolve_page_size`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.resolve_page_size)(page_size)                     | Name (case-insensitive, see `PAGE_SIZES`) or `(w, h)` points -> `(w, h)`.             |
+
+### Classes
+
+| [`Entry`](_autosummary/pdfdol.bundle.html.md#pdfdol.bundle.Entry)(key, start_page, n_pages)   | One document in a bundle.   |
+|------------------------------------------------------------------------------------|-----------------------------|
+
+### *class* pdfdol.bundle.Entry(key, start_page, n_pages)
+
+Bases: [`NamedTuple`](https://docs.python.org/3/library/typing.html#typing.NamedTuple)
+
+One document in a bundle. `start_page` is 1-based, in the final PDF.
+
+#### key *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+Alias for field number 0
+
+#### n_pages *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+Alias for field number 2
+
+#### start_page *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+Alias for field number 1
+
+### pdfdol.bundle.PAGE_SIZES *= {'A3': (841.89, 1190.55), 'A4': (595.28, 841.89), 'A5': (419.53, 595.28), 'legal': (612.0, 1008.0), 'letter': (612.0, 792.0)}*
+
+Page sizes in points (1/72 inch), portrait.
+
+### pdfdol.bundle.TocRenderer
+
+A contents renderer maps `(entries, title)` to the contents PDF bytes, or to
+`(pdf_bytes, link_rects)` where `link_rects[i]` is `(toc_page_index, (x0, y0, x1, y1))`
+for entry `i`, making that region a link to the entry’s first page.
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes) | [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]
+
+### pdfdol.bundle.add_header_band(page, text, , height=30, margin=36, font='Helvetica-Bold', font_size=9, gray=0.92)
+
+Extend `page` upward by `height` and draw `text` in the new band (in place).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### pdfdol.bundle.bundle_pdf_bytes(items, , toc=False, doc_header=None, outline=False, title=None, toc_title='Contents', header_height=30)
+
+Join PDFs, optionally adding a contents page, document headers and bookmarks.
+
+* **Parameters:**
+  * **items** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping) | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)) – `{key: pdf_bytes}` or an iterable of `(key, pdf_bytes)`, in order.
+  * **toc** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], `Union`[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]]) – `True` for the default contents page (`render_contents_pdf`), or a
+    `TocRenderer` callable `(entries, title) -> bytes | (bytes, link_rects)`.
+  * **doc_header** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Text of the band added above each document’s first page.
+    `True` -> the key; a format string using `{key}`, `{start_page}`,
+    `{n_pages}`; or a callable `key -> str`.
+  * **outline** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – Add one bookmark per document.
+  * **title** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – PDF title metadata; also the contents page title if `toc_title` is
+    left at its default.
+  * **toc_title** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Title of the contents page.
+  * **header_height** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – Height in points of the header band.
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> import io, pypdf
+>>> w = pypdf.PdfWriter(); _ = w.add_blank_page(width=200, height=300)
+>>> buf = io.BytesIO(); _ = w.write(buf); one = buf.getvalue()
+>>> out = bundle_pdf_bytes({'a.pdf': one, 'b.pdf': one}, toc=True, doc_header='{key}')
+>>> reader = pypdf.PdfReader(io.BytesIO(out))
+>>> len(reader.pages)  # 1 contents page + 2 documents
+3
+>>> float(reader.pages[1].mediabox.height)  # 300 + header band
+330.0
+```
+
+### pdfdol.bundle.fit_pdf_to_page(pdf_bytes, page_size='A4', , margin=36, landscape_if_wider=True)
+
+Put each page of `pdf_bytes` on a `page_size` page, scaled to fit and centered.
+
+A page wider than tall gets a landscape page when `landscape_if_wider`.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> import io, pypdf
+>>> w = pypdf.PdfWriter(); _ = w.add_blank_page(width=1000, height=500)
+>>> buf = io.BytesIO(); _ = w.write(buf)
+>>> out = fit_pdf_to_page(buf.getvalue(), 'A4')
+>>> [round(float(v)) for v in pypdf.PdfReader(io.BytesIO(out)).pages[0].mediabox[2:]]
+[842, 595]
+```
+
+### pdfdol.bundle.render_contents_pdf(entries, title='Contents', , page_size='A4', margin=36, line_height=18, font='Helvetica', title_font='Helvetica-Bold', font_size=10, title_size=16)
+
+Default `TocRenderer`: a title, then one line per entry with its page range at right.
+
+Returns `(pdf_bytes, link_rects)`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)
+
+### pdfdol.bundle.resolve_page_size(page_size)
+
+Name (case-insensitive, see `PAGE_SIZES`) or `(w, h)` points -> `(w, h)`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> resolve_page_size('a4')
+(595.28, 841.89)
+>>> resolve_page_size((100, 200))
+(100.0, 200.0)
+```
+
+
 # _autosummary/pdfdol.download.html.md
 
 # pdfdol.download
@@ -248,11 +409,12 @@ Data Object Layers for PDF data.
 
 ### Modules
 
-| [`base`](_autosummary/pdfdol.base.html.md#module-pdfdol.base)         | Base objects for pdfdol                             |
-|----------------------------------------------------------------------------------|-----------------------------------------------------|
-| [`download`](_autosummary/pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text. |
-| [`tools`](_autosummary/pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                          |
-| [`util`](_autosummary/pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                    |
+| [`base`](_autosummary/pdfdol.base.html.md#module-pdfdol.base)         | Base objects for pdfdol                                                                 |
+|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`bundle`](_autosummary/pdfdol.bundle.html.md#module-pdfdol.bundle)     | Bundle several PDFs into one, with a contents page, per-document headers and bookmarks. |
+| [`download`](_autosummary/pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text.                                     |
+| [`tools`](_autosummary/pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                                                              |
+| [`util`](_autosummary/pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                                                        |
 
 
 # _autosummary/pdfdol.tools.html.md
@@ -330,7 +492,7 @@ Concatenate multiple PdfReader objects into a single PdfWriter object.
 * **Return type:**
   `PdfWriter`
 
-### pdfdol.tools.concat_pdfs(pdf_source, save_filepath=False, , filter_extensions=False, key_order=None, skip_errors=False, \*\*kwargs)
+### pdfdol.tools.concat_pdfs(pdf_source, save_filepath=False, , filter_extensions=False, key_order=None, skip_errors=False, toc=False, doc_header=None, outline=False, image_page_size=None, title=None, \*\*kwargs)
 
 Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.
 
@@ -351,6 +513,22 @@ out some keys.
   * **filter_extensions** – If True, only files with recognized extensions
     (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered
   * **key_order** (`Union`[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
+  * **toc** – Add a contents page whose lines link to each document. `True`, or a
+    renderer callable (see `pdfdol.bundle.bundle_pdf_bytes`). Uses reportlab.
+  * **doc_header** – Text of a band added above each document’s first page (so no
+    content is covered): `True` for the key, a format string with `{key}`,
+    `{start_page}`, `{n_pages}`, or a callable `key -> str`. Uses reportlab.
+  * **outline** – Add one bookmark per document.
+  * **image_page_size** – Fit and center each image on a page of this size
+    (`'A4'`, `'letter'`, … or `(w, h)` points; landscape for wide images)
+    instead of a page sized from its pixels. `None`: current behavior.
+  * **title** – PDF title metadata (and contents page title).
+* **Return type:**
+  [*str*](https://docs.python.org/3/builtins/stdtypes.html#str) | [*bytes*](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+The `toc`, `doc_header`, `outline` and `title` options are implemented in
+`pdfdol.bundle.bundle_pdf_bytes`, which you can call directly on converted pdfs.
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 * **Returns:**
@@ -623,20 +801,20 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-10-13 03:39 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/e7ba281dd42a78f91652e3c06ad81b26d06f0f06"><code>e7ba281</code></a> on branch <code>master</code>, for **pdfdol 0.1.28** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-15 02:14 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6"><code>3971001</code></a> on branch <code>master</code>, for **pdfdol 0.1.29** (from <code>setup.cfg</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.28) is ahead of the latest release on PyPI (0.1.27): these docs describe unreleased code.
+- The documented version (0.1.29) is ahead of the latest release on PyPI (0.1.28): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/e7ba281dd42a78f91652e3c06ad81b26d06f0f06"><code>e7ba281dd42a78f91652e3c06ad81b26d06f0f06</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6"><code>39710016009154968a8d2d74ee3503b834d60cf6</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.28</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.29</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -645,15 +823,15 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/38342617996">38342617996</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/38669822244">38669822244</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>6e6aaf4aa1b9c6d82c468ea495688703bc730d6a</code> (in the history of the built commit) |
+| Event commit | <code>bd17e3066b6d73a17d79b3a655310a683f68fd8d</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.13  |
+| epythet  | 0.2.17  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
@@ -672,14 +850,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.27/">0.1.27</a>, older than the documented version (0.1.28).
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.28/">0.1.28</a>, older than the documented version (0.1.29).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout e7ba281dd42a78f91652e3c06ad81b26d06f0f06
-pip install "epythet==0.2.13"
+git checkout 39710016009154968a8d2d74ee3503b834d60cf6
+pip install "epythet==0.2.17"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

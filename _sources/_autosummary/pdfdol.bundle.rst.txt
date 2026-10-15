@@ -1,0 +1,29 @@
+pdfdol.bundle
+=============
+
+.. automodule:: pdfdol.bundle
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PAGE_SIZES
+      TocRenderer
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_header_band
+      bundle_pdf_bytes
+      fit_pdf_to_page
+      render_contents_pdf
+      resolve_page_size
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Entry
+   

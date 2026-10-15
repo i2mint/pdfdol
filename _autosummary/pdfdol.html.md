@@ -16,8 +16,9 @@ Data Object Layers for PDF data.
 
 ### Modules
 
-| [`base`](pdfdol.base.html.md#module-pdfdol.base)         | Base objects for pdfdol                             |
-|----------------------------------------------------------------------------------|-----------------------------------------------------|
-| [`download`](pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text. |
-| [`tools`](pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                          |
-| [`util`](pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                    |
+| [`base`](pdfdol.base.html.md#module-pdfdol.base)         | Base objects for pdfdol                                                                 |
+|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`bundle`](pdfdol.bundle.html.md#module-pdfdol.bundle)     | Bundle several PDFs into one, with a contents page, per-document headers and bookmarks. |
+| [`download`](pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text.                                     |
+| [`tools`](pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                                                              |
+| [`util`](pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                                                        |
