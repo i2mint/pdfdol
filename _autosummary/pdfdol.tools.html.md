@@ -84,14 +84,14 @@ Both the ordering function and the explicit list can also be used to filter
 out some keys.
 
 * **Parameters:**
-  * **pdf_source** (`Union`[[`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)], [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]) – Mapping of filepaths to pdf bytes or an iterable of pdf bytes
+  * **pdf_source** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)], [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]) – Mapping of filepaths to pdf bytes or an iterable of pdf bytes
   * **save_filepath** – Filepath to save the concatenated pdf.
     If `True`, the save_filepath will be taken from the rootdir of the pdf_source
     that attribute exists, and no file of that name (+’.pdf’) exists.
     If `False`, the pdf bytes are returned.
   * **filter_extensions** – If True, only files with recognized extensions
     (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered
-  * **key_order** (`Union`[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
+  * **key_order** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
   * **toc** – Add a contents page whose lines link to each document. `True`, or a
     renderer callable (see `pdfdol.bundle.bundle_pdf_bytes`). Uses reportlab.
   * **doc_header** – Text of a band added above each document’s first page (so no
@@ -238,7 +238,7 @@ select a converter from the format converter registry.
 Extract metadata from a PDF source.
 
 * **Parameters:**
-  **pdf_src** (`Union`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
+  **pdf_src** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
 * **Returns:**
   Dictionary containing metadata fields (title, author, subject, etc.)
   : Returns empty dict if no metadata or an error occurs.
@@ -264,7 +264,7 @@ Extract metadata from a PDF source.
 Extract the document title from a PDF source.
 
 * **Parameters:**
-  **pdf_src** (`Union`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
+  **pdf_src** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
 * **Returns:**
   The title from the metadata, or None if not found or an error occurs.
 * **Return type:**

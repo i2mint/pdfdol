@@ -1,4 +1,4 @@
-> built 2026-10-15 02:14 UTC from 3971001 (master) · pdfdol 0.1.29. Details: build_info.json
+> built 2026-10-18 09:24 UTC from c005725 (master) · pdfdol 0.1.30. Details: build_info.json
 
 # index.html.md
 
@@ -261,7 +261,7 @@ Join PDFs, optionally adding a contents page, document headers and bookmarks.
 
 * **Parameters:**
   * **items** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping) | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)) – `{key: pdf_bytes}` or an iterable of `(key, pdf_bytes)`, in order.
-  * **toc** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], `Union`[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]]) – `True` for the default contents page (`render_contents_pdf`), or a
+  * **toc** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]]) – `True` for the default contents page (`render_contents_pdf`), or a
     `TocRenderer` callable `(entries, title) -> bytes | (bytes, link_rects)`.
   * **doc_header** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Text of the band added above each document’s first page.
     `True` -> the key; a format string using `{key}`, `{start_page}`,
@@ -292,9 +292,6 @@ Put each page of `pdf_bytes` on a `page_size` page, scaled to fit and centered.
 
 A page wider than tall gets a landscape page when `landscape_if_wider`.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> import io, pypdf
 >>> w = pypdf.PdfWriter(); _ = w.add_blank_page(width=1000, height=500)
@@ -303,6 +300,9 @@ A page wider than tall gets a landscape page when `landscape_if_wider`.
 >>> [round(float(v)) for v in pypdf.PdfReader(io.BytesIO(out)).pages[0].mediabox[2:]]
 [842, 595]
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### pdfdol.bundle.render_contents_pdf(entries, title='Contents', , page_size='A4', margin=36, line_height=18, font='Helvetica', title_font='Helvetica-Bold', font_size=10, title_size=16)
 
@@ -317,15 +317,15 @@ Returns `(pdf_bytes, link_rects)`.
 
 Name (case-insensitive, see `PAGE_SIZES`) or `(w, h)` points -> `(w, h)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> resolve_page_size('a4')
 (595.28, 841.89)
 >>> resolve_page_size((100, 200))
 (100.0, 200.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/pdfdol.download.html.md
@@ -505,14 +505,14 @@ Both the ordering function and the explicit list can also be used to filter
 out some keys.
 
 * **Parameters:**
-  * **pdf_source** (`Union`[[`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)], [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]) – Mapping of filepaths to pdf bytes or an iterable of pdf bytes
+  * **pdf_source** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)], [`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]) – Mapping of filepaths to pdf bytes or an iterable of pdf bytes
   * **save_filepath** – Filepath to save the concatenated pdf.
     If `True`, the save_filepath will be taken from the rootdir of the pdf_source
     that attribute exists, and no file of that name (+’.pdf’) exists.
     If `False`, the pdf bytes are returned.
   * **filter_extensions** – If True, only files with recognized extensions
     (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered
-  * **key_order** (`Union`[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
+  * **key_order** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
   * **toc** – Add a contents page whose lines link to each document. `True`, or a
     renderer callable (see `pdfdol.bundle.bundle_pdf_bytes`). Uses reportlab.
   * **doc_header** – Text of a band added above each document’s first page (so no
@@ -659,7 +659,7 @@ select a converter from the format converter registry.
 Extract metadata from a PDF source.
 
 * **Parameters:**
-  **pdf_src** (`Union`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
+  **pdf_src** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
 * **Returns:**
   Dictionary containing metadata fields (title, author, subject, etc.)
   : Returns empty dict if no metadata or an error occurs.
@@ -685,7 +685,7 @@ Extract metadata from a PDF source.
 Extract the document title from a PDF source.
 
 * **Parameters:**
-  **pdf_src** (`Union`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
+  **pdf_src** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), `PdfReader`]) – Can be a file path (str), PDF bytes, or a PdfReader object
 * **Returns:**
   The title from the metadata, or None if not found or an error occurs.
 * **Return type:**
@@ -801,20 +801,18 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-10-15 02:14 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6"><code>3971001</code></a> on branch <code>master</code>, for **pdfdol 0.1.29** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-18 09:24 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/c00572542c2225ab360a26a3995d079de6365039"><code>c005725</code></a> on branch <code>master</code>, for **pdfdol 0.1.30** (from <code>setup.cfg</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.29) is ahead of the latest release on PyPI (0.1.28): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6"><code>39710016009154968a8d2d74ee3503b834d60cf6</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/c00572542c2225ab360a26a3995d079de6365039"><code>c00572542c2225ab360a26a3995d079de6365039</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.29</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.30</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -823,9 +821,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/38669822244">38669822244</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/39115129212">39115129212</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>bd17e3066b6d73a17d79b3a655310a683f68fd8d</code> (in the history of the built commit) |
+| Event commit | <code>08140e3f6a5ef384bbd9cc58f6767875ec57ba0e</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -850,13 +848,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.28/">0.1.28</a>, older than the documented version (0.1.29).
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.30/">0.1.30</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout 39710016009154968a8d2d74ee3503b834d60cf6
+git checkout c00572542c2225ab360a26a3995d079de6365039
 pip install "epythet==0.2.17"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

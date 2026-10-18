@@ -90,7 +90,7 @@ Join PDFs, optionally adding a contents page, document headers and bookmarks.
 
 * **Parameters:**
   * **items** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping) | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)) – `{key: pdf_bytes}` or an iterable of `(key, pdf_bytes)`, in order.
-  * **toc** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], `Union`[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]]) – `True` for the default contents page (`render_contents_pdf`), or a
+  * **toc** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]]) – `True` for the default contents page (`render_contents_pdf`), or a
     `TocRenderer` callable `(entries, title) -> bytes | (bytes, link_rects)`.
   * **doc_header** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Text of the band added above each document’s first page.
     `True` -> the key; a format string using `{key}`, `{start_page}`,
@@ -121,9 +121,6 @@ Put each page of `pdf_bytes` on a `page_size` page, scaled to fit and centered.
 
 A page wider than tall gets a landscape page when `landscape_if_wider`.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> import io, pypdf
 >>> w = pypdf.PdfWriter(); _ = w.add_blank_page(width=1000, height=500)
@@ -132,6 +129,9 @@ A page wider than tall gets a landscape page when `landscape_if_wider`.
 >>> [round(float(v)) for v in pypdf.PdfReader(io.BytesIO(out)).pages[0].mediabox[2:]]
 [842, 595]
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### pdfdol.bundle.render_contents_pdf(entries, title='Contents', , page_size='A4', margin=36, line_height=18, font='Helvetica', title_font='Helvetica-Bold', font_size=10, title_size=16)
 
@@ -146,12 +146,12 @@ Returns `(pdf_bytes, link_rects)`.
 
 Name (case-insensitive, see `PAGE_SIZES`) or `(w, h)` points -> `(w, h)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> resolve_page_size('a4')
 (595.28, 841.89)
 >>> resolve_page_size((100, 200))
 (100.0, 200.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]

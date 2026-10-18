@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-15T02:14:48Z",
+  "built_at": "2026-10-18T09:24:42Z",
   "package": {
     "name": "pdfdol",
-    "version": "0.1.29",
+    "version": "0.1.30",
     "display_name": "pdfdol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "39710016009154968a8d2d74ee3503b834d60cf6",
-    "short_commit": "3971001",
+    "commit": "c00572542c2225ab360a26a3995d079de6365039",
+    "short_commit": "c005725",
     "branch": "master",
     "tags": [
-      "0.1.29"
+      "0.1.30"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/pdfdol",
-    "commit_url": "https://github.com/i2mint/pdfdol/commit/39710016009154968a8d2d74ee3503b834d60cf6",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/c00572542c2225ab360a26a3995d079de6365039",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/pdfdol",
-    "sha": "bd17e3066b6d73a17d79b3a655310a683f68fd8d",
+    "sha": "08140e3f6a5ef384bbd9cc58f6767875ec57ba0e",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "38669822244",
-    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/38669822244",
+    "run_id": "39115129212",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/39115129212",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,16 +62,14 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.28",
-    "relation": "ahead",
+    "latest": "0.1.30",
+    "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 39710016009154968a8d2d74ee3503b834d60cf6\npip install \"epythet==0.2.17\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout c00572542c2225ab360a26a3995d079de6365039\npip install \"epythet==0.2.17\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": false,
-    "notes": [
-      "The documented version (0.1.29) is ahead of the latest release on PyPI (0.1.28): these docs describe unreleased code."
-    ]
+    "aligned": true,
+    "notes": []
   }
 }
