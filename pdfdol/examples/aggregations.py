@@ -241,6 +241,13 @@ def images_to_pdf(
             frame_h = inch * 1.0
             frame_y = float(bottom_margin)
 
+        # Frame pads its content (6pt each side by default), so test the fit
+        # against the area the paragraph actually gets: a paragraph that is too
+        # tall is silently dropped by Frame.addFromList.
+        frame_padding = 6
+        fit_w = frame_w - 2 * frame_padding
+        fit_h = frame_h - 2 * frame_padding
+
         chosen_font = start_font
         para = None
         # Try decreasing font sizes until paragraph fits the frame height
@@ -251,13 +258,13 @@ def images_to_pdf(
             p = Paragraph(caption_html, p_style)
             # para.wrap returns (width, height) that the para would occupy
             try:
-                needed_w, needed_h = p.wrap(frame_w, frame_h)
+                needed_w, needed_h = p.wrap(fit_w, fit_h)
             except Exception:
                 # if wrap fails for any reason, accept this paragraph and proceed
                 para = p
                 chosen_font = fs
                 break
-            if needed_h <= frame_h:
+            if needed_h <= fit_h:
                 para = p
                 chosen_font = fs
                 break
@@ -269,7 +276,11 @@ def images_to_pdf(
             p_style.leading = min_font * 1.2
             para = Paragraph(caption_html, p_style)
 
-        frame = Frame(frame_x, frame_y, frame_w, frame_h, showBoundary=0)
+        frame = Frame(
+            frame_x, frame_y, frame_w, frame_h, showBoundary=0,
+            leftPadding=frame_padding, rightPadding=frame_padding,
+            topPadding=frame_padding, bottomPadding=frame_padding,
+        )
         frame.addFromList([para], c)
 
         c.showPage()
