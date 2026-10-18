@@ -23,7 +23,11 @@ def test_caption_in_a_tight_footer_is_rendered():
         mk_page_kwargs=dict(
             page_size=(page_w, 16 + img_h + footer),
             image_fraction=img_h / (16 + img_h + footer),
-            horizontal_margin=16, top_margin=16, bottom_margin=8, gap=8, start_font=10,
+            horizontal_margin=16,
+            top_margin=16,
+            bottom_margin=8,
+            gap=8,
+            start_font=10,
         ),
     )
     text = pypdf.PdfReader(io.BytesIO(pdf)).pages[0].extract_text()

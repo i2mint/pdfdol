@@ -277,9 +277,15 @@ def images_to_pdf(
             para = Paragraph(caption_html, p_style)
 
         frame = Frame(
-            frame_x, frame_y, frame_w, frame_h, showBoundary=0,
-            leftPadding=frame_padding, rightPadding=frame_padding,
-            topPadding=frame_padding, bottomPadding=frame_padding,
+            frame_x,
+            frame_y,
+            frame_w,
+            frame_h,
+            showBoundary=0,
+            leftPadding=frame_padding,
+            rightPadding=frame_padding,
+            topPadding=frame_padding,
+            bottomPadding=frame_padding,
         )
         frame.addFromList([para], c)
 
