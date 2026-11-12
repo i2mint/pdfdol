@@ -1,41 +1,41 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-18T09:24:42Z",
+  "built_at": "2026-11-12T06:52:45Z",
   "package": {
     "name": "pdfdol",
-    "version": "0.1.30",
+    "version": "0.1.31",
     "display_name": "pdfdol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "c00572542c2225ab360a26a3995d079de6365039",
-    "short_commit": "c005725",
+    "commit": "b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8",
+    "short_commit": "b132856",
     "branch": "master",
     "tags": [
-      "0.1.30"
+      "0.1.31"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/pdfdol",
-    "commit_url": "https://github.com/i2mint/pdfdol/commit/c00572542c2225ab360a26a3995d079de6365039",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/pdfdol",
-    "sha": "08140e3f6a5ef384bbd9cc58f6767875ec57ba0e",
+    "sha": "98cbc004de7ee4371cbe63dd430de1f6fbc77e4d",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "39115129212",
-    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/39115129212",
+    "run_id": "43171031919",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/43171031919",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.17",
-    "sphinx": "9.1.0",
+    "epythet": "0.2.22",
+    "sphinx": "9.1.1",
     "docutils": "0.22.4",
-    "python": "3.12.15"
+    "python": "3.12.16"
   },
   "config": {
     "theme": "auto",
@@ -62,11 +62,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.30",
+    "latest": "0.1.31",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout c00572542c2225ab360a26a3995d079de6365039\npip install \"epythet==0.2.17\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

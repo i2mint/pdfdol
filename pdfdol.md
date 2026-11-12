@@ -1,4 +1,4 @@
-> built 2026-10-18 09:24 UTC from c005725 (master) · pdfdol 0.1.30. Details: build_info.json
+> built 2026-11-12 06:52 UTC from b132856 (master) · pdfdol 0.1.31. Details: build_info.json
 
 # index.html.md
 
@@ -512,7 +512,8 @@ out some keys.
     If `False`, the pdf bytes are returned.
   * **filter_extensions** – If True, only files with recognized extensions
     (‘.pdf’, ‘.png’, ‘.jpg’, ‘.jpeg’, ‘.bmp’, ‘.gif’, ‘.tiff’) are considered
-  * **key_order** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable or iterable of keys to sort the mapping
+  * **key_order** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable), [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)]) – Callable (a sort key, applied to each key; the builtin `sorted`
+    means plain ascending order) or iterable of keys to sort the mapping
   * **toc** – Add a contents page whose lines link to each document. `True`, or a
     renderer callable (see `pdfdol.bundle.bundle_pdf_bytes`). Uses reportlab.
   * **doc_header** – Text of a band added above each document’s first page (so no
@@ -801,7 +802,7 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-10-18 09:24 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/c00572542c2225ab360a26a3995d079de6365039"><code>c005725</code></a> on branch <code>master</code>, for **pdfdol 0.1.30** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-12 06:52 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8"><code>b132856</code></a> on branch <code>master</code>, for **pdfdol 0.1.31** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -810,9 +811,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/c00572542c2225ab360a26a3995d079de6365039"><code>c00572542c2225ab360a26a3995d079de6365039</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8"><code>b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.30</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.31</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -821,18 +822,18 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/39115129212">39115129212</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/43171031919">43171031919</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>08140e3f6a5ef384bbd9cc58f6767875ec57ba0e</code> (in the history of the built commit) |
+| Event commit | <code>98cbc004de7ee4371cbe63dd430de1f6fbc77e4d</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.17  |
-| Sphinx   | 9.1.0   |
+| epythet  | 0.2.22  |
+| Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
-| Python   | 3.12.15 |
+| Python   | 3.12.16 |
 
 ## Configuration as resolved
 
@@ -848,14 +849,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.30/">0.1.30</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.31/">0.1.31</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout c00572542c2225ab360a26a3995d079de6365039
-pip install "epythet==0.2.17"
+git checkout b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8
+pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 
