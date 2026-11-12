@@ -118,7 +118,8 @@ def fit_pdf_to_page(
     """
     pw0, ph0 = resolve_page_size(page_size)
     writer = pypdf.PdfWriter()
-    for src in pypdf.PdfReader(io.BytesIO(pdf_bytes)).pages:
+    # pages must belong to a writer before their content is modified (pypdf 7)
+    for src in pypdf.PdfWriter(clone_from=io.BytesIO(pdf_bytes)).pages:
         src.transfer_rotation_to_content()
         sw, sh = float(src.mediabox.width), float(src.mediabox.height)
         pw, ph = (
@@ -331,9 +332,9 @@ def bundle_pdf_bytes(
         writer.add_page(page)
     for entry, reader in zip(entries, readers):
         for j, page in enumerate(reader.pages):
+            page = writer.add_page(page)
             if j == 0 and header_text is not None:
                 add_header_band(page, header_text(entry), height=header_height)
-            writer.add_page(page)
         if outline:
             writer.add_outline_item(entry.key, entry.start_page - 1)
     for (toc_idx, rect), entry in zip(rects, entries):
