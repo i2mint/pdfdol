@@ -133,3 +133,9 @@ def test_concat_pdfs_dir_and_iterable(tmp_path):
     assert [o.title for o in out.outline] == ["x.pdf", "y.pdf"]
     out = _reader(concat_pdfs([_pdf(1), _pdf(1)], outline=True))
     assert len(out.outline) == 2
+
+
+def test_key_order_sorted_means_ascending_keys():
+    src = {"b.pdf": _pdf(1), "a.pdf": _pdf(2), "c.pdf": _pdf(3)}
+    out = _reader(concat_pdfs(src, key_order=sorted, outline=True))
+    assert [o.title for o in out.outline] == ["a.pdf", "b.pdf", "c.pdf"]

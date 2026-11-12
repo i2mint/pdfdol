@@ -928,7 +928,8 @@ def concat_pdfs(
         If `False`, the pdf bytes are returned.
     :param filter_extensions: If True, only files with recognized extensions
         ('.pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff') are considered
-    :param key_order: Callable or iterable of keys to sort the mapping
+    :param key_order: Callable (a sort key, applied to each key; the builtin ``sorted``
+        means plain ascending order) or iterable of keys to sort the mapping
     :param toc: Add a contents page whose lines link to each document. ``True``, or a
         renderer callable (see ``pdfdol.bundle.bundle_pdf_bytes``). Uses reportlab.
     :param doc_header: Text of a band added above each document's first page (so no
@@ -961,7 +962,9 @@ def concat_pdfs(
             pdf_source = filter_pdfs_and_images(pdf_source)
 
         if key_order is not None:
-            if callable(key_order):
+            if key_order is sorted:  # natural reading of key_order=sorted
+                keys = sorted(pdf_source.keys())
+            elif callable(key_order):
                 keys = sorted(pdf_source.keys(), key=key_order)
             elif isinstance(key_order, bool):
                 reverse = not key_order
