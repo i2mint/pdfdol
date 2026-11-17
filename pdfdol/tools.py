@@ -455,6 +455,7 @@ def get_pdf(
     egress: None | str | Callable = None,
     *,
     src_kind: SrcKind = None,
+    engine: Literal[None, "chromium"] = None,
     # extra options for pdfkit.from_* functions
     options=None,
     toc=None,
@@ -488,6 +489,10 @@ def get_pdf(
         src (str): The source to convert.
         egress (Union[None, str, Callable], optional): How to handle the PDF bytes.
         src_kind (SrcKind, optional): Explicit source kind; if omitted, determined automatically.
+        engine: ``None`` (default engines) or ``"chromium"``: print a web page designed
+            for the screen (grid, flex, sticky headers, scripts) with headless Chromium,
+            then check the result for overlapping text. Applies to url/html/file sources;
+            extra keyword arguments go to ``pdfdol.chromium.html_to_pdf_w_chromium``.
         options: (optional) dict with wkhtmltopdf options, with or w/o '--'
         toc: (optional) dict with toc-specific wkhtmltopdf options, with or w/o '--'
         cover: (optional) string with url/filename with a cover html page
@@ -518,6 +523,19 @@ def get_pdf(
 
 
     """
+    if engine is not None:
+        if engine != "chromium":
+            raise ValueError(f"Unknown engine: {engine!r}; use None or 'chromium'")
+        if src_kind is None:
+            src_kind = _resolve_src_kind(src)
+        if src_kind not in ("url", "html", "file"):
+            raise ValueError(
+                f"engine='chromium' prints url, html or file sources, not {src_kind!r}"
+            )
+        from pdfdol.chromium import html_to_pdf_w_chromium
+
+        return html_to_pdf_w_chromium(src, egress, **kwargs)
+
     _kwargs = dict(
         dflt_pdfkit_kwargs,
         options=options,

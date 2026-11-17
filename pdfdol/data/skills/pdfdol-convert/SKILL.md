@@ -40,6 +40,8 @@ get_pdf("book.epub", egress="book.pdf")
 reader = get_pdf("doc.html", egress=pypdf.PdfReader)
 ```
 
+A web page designed for the screen (CSS grid, flex, sticky headers, scripts) goes through `get_pdf("page.html", engine="chromium")` (extra `chromium`, then `playwright install chromium`), and `pdfdol.text_overlaps(pdf)` is how you verify any PDF, not a look at a few pages.
+
 ### Source kinds
 
 | `src_kind` | Input | Detection heuristic |
