@@ -18,7 +18,10 @@ GRID_PAGE = (
     "<html><head><style>body{font:14px sans-serif;margin:0}"
     ".grid{display:grid;gap:12px}.card{border:1px solid #888;padding:10px;height:230px}"
     "</style></head><body><h1>Title</h1><div class='grid'>"
-    + "".join(f"<div class='card'><h2>Card {i}</h2><p>Line of card {i}</p></div>" for i in range(14))
+    + "".join(
+        f"<div class='card'><h2>Card {i}</h2><p>Line of card {i}</p></div>"
+        for i in range(14)
+    )
     + "</div><p>After the grid</p></body></html>"
 )
 
@@ -96,7 +99,9 @@ def test_chromium_engine_grid_of_tall_cards_has_no_overlaps(tmp_path):
 
 @needs_chromium
 def test_chromium_engine_raises_or_warns_on_overlap(monkeypatch):
-    monkeypatch.setattr(chromium_mod, "text_overlaps", lambda *a, **k: {1: [("a", "b")]})
+    monkeypatch.setattr(
+        chromium_mod, "text_overlaps", lambda *a, **k: {1: [("a", "b")]}
+    )
     with pytest.raises(PdfTextOverlapError) as err:
         html_to_pdf_w_chromium(GRID_PAGE)
     assert err.value.overlaps == {1: [("a", "b")]}

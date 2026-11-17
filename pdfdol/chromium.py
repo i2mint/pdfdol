@@ -184,7 +184,9 @@ def html_to_pdf_w_chromium(
             page.evaluate(_STATICIZE_JS)
             if remove:
                 page.evaluate(_REMOVE_JS, list(remove))
-            page.evaluate(_GRID_TO_FLEX_JS)  # before keep-together: see module docstring
+            page.evaluate(
+                _GRID_TO_FLEX_JS
+            )  # before keep-together: see module docstring
             if keep_css:
                 page.evaluate(_ADD_STYLE_JS, keep_css)
             pdf_bytes = page.pdf(
