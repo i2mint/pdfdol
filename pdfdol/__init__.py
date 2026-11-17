@@ -42,3 +42,7 @@ from pdfdol.tools import (
 from pdfdol.bundle import (
     bundle_pdf_bytes,  # Join PDFs with a contents page, per-document headers and bookmarks.
 )
+
+from pdfdol.checks import (
+    text_overlaps,  # Find overlapping text lines in a PDF (a broken-pagination check).
+)
