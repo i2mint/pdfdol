@@ -1,0 +1,12 @@
+pdfdol.checks
+=============
+
+.. automodule:: pdfdol.checks
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      text_overlaps
+   

@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-11-12 06:52 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8"><code>b132856</code></a> on branch <code>master</code>, for **pdfdol 0.1.31** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-17 07:08 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/7271c0c4f99868d3c5e52014b55748f725f3dbf4"><code>7271c0c</code></a> on branch <code>master</code>, for **pdfdol 0.1.32** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,9 +11,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8"><code>b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/7271c0c4f99868d3c5e52014b55748f725f3dbf4"><code>7271c0c4f99868d3c5e52014b55748f725f3dbf4</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.31</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.32</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/43171031919">43171031919</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/44036144110">44036144110</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>98cbc004de7ee4371cbe63dd430de1f6fbc77e4d</code> (in the history of the built commit) |
+| Event commit | <code>e8f13dc4855eeafd548eef1c6de85c5aaa80c488</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +49,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.31/">0.1.31</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.32/">0.1.32</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8
+git checkout 7271c0c4f99868d3c5e52014b55748f725f3dbf4
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

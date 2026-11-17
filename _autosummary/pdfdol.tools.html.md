@@ -14,7 +14,7 @@ Pdf Tools.
 | [`ebook_convert_to_pdf`](#pdfdol.tools.ebook_convert_to_pdf)(source, \*[, extension, ...]) | Convert a file to PDF using Calibre's `ebook-convert`.                                                                          |
 | [`find_ebook_convert`](#pdfdol.tools.find_ebook_convert)()                               | Find the `ebook-convert` binary from Calibre.                                                                                   |
 | [`get_format_converter`](#pdfdol.tools.get_format_converter)(extension)                    | Get the registered PDF converter for a file extension.                                                                          |
-| [`get_pdf`](#pdfdol.tools.get_pdf)(src[, egress, src_kind, options, ...])     | Convert the given source to a PDF (bytes) and process it using the specified egress.                                            |
+| [`get_pdf`](#pdfdol.tools.get_pdf)(src[, egress, src_kind, engine, ...])      | Convert the given source to a PDF (bytes) and process it using the specified egress.                                            |
 | [`key_and_value_to_pdf_bytes`](#pdfdol.tools.key_and_value_to_pdf_bytes)(key, value)             | Convert a key-value pair to PDF bytes, using the key's file extension to select a converter from the format converter registry. |
 | `markdown_to_pdf`(md_src[, egress, ...])                                                            |                                                                                                                                 |
 | [`pdf_to_metadata`](#pdfdol.tools.pdf_to_metadata)(pdf_src)                           | Extract metadata from a PDF source.                                                                                             |
@@ -166,7 +166,7 @@ ebook-convert-based converter on the fly.
 * **Returns:**
   Converter callable, or `None` if the format is not supported.
 
-### pdfdol.tools.get_pdf(src, egress=None, , src_kind=None, options=None, toc=None, cover=None, css=None, configuration=None, cover_first=False, verbose=False, \*\*kwargs)
+### pdfdol.tools.get_pdf(src, egress=None, , src_kind=None, engine=None, options=None, toc=None, cover=None, css=None, configuration=None, cover_first=False, verbose=False, \*\*kwargs)
 
 Convert the given source to a PDF (bytes) and process it using the specified egress.
 
@@ -192,6 +192,10 @@ If not provided, it is determined heuristically using \_resolve_src_kind.
   * **src** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The source to convert.
   * **egress** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)) – How to handle the PDF bytes.
   * **src_kind** ([`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'url'`, `'html'`, `'file'`, `'md'`, `'markdown'`, `'text'`, `'image'`, `'ebook'`]) – Explicit source kind; if omitted, determined automatically.
+  * **engine** ([`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[[`None`](https://docs.python.org/3/builtins/constants.html#None), `'chromium'`]) – `None` (default engines) or `"chromium"`: print a web page designed
+    for the screen (grid, flex, sticky headers, scripts) with headless Chromium,
+    then check the result for overlapping text. Applies to url/html/file sources;
+    extra keyword arguments go to `pdfdol.chromium.html_to_pdf_w_chromium`.
   * **options** – (optional) dict with wkhtmltopdf options, with or w/o ‘–’
   * **toc** – (optional) dict with toc-specific wkhtmltopdf options, with or w/o ‘–’
   * **cover** – (optional) string with url/filename with a cover html page

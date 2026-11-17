@@ -1,0 +1,20 @@
+pdfdol.chromium
+===============
+
+.. automodule:: pdfdol.chromium
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      html_to_pdf_w_chromium
+      parse_margin
+      printable_width_px
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      PdfTextOverlapError
+   

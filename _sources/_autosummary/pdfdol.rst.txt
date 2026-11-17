@@ -12,6 +12,8 @@
 
    base
    bundle
+   checks
+   chromium
    download
    tools
    util

@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-12T06:52:45Z",
+  "built_at": "2026-11-17T07:08:09Z",
   "package": {
     "name": "pdfdol",
-    "version": "0.1.31",
+    "version": "0.1.32",
     "display_name": "pdfdol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8",
-    "short_commit": "b132856",
+    "commit": "7271c0c4f99868d3c5e52014b55748f725f3dbf4",
+    "short_commit": "7271c0c",
     "branch": "master",
     "tags": [
-      "0.1.31"
+      "0.1.32"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/pdfdol",
-    "commit_url": "https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/7271c0c4f99868d3c5e52014b55748f725f3dbf4",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/pdfdol",
-    "sha": "98cbc004de7ee4371cbe63dd430de1f6fbc77e4d",
+    "sha": "e8f13dc4855eeafd548eef1c6de85c5aaa80c488",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "43171031919",
-    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/43171031919",
+    "run_id": "44036144110",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/44036144110",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -57,16 +57,16 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 6,
-    "objects_documented": 32
+    "modules_documented": 8,
+    "objects_documented": 37
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.31",
+    "latest": "0.1.32",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 7271c0c4f99868d3c5e52014b55748f725f3dbf4\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

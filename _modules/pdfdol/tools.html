@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=d71dfaa1"></script>
+    <script src="../../_static/documentation_options.js?v=e0e570cb"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.31" />
+  <meta name="docsearch:version" content="0.1.32" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1156,6 +1156,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">egress</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">src_kind</span><span class="p">:</span> <span class="n">SrcKind</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"chromium"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="c1"># extra options for pdfkit.from_* functions</span>
     <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">toc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1189,6 +1190,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        src (str): The source to convert.</span>
 <span class="sd">        egress (Union[None, str, Callable], optional): How to handle the PDF bytes.</span>
 <span class="sd">        src_kind (SrcKind, optional): Explicit source kind; if omitted, determined automatically.</span>
+<span class="sd">        engine: ``None`` (default engines) or ``"chromium"``: print a web page designed</span>
+<span class="sd">            for the screen (grid, flex, sticky headers, scripts) with headless Chromium,</span>
+<span class="sd">            then check the result for overlapping text. Applies to url/html/file sources;</span>
+<span class="sd">            extra keyword arguments go to ``pdfdol.chromium.html_to_pdf_w_chromium``.</span>
 <span class="sd">        options: (optional) dict with wkhtmltopdf options, with or w/o '--'</span>
 <span class="sd">        toc: (optional) dict with toc-specific wkhtmltopdf options, with or w/o '--'</span>
 <span class="sd">        cover: (optional) string with url/filename with a cover html page</span>
@@ -1219,6 +1224,19 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">engine</span> <span class="o">!=</span> <span class="s2">"chromium"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown engine: </span><span class="si">{</span><span class="n">engine</span><span class="si">!r}</span><span class="s2">; use None or 'chromium'"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">src_kind</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">src_kind</span> <span class="o">=</span> <span class="n">_resolve_src_kind</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">src_kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"url"</span><span class="p">,</span> <span class="s2">"html"</span><span class="p">,</span> <span class="s2">"file"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"engine='chromium' prints url, html or file sources, not </span><span class="si">{</span><span class="n">src_kind</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol.chromium</span><span class="w"> </span><span class="kn">import</span> <span class="n">html_to_pdf_w_chromium</span>
+
+        <span class="k">return</span> <span class="n">html_to_pdf_w_chromium</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">egress</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">dflt_pdfkit_kwargs</span><span class="p">,</span>
         <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>

@@ -19,6 +19,8 @@ Data Object Layers for PDF data.
 | [`base`](pdfdol.base.html.md#module-pdfdol.base)         | Base objects for pdfdol                                                                 |
 |----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [`bundle`](pdfdol.bundle.html.md#module-pdfdol.bundle)     | Bundle several PDFs into one, with a contents page, per-document headers and bookmarks. |
+| [`checks`](pdfdol.checks.html.md#module-pdfdol.checks)     | Checks that verify a PDF, rather than looking at a few of its pages.                    |
+| [`chromium`](pdfdol.chromium.html.md#module-pdfdol.chromium) | Headless Chromium engine: print web pages designed for the screen.                      |
 | [`download`](pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text.                                     |
 | [`tools`](pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                                                              |
 | [`util`](pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                                                        |

@@ -1,4 +1,4 @@
-> built 2026-11-12 06:52 UTC from b132856 (master) · pdfdol 0.1.31. Details: build_info.json
+> built 2026-11-17 07:08 UTC from 7271c0c (master) · pdfdol 0.1.32. Details: build_info.json
 
 # index.html.md
 
@@ -328,6 +328,134 @@ Name (case-insensitive, see `PAGE_SIZES`) or `(w, h)` points -> `(w, h)`.
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
+# _autosummary/pdfdol.checks.html.md
+
+# pdfdol.checks
+
+Checks that verify a PDF, rather than looking at a few of its pages.
+
+`text_overlaps` finds text lines whose boxes overlap, the signature of a broken
+pagination (a block drawn on top of another). It needs PyMuPDF, which is part of the
+`chromium` extra of pdfdol.
+
+### Functions
+
+| [`text_overlaps`](_autosummary/pdfdol.checks.html.md#pdfdol.checks.text_overlaps)(pdf, \*[, min_frac, snippet_len])   | Pages (1-based) with text lines that overlap, and the pairs of overlapping lines.   |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+
+### pdfdol.checks.text_overlaps(pdf, , min_frac=0.3, snippet_len=40)
+
+Pages (1-based) with text lines that overlap, and the pairs of overlapping lines.
+
+Two lines overlap when the area they share is at least `min_frac` of the
+smaller line’s area. An empty dict means no overlapping text.
+
+* **Parameters:**
+  * **pdf** – path, bytes, or an open PyMuPDF document.
+  * **min_frac** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – overlap threshold, as a fraction of the smaller line box.
+  * **snippet_len** ([`int`](https://docs.python.org/3/builtins/functions.html#int)) – how many characters of each line to report.
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
+
+```pycon
+>>> import io
+>>> from reportlab.pdfgen import canvas
+>>> def make(y2):
+...     buf = io.BytesIO(); c = canvas.Canvas(buf)
+...     c.drawString(72, 700, "first line of text"); c.drawString(72, y2, "second line of text")
+...     c.save(); return buf.getvalue()
+>>> text_overlaps(make(100))
+{}
+>>> text_overlaps(make(699))
+{1: [('first line of text', 'second line of text')]}
+```
+
+
+# _autosummary/pdfdol.chromium.html.md
+
+# pdfdol.chromium
+
+Headless Chromium engine: print web pages designed for the screen.
+
+wkhtmltopdf and WeasyPrint cannot print CSS grid, flex, `env()`, sticky headers or
+scripts. `html_to_pdf_w_chromium` renders the page in Chromium with the viewport set
+to the printable width, so the screen layout is the print layout, then fixes what
+paginated output gets wrong:
+
+- sticky/fixed elements become static (or are removed);
+- single-track grids become flex columns with the same gap, *before* any keep-together
+  rule. Without this, `break-inside: avoid` on grid items makes Chromium push an item
+  to the next page without growing its grid row, and the next block is drawn on top of
+  it;
+- keep-together (`break-inside: avoid`) is applied to a configurable list of
+  selectors, and headings keep with what follows.
+
+The PDF is then checked with `pdfdol.checks.text_overlaps`, so a broken pagination is
+never silent. Needs the `chromium` extra of pdfdol (playwright and PyMuPDF), then
+`playwright install chromium`.
+
+```pycon
+>>> top, right, bottom, left = parse_margin("12mm 10mm")
+>>> round(top), round(right), round(bottom), round(left)
+(45, 38, 45, 38)
+>>> round(printable_width_px("A4", "12mm 10mm"))
+718
+```
+
+### Functions
+
+| [`html_to_pdf_w_chromium`](_autosummary/pdfdol.chromium.html.md#pdfdol.chromium.html_to_pdf_w_chromium)(src[, egress, ...])   | Print a web page (URL, HTML file path or HTML string) to PDF with headless Chromium.      |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`parse_margin`](_autosummary/pdfdol.chromium.html.md#pdfdol.chromium.parse_margin)(margin)                         | CSS-style margin (1 to 4 values; px, mm, cm, in, pt) -> (top, right, bottom, left) in px. |
+| [`printable_width_px`](_autosummary/pdfdol.chromium.html.md#pdfdol.chromium.printable_width_px)([page_format, margin])    | Width in CSS px of the area inside the margins.                                           |
+
+### Exceptions
+
+| [`PdfTextOverlapError`](_autosummary/pdfdol.chromium.html.md#pdfdol.chromium.PdfTextOverlapError)(overlaps)   | The PDF has overlapping text; `.overlaps` maps page -> overlapping line pairs.   |
+|----------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+
+### *exception* pdfdol.chromium.PdfTextOverlapError(overlaps)
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+The PDF has overlapping text; `.overlaps` maps page -> overlapping line pairs.
+
+### pdfdol.chromium.html_to_pdf_w_chromium(src, egress=None, , page_format='A4', margin='12mm 10mm', color_scheme='light', media='screen', remove=(), keep_together='.screen,.card,figure,table,tr,blockquote,li,h1,h2,h3,h4', keep_with_next='h1,h2,h3,h4', on_overlap='raise', overlap_min_frac=0.3, viewport_height=1000, wait_until='networkidle')
+
+Print a web page (URL, HTML file path or HTML string) to PDF with headless Chromium.
+
+* **Parameters:**
+  * **src** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – URL, path to an HTML file, or an HTML string.
+  * **egress** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)) – `None` -> bytes; a str -> save there and return the path; a callable
+    -> applied to the bytes (as in `get_pdf`).
+  * **page_format** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)) – `'A4'`, `'letter'`, … or `(w, h)` in points.
+  * **margin** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – CSS-style margin, e.g. `"12mm 10mm"`.
+  * **color_scheme** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – `'light'` or `'dark'` (`prefers-color-scheme`).
+  * **media** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – CSS media to emulate; `'screen'` prints the designed screen layout.
+  * **remove** ([`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – CSS selectors of elements to delete (navigation bars, cookie banners).
+  * **keep_together** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – selectors that must not be split across pages.
+  * **keep_with_next** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – selectors that must stay with the following content.
+  * **on_overlap** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – what to do when text overlaps in the result: `'raise'`
+    (`PdfTextOverlapError`), `'warn'`, or `'ignore'` (skips the check).
+  * **overlap_min_frac** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – threshold passed to `text_overlaps`.
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### pdfdol.chromium.parse_margin(margin)
+
+CSS-style margin (1 to 4 values; px, mm, cm, in, pt) -> (top, right, bottom, left) in px.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### pdfdol.chromium.printable_width_px(page_format='A4', margin='12mm 10mm')
+
+Width in CSS px of the area inside the margins.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+
 # _autosummary/pdfdol.download.html.md
 
 # pdfdol.download
@@ -412,6 +540,8 @@ Data Object Layers for PDF data.
 | [`base`](_autosummary/pdfdol.base.html.md#module-pdfdol.base)         | Base objects for pdfdol                                                                 |
 |----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [`bundle`](_autosummary/pdfdol.bundle.html.md#module-pdfdol.bundle)     | Bundle several PDFs into one, with a contents page, per-document headers and bookmarks. |
+| [`checks`](_autosummary/pdfdol.checks.html.md#module-pdfdol.checks)     | Checks that verify a PDF, rather than looking at a few of its pages.                    |
+| [`chromium`](_autosummary/pdfdol.chromium.html.md#module-pdfdol.chromium) | Headless Chromium engine: print web pages designed for the screen.                      |
 | [`download`](_autosummary/pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text.                                     |
 | [`tools`](_autosummary/pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                                                              |
 | [`util`](_autosummary/pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                                                        |
@@ -435,7 +565,7 @@ Pdf Tools.
 | [`ebook_convert_to_pdf`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.ebook_convert_to_pdf)(source, \*[, extension, ...]) | Convert a file to PDF using Calibre's `ebook-convert`.                                                                          |
 | [`find_ebook_convert`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.find_ebook_convert)()                               | Find the `ebook-convert` binary from Calibre.                                                                                   |
 | [`get_format_converter`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.get_format_converter)(extension)                    | Get the registered PDF converter for a file extension.                                                                          |
-| [`get_pdf`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.get_pdf)(src[, egress, src_kind, options, ...])     | Convert the given source to a PDF (bytes) and process it using the specified egress.                                            |
+| [`get_pdf`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.get_pdf)(src[, egress, src_kind, engine, ...])      | Convert the given source to a PDF (bytes) and process it using the specified egress.                                            |
 | [`key_and_value_to_pdf_bytes`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.key_and_value_to_pdf_bytes)(key, value)             | Convert a key-value pair to PDF bytes, using the key's file extension to select a converter from the format converter registry. |
 | `markdown_to_pdf`(md_src[, egress, ...])                                                            |                                                                                                                                 |
 | [`pdf_to_metadata`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.pdf_to_metadata)(pdf_src)                           | Extract metadata from a PDF source.                                                                                             |
@@ -587,7 +717,7 @@ ebook-convert-based converter on the fly.
 * **Returns:**
   Converter callable, or `None` if the format is not supported.
 
-### pdfdol.tools.get_pdf(src, egress=None, , src_kind=None, options=None, toc=None, cover=None, css=None, configuration=None, cover_first=False, verbose=False, \*\*kwargs)
+### pdfdol.tools.get_pdf(src, egress=None, , src_kind=None, engine=None, options=None, toc=None, cover=None, css=None, configuration=None, cover_first=False, verbose=False, \*\*kwargs)
 
 Convert the given source to a PDF (bytes) and process it using the specified egress.
 
@@ -613,6 +743,10 @@ If not provided, it is determined heuristically using \_resolve_src_kind.
   * **src** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The source to convert.
   * **egress** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)) – How to handle the PDF bytes.
   * **src_kind** ([`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'url'`, `'html'`, `'file'`, `'md'`, `'markdown'`, `'text'`, `'image'`, `'ebook'`]) – Explicit source kind; if omitted, determined automatically.
+  * **engine** ([`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[[`None`](https://docs.python.org/3/builtins/constants.html#None), `'chromium'`]) – `None` (default engines) or `"chromium"`: print a web page designed
+    for the screen (grid, flex, sticky headers, scripts) with headless Chromium,
+    then check the result for overlapping text. Applies to url/html/file sources;
+    extra keyword arguments go to `pdfdol.chromium.html_to_pdf_w_chromium`.
   * **options** – (optional) dict with wkhtmltopdf options, with or w/o ‘–’
   * **toc** – (optional) dict with toc-specific wkhtmltopdf options, with or w/o ‘–’
   * **cover** – (optional) string with url/filename with a cover html page
@@ -802,7 +936,7 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-11-12 06:52 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8"><code>b132856</code></a> on branch <code>master</code>, for **pdfdol 0.1.31** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-17 07:08 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/7271c0c4f99868d3c5e52014b55748f725f3dbf4"><code>7271c0c</code></a> on branch <code>master</code>, for **pdfdol 0.1.32** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -811,9 +945,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8"><code>b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/7271c0c4f99868d3c5e52014b55748f725f3dbf4"><code>7271c0c4f99868d3c5e52014b55748f725f3dbf4</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.31</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.32</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -822,9 +956,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/43171031919">43171031919</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/44036144110">44036144110</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>98cbc004de7ee4371cbe63dd430de1f6fbc77e4d</code> (in the history of the built commit) |
+| Event commit | <code>e8f13dc4855eeafd548eef1c6de85c5aaa80c488</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -849,13 +983,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.31/">0.1.31</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.32/">0.1.32</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout b132856c4ae4cfa2aa89829c5a6507ca4c2af0c8
+git checkout 7271c0c4f99868d3c5e52014b55748f725f3dbf4
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
