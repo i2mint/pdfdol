@@ -36,7 +36,7 @@ pdf_bytes_to_text = Pipe(
 
 # wrappers ----------------------------------------------------
 
-bytes_to_pdf_obj_wrap = wrap_kvs(obj_of_data=bytes_to_pdf_reader_obj)
+bytes_to_pdf_obj_wrap = wrap_kvs(value_decoder=bytes_to_pdf_reader_obj)
 
 # Keep only the .pdf keys, THEN strip the suffix: a suffix codec alone would turn a
 # stray 'notes.txt' into the bogus key 'notes.' (and, in dol >= the #114 fix, raise).
@@ -46,7 +46,7 @@ filter_for_pdf_extension = Pipe(
 
 # bytes to pdf text pages ----------------------------------------------------
 bytes_to_pdf_text_pages_wrap = Pipe(
-    bytes_to_pdf_obj_wrap, wrap_kvs(obj_of_data=pdf_reader_to_text_pages_list)
+    bytes_to_pdf_obj_wrap, wrap_kvs(value_decoder=pdf_reader_to_text_pages_list)
 )
 
 pdf_files_pages_reader_wrap = Pipe(
@@ -59,7 +59,7 @@ PdfFilesReader = PdfFilesPagesReader  # backwards compatibility alias
 
 # bytes to pdf text (concatenated pages) ----------------------------------------
 
-bytes_to_pdf_text_wrap = wrap_kvs(obj_of_data=pdf_bytes_to_text)
+bytes_to_pdf_text_wrap = wrap_kvs(value_decoder=pdf_bytes_to_text)
 
 pdf_files_text_reader_wrap = Pipe(
     filter_for_pdf_extension, bytes_to_pdf_text_wrap, add_ipython_key_completions
