@@ -1,4 +1,4 @@
-> built 2026-11-22 19:09 UTC from 323050a (master) · pdfdol 0.1.36. Details: build_info.json
+> built 2026-11-22 22:17 UTC from 0632261 (master) · pdfdol 0.1.36. Details: build_info.json
 
 # index.html.md
 
@@ -1232,20 +1232,18 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-11-22 19:09 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/323050a43c7da0b51a0a8cae745e7cd0760b51d4"><code>323050a</code></a> on branch <code>master</code>, for **pdfdol 0.1.36** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-22 22:17 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/0632261bccd5e1b2aaf2897fc08eafdc10d496f3"><code>0632261</code></a> on branch <code>master</code>, for **pdfdol 0.1.36** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.36) is ahead of the latest release on PyPI (0.1.35): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/323050a43c7da0b51a0a8cae745e7cd0760b51d4"><code>323050a43c7da0b51a0a8cae745e7cd0760b51d4</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/0632261bccd5e1b2aaf2897fc08eafdc10d496f3"><code>0632261bccd5e1b2aaf2897fc08eafdc10d496f3</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.36</code>                                                                                                                                  |
+| Tags at this commit | none                                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -1254,9 +1252,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45058988482">45058988482</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45076769926">45076769926</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>d74eb737382c0ad81b9a39d959e599221e4e9293</code> (in the history of the built commit) |
+| Event commit | <code>0632261bccd5e1b2aaf2897fc08eafdc10d496f3</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -1281,13 +1279,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.35/">0.1.35</a>, older than the documented version (0.1.36).
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.36/">0.1.36</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout 323050a43c7da0b51a0a8cae745e7cd0760b51d4
+git checkout 0632261bccd5e1b2aaf2897fc08eafdc10d496f3
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -1313,13 +1311,21 @@ Skills are folders holding a `SKILL.md` (the [Agent Skills](https://agentskills.
 
 Convert files, URLs, or raw content to PDF using pdfdol. Use this skill whenever the user wants to convert documents to PDF format – including EPUB, MOBI, DOCX, ODT, HTML, Markdown, images, URLs, or any other file format to PDF. Also use when the user asks about what formats can be converted to PDF, wants to register custom format converters, or needs to check whether Calibre/ebook-convert is available. Triggers on: “convert to pdf”, “make a pdf from”, “epub to pdf”, “save as pdf”, “export to pdf”, “pdf from url”, “screenshot to pdf”, “image to pdf”, “docx to pdf”.
 
-Source: `pdfdol/data/skills/pdfdol-convert` (bundled with the pip package).
+```bash
+gh skill install i2mint/pdfdol pdfdol-convert --agent claude-code
+```
+
+Source: [`pdfdol/data/skills/pdfdol-convert`](https://github.com/i2mint/pdfdol/tree/HEAD/pdfdol/data/skills/pdfdol-convert) (bundled with the pip package).
 
 ### `pdfdol-read`
 
 Read, extract text from, and process PDF files using pdfdol. Use this skill whenever the user wants to extract text from PDFs, read PDF metadata (title, author), access a folder of PDFs as a dict-like store, concatenate or merge multiple PDFs, or do batch PDF operations. Triggers on: “extract text from pdf”, “read pdf”, “pdf to text”, “get pdf title”, “merge pdfs”, “combine pdfs”, “concatenate pdfs”, “pdf metadata”, “pdf folder”, “pdf store”, “batch pdf”.
 
-Source: `pdfdol/data/skills/pdfdol-read` (bundled with the pip package).
+```bash
+gh skill install i2mint/pdfdol pdfdol-read --agent claude-code
+```
+
+Source: [`pdfdol/data/skills/pdfdol-read`](https://github.com/i2mint/pdfdol/tree/HEAD/pdfdol/data/skills/pdfdol-read) (bundled with the pip package).
 
 The bundled skills are also on disk after `pip install pdfdol`, under the package’s `data/skills/` directory; link them into an agent without network access with `skill link-skills <that directory>`.
 
@@ -1327,16 +1333,16 @@ The bundled skills are also on disk after `pip install pdfdol`, under the packag
 
 Files agents read before working in this repository.
 
-- `.claude/CLAUDE.md`: read by Claude Code
+- [`.claude/CLAUDE.md`](https://github.com/i2mint/pdfdol/tree/HEAD/.claude/CLAUDE.md): read by Claude Code
 
 ## Machine-readable documentation
 
 This site publishes the same documentation in forms that fit an agent’s context window:
 
-- <a href="llms.txt"><code>llms.txt</code></a>: an index of every page with a one-line description ([llms.txt](https://llmstxt.org) format)
-- <a href="pdfdol.md"><code>pdfdol.md</code></a>: the whole documentation as one Markdown file
+- [`llms.txt`](https://i2mint.github.io/pdfdol/llms.txt): an index of every page with a one-line description ([llms.txt](https://llmstxt.org) format)
+- [`pdfdol.md`](https://i2mint.github.io/pdfdol/pdfdol.md): the whole documentation as one Markdown file
 - `<page>.html.md`: a rendered Markdown twin of every page, advertised from each page’s `<head>` with `<link rel="alternate" type="text/markdown">`
-- <a href="objects.inv"><code>objects.inv</code></a>: the Sphinx inventory: a symbol-to-URL index (`sphobjinv convert plain objects.inv -`)
+- [`objects.inv`](https://i2mint.github.io/pdfdol/objects.inv): the Sphinx inventory: a symbol-to-URL index (`sphobjinv convert plain objects.inv -`)
 
 
 # api.html.md
