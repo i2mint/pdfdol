@@ -287,3 +287,92 @@ def test_a_scan_with_no_text_layer_is_ocrd_when_ocr_is_given():
     assert find_passage(pdf, "quoted words") is None
     assert find_passage(pdf, "quoted words", ocr_words=fake_ocr, ocr_zoom=2).source == "ocr"
     assert len(calls) == 1
+
+
+# --------------------------------------------------------------------------- second review
+
+
+def test_a_bare_caption_skips_prose_that_starts_with_its_label():
+    def prose(p):
+        p.insert_textbox(fitz.Rect(50, 50, 550, 120), BODY + "\nTable 2 shows the totals, and\n"
+                         "Table 2) is long.", fontsize=10)
+
+    def real(p):
+        for y in (100, 118, 170):
+            p.draw_line((120, y), (480, y), color=(0, 0, 0))
+        p.insert_text((130, 112), "Level   Count", fontsize=9)
+        p.insert_textbox(fitz.Rect(100, 178, 500, 200), "Table 2: Totals.", fontsize=10)
+
+    got = figure_box(_pdf(prose, real), "Table 2")
+    assert (got.page, got.source) == (1, "rules")
+
+
+def test_a_heading_above_a_side_caption_does_not_hide_the_chart_beside_it():
+    def draw(p):
+        p.insert_textbox(fitz.Rect(50, 425, 180, 445), "3.2 Results", fontsize=12)
+        p.insert_textbox(fitz.Rect(50, 450, 180, 520), "Figure 4. A side caption.", fontsize=10)
+        p.draw_rect(fitz.Rect(190, 400, 550, 600), color=(0, 0, 0))
+
+    _, (x0, _, x1, _), source = figure_box(_pdf(draw), "Figure 4.", margin=0)
+    assert source == "beside" and x1 >= 550
+
+
+def test_a_long_legend_in_a_small_font_stays_part_of_its_figure():
+    legend = " ".join(f"K{i}: key entry number {i}," for i in range(12))  # 40+ words
+
+    def draw(p):
+        p.insert_textbox(fitz.Rect(50, 40, 550, 120), BODY, fontsize=10)
+        p.insert_textbox(fitz.Rect(50, 130, 550, 200), BODY, fontsize=10)
+        p.draw_rect(fitz.Rect(150, 250, 450, 400), color=(0, 0, 0))
+        p.insert_textbox(fitz.Rect(150, 410, 450, 470), legend, fontsize=6)
+        p.insert_textbox(fitz.Rect(150, 445, 450, 465), "Figure 3: Bars.", fontsize=10)
+
+    _, (_, y0, _, _), source = figure_box(_pdf(draw), "Figure 3:", margin=0)
+    assert source == "graphics" and y0 <= 250
+
+
+def test_a_running_header_rule_is_left_out_but_a_table_near_the_page_bottom_is_whole():
+    def page(p, table=False):
+        p.insert_text((50, 30), "Running header", fontsize=8)
+        p.draw_line((120, 36), (480, 36), color=(0, 0, 0))  # same width as the table's rules
+        p.insert_textbox(fitz.Rect(50, 45, 550, 125), BODY, fontsize=10)
+        if table:
+            p.insert_textbox(fitz.Rect(100, 60, 500, 80), "", fontsize=10)
+            for y in (700, 718, 770):  # the bottom rule sits in the bottom 6 % of the page
+                p.draw_line((120, y), (480, y), color=(0, 0, 0))
+            p.insert_text((130, 712), "Level   Count", fontsize=9)
+            p.insert_textbox(fitz.Rect(100, 676, 500, 696), "Table 9: Bottom.", fontsize=10)
+
+    pdf = _pdf(page, page, lambda p: page(p, table=True), page)
+    got = figure_box(pdf, "Table 9:", margin=0)
+    assert got.source == "rules" and got.box[3] >= 769 and got.box[1] >= 670
+
+
+def test_without_caption_nothing_found_raises():
+    def draw(p):
+        p.insert_textbox(fitz.Rect(50, 50, 550, 130), BODY, fontsize=10)
+        p.insert_textbox(fitz.Rect(100, 140, 500, 160), "Figure 7: Lost.", fontsize=10)
+
+    with pytest.raises(LookupError, match="nothing found"):
+        figure_box(_pdf(draw), "Figure 7:", with_caption=False)
+
+
+def test_compound_and_suspended_hyphens_and_dashes_match():
+    def draw(p):
+        p.insert_text((50, 100), "LLM-generated and developer-", fontsize=10)
+        p.insert_text((50, 114), "committed files, pre- and post-training results-which hold.", fontsize=10)
+
+    pdf = _pdf(draw)
+    for quote in ("LLM-generated and developer-committed files.", "pre- and post-training",
+                  "results \u2014 which hold"):
+        assert find_passage(pdf, quote).source == "text", quote
+
+
+def test_a_head_only_ocr_match_says_so():
+    quote = "the quoted words are here and then some more words"
+
+    def fake_ocr(png):
+        return [(w, (10 * i, 0, 10 * i + 8, 10)) for i, w in enumerate("the quoted words are here and".split())]
+
+    p = find_passage(_scan("the quoted words are here and"), quote, ocr_words=fake_ocr)
+    assert p.source == "ocr-head"

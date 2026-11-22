@@ -42,8 +42,8 @@ False
 >>> _starts_caption("As Figure 1: shows", "Figure 1:")
 False
 
-and neither does the token matching ``find_passage`` uses (case, curly quotes, attached
-punctuation and end-of-line hyphens do not matter):
+and neither does the matching ``find_passage`` uses (case, curly quotes, punctuation,
+dashes and hyphens do not matter):
 
 >>> _match_tokens([("The", 1), ("AI’s", 2), ("repos-", 3), ("itories,", 4)], "ai's repositories")
 [2, 3, 4]
@@ -55,7 +55,7 @@ import re
 import unicodedata
 from collections.abc import Callable, Iterable, Sequence
 from contextlib import contextmanager
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple
 
 Box = tuple  # (x0, y0, x1, y1) in PDF points
 OcrWords = Callable[[bytes], Iterable[tuple]]  # png -> [(text, (x0, y0, x1, y1)), ...]
@@ -77,6 +77,7 @@ _MIN_GRAPHIC_SPAN = 2.0  # points: drawings smaller than this both ways are spec
 _HAIRLINE_PAD = 0.5  # points added around a zero-width or zero-height drawing
 _RULE_X_TOL = 3.0  # points: table rules whose ends differ less than this are one table's
 _COL_SLACK = 20.0  # points: graphics this close to the caption's column count as in it
+_SIDE_CAPTION_MAX_WIDTH = 0.35  # fraction of the page width: a side caption is narrower
 _CAPTION_LIKE = re.compile(
     r"^\s*(fig(ure)?|tab(le)?)\.?\s*([a-z]?\d+|[ivxlc]+)\b", re.IGNORECASE
 )
@@ -86,7 +87,8 @@ class Passage(NamedTuple):
     """Where a quote was found: its page, its boxes, and where the boxes came from.
 
     ``source`` is ``"text"`` (the PDF's text layer, the whole quote), ``"text-head"``
-    (only the quote's first words matched), ``"ocr"`` (OCR of the rendered page), or
+    (only the quote's first words matched), ``"ocr"`` (OCR of the rendered page),
+    ``"ocr-head"`` (OCR, the first words only), or
     ``"none"`` (a scanned page whose text layer holds the quote but whose boxes cannot be
     trusted, and OCR was not given or did not find it): then ``boxes`` is empty.
     """
@@ -127,7 +129,7 @@ def _opened(pdf):
             doc.close()
 
 
-def _pages(doc, page: Optional[int]) -> Sequence[int]:
+def _pages(doc, page: int | None) -> Sequence[int]:
     if page is None:
         return range(len(doc))
     if not isinstance(page, int) or not 0 <= page < len(doc):
@@ -145,11 +147,6 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip().lower()
 
 
-def _token(word: str) -> str:
-    """A word as matching sees it: normalised, punctuation stripped from both ends."""
-    return re.sub(r"^[\W_]+|[\W_]+$", "", _norm(word))
-
-
 def _starts_caption(text: str, caption: str) -> bool:
     """Whether ``text`` starts with ``caption`` (and not with a longer label)."""
     text, cap = _norm(text), _norm(caption)
@@ -159,31 +156,59 @@ def _starts_caption(text: str, caption: str) -> bool:
     return not (cap[-1].isalnum() and rest[:1].isalnum())
 
 
+def _is_label(text: str) -> bool:
+    """Whether ``text`` starts with a figure or table label used as a caption, not in prose.
+
+    >>> [_is_label(t) for t in ("Figure 3: Growth", "TABLE II Results", "Fig. 2.", "Table 4)",
+    ...                          "Figure 14 shows that", "Table 2, and")]
+    [True, True, True, False, False, False]
+    """
+    m = _CAPTION_LIKE.match(text)
+    if not m:
+        return False
+    rest = text[m.end() :].lstrip()
+    return not rest or not (rest[0].islower() or rest[0] in "),;")
+
+
+class _TextBlock(NamedTuple):
+    rect: Any
+    text: str
+    size: float  # mean font size, weighted by characters
+    split: bool  # starts mid-way through a PyMuPDF block
+
+
 def _as_box(rect) -> Box:
     return (float(rect.x0), float(rect.y0), float(rect.x1), float(rect.y1))
 
 
 def _text_blocks(page) -> list:
-    """The page's text blocks as ``(rect, text)``, each PyMuPDF block split before every
-    line that starts like a caption: PyMuPDF merges a caption into the axis labels above
-    it, or two side-by-side captions into one block."""
+    """The page's text blocks (:class:`_TextBlock`), each PyMuPDF block split before
+    every line that starts with a caption label: PyMuPDF merges a caption into the axis
+    labels above it, or two side-by-side captions into one block."""
     import fitz
 
     out = []
+
+    def flush(rect, lines, chars, weight, split):
+        if lines:
+            out.append(_TextBlock(rect, "\n".join(lines), weight / chars if chars else 0.0, split))
+
     for block in page.get_text("dict")["blocks"]:
         if block.get("type", 0) != 0:
             continue
-        rect, lines = None, []
+        rect, lines, chars, weight, split = None, [], 0, 0.0, False
         for line in block.get("lines", []):
             text = "".join(s["text"] for s in line["spans"])
-            if lines and _CAPTION_LIKE.match(text):
-                out.append((rect, "\n".join(lines)))
-                rect, lines = None, []
+            if lines and _is_label(text):
+                flush(rect, lines, chars, weight, split)
+                rect, lines, chars, weight, split = None, [], 0, 0.0, True
             r = fitz.Rect(line["bbox"])
             rect = r if rect is None else rect | r
             lines.append(text)
-        if lines:
-            out.append((rect, "\n".join(lines)))
+            for sp in line["spans"]:
+                n = len(sp["text"].strip())
+                chars, weight = chars + n, weight + n * sp["size"]
+        flush(rect, lines, chars, weight, split)
     return out
 
 
@@ -198,15 +223,19 @@ def _unrotated_rect(page):
 class _Layout:
     """The text blocks and graphics of one page, read once."""
 
-    def __init__(self, page, *, body_words: int):
-        import fitz
-
+    def __init__(self, page, *, body_words: int, running=frozenset()):
         self.page = page
         self.rect = _unrotated_rect(page)
         self.W, self.H = self.rect.width, self.rect.height
         self.body_words = body_words
         self.blocks = _text_blocks(page)
         self.graphics = self._graphics()
+        self.running = running
+        sizes: dict[float, int] = {}
+        for b in self.blocks:
+            key = round(b.size * 2) / 2
+            sizes[key] = sizes.get(key, 0) + len(b.text)
+        self.body_size = max(sizes, key=sizes.get) if sizes else 0.0
 
     def _graphics(self):
         import fitz
@@ -230,22 +259,51 @@ class _Layout:
         return out
 
     def is_caption_like(self, text: str) -> bool:
-        return bool(_CAPTION_LIKE.match(text))
+        return _is_label(text)
 
-    def is_body(self, text: str) -> bool:
-        return len(text.split()) >= self.body_words
+    def is_body(self, block) -> bool:
+        """A paragraph of body text: many words, in the page's body font size (a legend or
+        a sub-caption in a smaller size belongs to its figure)."""
+        return len(block.text.split()) >= self.body_words and block.size >= self.body_size - 0.6
 
     def barriers(self, blk):
         """Text a figure never grows across: other captions, and body paragraphs."""
         return [
-            r
-            for r, t in self.blocks
-            if not r.intersects(blk) and (self.is_caption_like(t) or self.is_body(t))
+            b.rect
+            for b in self.blocks
+            if not b.rect.intersects(blk) and (self.is_caption_like(b.text) or self.is_body(b))
         ]
 
-    def in_margin(self, r) -> bool:
+    def in_band(self, r) -> bool:
+        """In the top or bottom strip of the page, where running headers and footers sit."""
         band = _MARGIN_BAND * self.H
         return r.y1 <= self.rect.y0 + band or r.y0 >= self.rect.y1 - band
+
+    def is_running(self, r) -> bool:
+        """A rule repeated at the same place on neighbouring pages: a running header's or footer's."""
+        return _rule_key(r) in self.running
+
+
+def _rule_key(r) -> tuple:
+    return (round(r.x0 / 4), round(r.y0 / 4), round(r.x1 / 4))
+
+
+def _running_rules(doc, pno: int, *, span: int = 3) -> frozenset:
+    """Hairlines found at the same place on at least two of the pages around ``pno``."""
+    import fitz
+
+    counts: dict[tuple, int] = {}
+    for i in range(max(0, pno - span), min(len(doc), pno + span + 1)):
+        if i == pno:
+            continue
+        keys = {
+            _rule_key(fitz.Rect(d["rect"]))
+            for d in doc[i].get_drawings()
+            if fitz.Rect(d["rect"]).height <= 2 * _HAIRLINE_PAD + 1
+        }
+        for k in keys:
+            counts[k] = counts.get(k, 0) + 1
+    return frozenset(k for k, n in counts.items() if n >= 2)
 
 
 def _between(a, b):
@@ -291,7 +349,7 @@ def _grow(seed, candidates, *, max_gap, barriers=()):
 def _with_inner_text(lay, box, blk, *, max_height=_LABEL_MAX_HEIGHT):
     """``box`` grown by the text blocks (axis labels, legends, cells) lying inside it,
     captions and body paragraphs aside."""
-    for r, t in lay.blocks:
+    for r, t, *_ in lay.blocks:
         if (
             not r.intersects(blk)
             and not lay.is_caption_like(t)
@@ -308,14 +366,20 @@ def _with_inner_text(lay, box, blk, *, max_height=_LABEL_MAX_HEIGHT):
 # --------------------------------------------------------------------------- captions
 
 
-def _find_caption(doc, caption, page):
-    """(page index, caption rect): the text block (split at caption-like lines, see
-    ``_text_blocks``) that starts with ``caption``."""
+def _caption_candidates(doc, caption, page) -> list:
+    """``(page index, caption rect)`` of every text block that starts with ``caption`` as a
+    label (see ``_is_label``): first those that start a PyMuPDF block, then those split
+    out of one, each group in page order and top to bottom."""
     pages = _pages(doc, page)
-    for i in pages:
-        for rect, text in _text_blocks(doc[i]):
-            if _starts_caption(text, caption):
-                return i, rect
+    found = [
+        (b.split, i, b.rect.y0, b.rect.x0, b.rect)
+        for i in pages
+        for b in _text_blocks(doc[i])
+        if _is_label(b.text) and _starts_caption(b.text, caption)
+    ]
+    if found:
+        found.sort(key=lambda f: f[:4])
+        return [(i, rect) for _split, i, _y, _x, rect in found]
     mentioned = [i for i in pages if doc[i].search_for(caption)]
     where = f"page {page}" if page is not None else "any page"
     raise LookupError(
@@ -329,7 +393,7 @@ def _column_limits(lay, blk):
     sit beside it (side-by-side figures), then the share of the page nearest to it."""
     lo, hi = lay.rect.x0, lay.rect.x1
     c = (blk.x0 + blk.x1) / 2
-    for r, t in lay.blocks:
+    for r, t, *_ in lay.blocks:
         same_row = abs(r.y0 - blk.y0) < max(blk.height, 12) and not r.intersects(blk)
         if same_row and lay.is_caption_like(t):
             mid = (c + (r.x0 + r.x1) / 2) / 2
@@ -360,14 +424,29 @@ def _graphics_from_caption(lay, blk, side, *, max_up, max_gap):
     else:
         cands = [r for r in lay.graphics if r.y0 >= blk.y1 - 2 and r.y1 <= blk.y1 + reach]
         seed = fitz.Rect(blk.x0, blk.y1, blk.x1, blk.y1 + 1)
-    cands = [r for r in cands if r.x0 >= lo - 1 and r.x1 <= hi + 1]
+    graphics = [r for r in cands if r.x0 >= lo - 1 and r.x1 <= hi + 1]
+    # legends and sub-captions (text smaller than the body's) bridge a figure to its caption
+    small = [
+        b.rect
+        for b in lay.blocks
+        if b.size < lay.body_size - 0.6
+        and not lay.is_caption_like(b.text)
+        and not b.rect.intersects(blk)
+        and b.rect.x0 >= lo - 1
+        and b.rect.x1 <= hi + 1
+        and ((b.rect.y1 <= blk.y0 + 2 and b.rect.y0 >= blk.y0 - reach) if side == "above"
+             else (b.rect.y0 >= blk.y1 - 2 and b.rect.y1 <= blk.y1 + reach))
+    ]
+    cands = graphics + small
     col = fitz.Rect(blk.x0 - _COL_SLACK, lay.rect.y0, blk.x1 + _COL_SLACK, lay.rect.y1)
     barriers = lay.barriers(blk)
     first = _grow(seed, [r for r in cands if r.intersects(col)], max_gap=max_gap, barriers=barriers)
     if first is None:
         return None
     rest = [r for r in cands if not first.contains(r)]
-    return first | (_grow(first, rest, max_gap=max_gap, barriers=barriers) or first)
+    box = first | (_grow(first, rest, max_gap=max_gap, barriers=barriers) or first)
+    # small text alone is not a figure
+    return box if any(box.contains(g) for g in graphics) else None
 
 
 def _text_figure_box(lay, blk, *, max_up, max_gap):
@@ -377,18 +456,21 @@ def _text_figure_box(lay, blk, *, max_up, max_gap):
 
     col = fitz.Rect(blk.x0 - _COL_SLACK, lay.rect.y0, blk.x1 + _COL_SLACK, lay.rect.y1)
     above = sorted(
-        ((r, t) for r, t in lay.blocks if r.y1 <= blk.y0 + 1 and r.intersects(col)),
-        key=lambda rt: -rt[0].y1,
+        (b for b in lay.blocks if b.rect.y1 <= blk.y0 + 1 and b.rect.intersects(col)),
+        key=lambda b: -b.rect.y1,
     )
-    box = None
-    for r, t in above:
+    box, lines = None, 0
+    for b in above:
+        r = b.rect
         top = blk.y0 if box is None else box.y0
         if top - r.y1 > max_gap or r.y0 < blk.y0 - max_up * lay.H:
             break
-        if lay.is_body(t) or lay.is_caption_like(t) or lay.in_margin(r):
+        if lay.is_body(b) or lay.is_caption_like(b.text) or lay.in_band(r):
             break
         box = r if box is None else box | r
-    return box
+        lines += b.text.count("\n") + 1
+    # one line above a caption is a heading or a stray label, not a figure
+    return box if lines >= 2 else None
 
 
 def _graphics_beside(lay, blk, *, max_up, max_gap):
@@ -412,12 +494,16 @@ def _figure_body(lay, blk, *, max_up, max_gap):
     box = _graphics_from_caption(lay, blk, "above", max_up=max_up, max_gap=max_gap)
     if box is not None:
         return _with_inner_text(lay, box, blk), "graphics"
+    # a narrow caption with graphics level with it is a side caption, whatever is above it
+    narrow = blk.width < _SIDE_CAPTION_MAX_WIDTH * lay.W
+    beside = _graphics_beside(lay, blk, max_up=max_up, max_gap=max_gap)
+    if beside is not None and narrow:
+        return _with_inner_text(lay, beside, blk), "beside"
     box = _text_figure_box(lay, blk, max_up=max_up, max_gap=max_gap)
     if box is not None:
         return box, "text"
-    box = _graphics_beside(lay, blk, max_up=max_up, max_gap=max_gap)
-    if box is not None:
-        return _with_inner_text(lay, box, blk), "beside"
+    if beside is not None:
+        return _with_inner_text(lay, beside, blk), "beside"
     return None, "caption-only"
 
 
@@ -430,7 +516,7 @@ def _detected_table(lay, blk, *, max_gap):
 
     try:
         tables = [fitz.Rect(t.bbox) for t in lay.page.find_tables().tables]
-    except Exception:  # find_tables needs PyMuPDF >= 1.23; any failure means "none found"
+    except Exception:  # noqa: BLE001 - find_tables needs PyMuPDF >= 1.23; any failure: none found
         return None
     near = [
         t for t in tables if t.x0 < blk.x1 and t.x1 > blk.x0 and _gap(t, blk) <= max_gap
@@ -438,18 +524,32 @@ def _detected_table(lay, blk, *, max_gap):
     return min(near, key=lambda t: _gap(t, blk), default=None)
 
 
+def _joined_rules(graphics) -> list:
+    """The horizontal hairlines, with collinear segments that touch joined into one rule
+    (tables often draw a row's rule one cell at a time)."""
+    segs = sorted(
+        (r for r in graphics if r.height <= 2 * _HAIRLINE_PAD + 1), key=lambda r: (round(r.y0), r.x0)
+    )
+    out = []
+    for r in segs:
+        last = out[-1] if out else None
+        if last is not None and abs(last.y0 - r.y0) < 1 and r.x0 <= last.x1 + 2:
+            out[-1] = last | r
+        else:
+            out.append(r)
+    return out
+
+
 def _ruled_table(lay, blk, *, max_gap, rule_gap):
     """A table drawn with horizontal rules (booktabs): the rule nearest the caption
     (within ``max_gap``), then the rules of the same width chained away from it, each
-    within ``rule_gap`` of the last, never across another caption, never into the
-    header or footer band; None if there is no such rule."""
+    within ``rule_gap`` of the last, never across another caption, never a running
+    header's or footer's rule; then the frames (shaded or boxed panels) it cuts through.
+    None if there is no such rule."""
     rules = [
         r
-        for r in lay.graphics
-        if r.height <= 2 * _HAIRLINE_PAD + 1
-        and r.x0 < blk.x1
-        and r.x1 > blk.x0
-        and not lay.in_margin(r)
+        for r in _joined_rules(lay.graphics)
+        if r.x0 < blk.x1 and r.x1 > blk.x0 and not lay.is_running(r)
     ]
     near = [r for r in rules if _gap(r, blk) <= max_gap]
     if not near:
@@ -466,7 +566,7 @@ def _ruled_table(lay, blk, *, max_gap, rule_gap):
         ),
         key=lambda r: -r.y0 if above else r.y0,
     )
-    captions = [r for r, t in lay.blocks if lay.is_caption_like(t) and not r.intersects(blk)]
+    captions = [r for r, t, *_ in lay.blocks if lay.is_caption_like(t) and not r.intersects(blk)]
     box, last = first, first
     for r in same:
         if r is first:
@@ -477,6 +577,10 @@ def _ruled_table(lay, blk, *, max_gap, rule_gap):
         if region is not None and any((c & region).get_area() > 1 for c in captions):
             break
         box, last = box | r, r
+    page_area = lay.rect.get_area() or 1
+    for g in lay.graphics:
+        if g.height > 3 and g.width > 3 and g.intersects(box) and g.get_area() < 0.5 * page_area:
+            box |= g
     return box
 
 
@@ -484,7 +588,7 @@ def _table_body(lay, blk, *, max_up, max_gap, table_height, rule_gap):
     """(box, source) of a table without its caption."""
     import fitz
 
-    inner = dict(max_height=lay.H)
+    inner = {"max_height": lay.H}
     box = _detected_table(lay, blk, max_gap=max_gap)
     if box is not None:
         return _with_inner_text(lay, box, blk, **inner), "table"
@@ -513,8 +617,8 @@ def figure_box(
     pdf,
     caption: str,
     *,
-    page: Optional[int] = None,
-    kind: Optional[str] = None,
+    page: int | None = None,
+    kind: str | None = None,
     with_caption: bool = True,
     margin: float = DFLT_MARGIN,
     max_up: float = DFLT_MAX_UP,
@@ -527,12 +631,14 @@ def figure_box(
 
     :param pdf: path, bytes, file object, or an open PyMuPDF document.
     :param caption: the start of the caption, e.g. ``"Figure 3:"`` or ``"Table 2"``.
-        Matched case-insensitively at the start of a text block or line; a mention in
-        running text is never taken for it.
+        Matched case-insensitively at the start of a text block or line, and only where
+        the label reads as a caption ("Table 2 shows" and "Table 2)" are prose). Of several
+        matches, the first whose figure or table is found is used.
     :param page: 0-based page to look on; every page when None.
     :param kind: ``"figure"`` or ``"table"``; when None, ``"table"`` if the caption starts
         with "Tab", else ``"figure"``.
-    :param with_caption: include the caption in the box.
+    :param with_caption: include the caption in the box. Without it, a caption with
+        nothing found next to it raises ``LookupError`` (there is no figure to return).
     :param margin: white space (points) kept around the box.
     :param max_up: how far from the caption, as a fraction of the page height, a figure's
         graphics may reach.
@@ -543,7 +649,8 @@ def figure_box(
         apart.
     :param body_words: a text block with at least this many words is body text: a figure
         never grows across it.
-    :raises LookupError: no caption starts with ``caption``.
+    :raises LookupError: no caption starts with ``caption`` (or, ``with_caption=False``,
+        nothing was found next to it).
     :raises IndexError: ``page`` is not a page of the PDF.
     """
     import fitz
@@ -552,15 +659,26 @@ def figure_box(
         kind = "table" if _norm(caption).startswith("tab") else "figure"
     if kind not in ("figure", "table"):
         raise ValueError(f"kind must be 'figure' or 'table', not {kind!r}")
+    weak = ("caption-only", "fallback")
     with _opened(pdf) as doc:
-        pno, blk = _find_caption(doc, caption, page)
-        lay = _Layout(doc[pno], body_words=body_words)
-        if kind == "figure":
-            body, source = _figure_body(lay, blk, max_up=max_up, max_gap=max_gap)
-        else:
-            body, source = _table_body(
-                lay, blk, max_up=max_up, max_gap=max_gap, table_height=table_height,
-                rule_gap=rule_gap,
+        tried = []
+        for pno, blk in _caption_candidates(doc, caption, page):
+            lay = _Layout(doc[pno], body_words=body_words, running=_running_rules(doc, pno))
+            if kind == "figure":
+                body, source = _figure_body(lay, blk, max_up=max_up, max_gap=max_gap)
+            else:
+                body, source = _table_body(
+                    lay, blk, max_up=max_up, max_gap=max_gap, table_height=table_height,
+                    rule_gap=rule_gap,
+                )
+            tried.append((pno, blk, lay, body, source))
+            if source not in weak:
+                break
+        pno, blk, lay, body, source = next((t for t in tried if t[4] not in weak), tried[0])
+        if body is None and not with_caption:
+            raise LookupError(
+                f"nothing found next to the caption {caption!r} on page {pno}; "
+                "with_caption=True returns the caption's own box"
             )
         if body is None:
             box = fitz.Rect(blk)
@@ -576,8 +694,8 @@ def figure(
     pdf,
     caption: str,
     *,
-    page: Optional[int] = None,
-    kind: Optional[str] = None,
+    page: int | None = None,
+    kind: str | None = None,
     zoom: float = DFLT_ZOOM,
     **box_kwargs,
 ) -> bytes:
@@ -628,33 +746,32 @@ def _merge_lines(rects, *, tol=4.0):
     return tuple(tuple(row) for row in rows)
 
 
-def _match_tokens(words: Sequence[tuple], quote: str) -> Optional[list]:
+def _alnum(text: str) -> str:
+    """``text`` as matching sees it: normalised, every space, hyphen, dash and punctuation gone."""
+    return re.sub(r"[\W_]+", "", _norm(text))
+
+
+def _match_tokens(words: Sequence[tuple], quote: str) -> list | None:
     """The payloads of the words spelling ``quote``, in order, or None.
 
-    ``words`` are ``(word, payload)`` in reading order; a word ending in a hyphen is
-    joined to the next one (a word broken at a line end), and both payloads are kept.
+    ``words`` are ``(word, payload)`` in reading order. Both sides are compared as their
+    letters and digits only, so case, curly quotes, attached punctuation, dashes, and
+    hyphens (a compound, a suspended "pre-", or a word broken at a line end) do not
+    matter.
     """
-    target = [t for t in (_token(w) for w in quote.split()) if t]
+    target = _alnum(quote)
     if not target:
         return None
-    seq: list[tuple[str, list]] = []
-    i = 0
-    while i < len(words):
-        word, payload = words[i]
-        if word.rstrip().endswith("-") and i + 1 < len(words):
-            joined = _token(word.rstrip()[:-1] + words[i + 1][0])
-            seq.append((joined, [payload, words[i + 1][1]]))
-            i += 2
-            continue
-        tok = _token(word)
-        if tok:
-            seq.append((tok, [payload]))
-        i += 1
-    toks = [t for t, _ in seq]
-    for start in range(len(toks) - len(target) + 1):
-        if toks[start : start + len(target)] == target:
-            return [p for _, ps in seq[start : start + len(target)] for p in ps]
-    return None
+    stream, owner = [], []
+    for k, (word, _) in enumerate(words):
+        chars = _alnum(word)
+        stream.append(chars)
+        owner.extend([k] * len(chars))
+    at = "".join(stream).find(target)
+    if at < 0:
+        return None
+    hit = sorted(set(owner[at : at + len(target)]))
+    return [words[k][1] for k in hit]
 
 
 def _text_words(page):
@@ -674,22 +791,23 @@ def find_passage(
     pdf,
     quote: str,
     *,
-    page: Optional[int] = None,
-    ocr_words: Optional[OcrWords] = None,
+    page: int | None = None,
+    ocr_words: OcrWords | None = None,
     ocr_zoom: float = DFLT_OCR_ZOOM,
     scan_coverage: float = DFLT_SCAN_COVERAGE,
     head_words: int = DFLT_QUOTE_HEAD_WORDS,
-) -> Optional[Passage]:
+) -> Passage | None:
     """The page and boxes of ``quote`` in ``pdf``, or None when it is not there.
 
-    Matches the quote's words against the page's words, ignoring case, curly quotes,
-    attached punctuation and words broken by an end-of-line hyphen. Every page is
+    Matches the quote against the page's words by their letters and digits, so case,
+    curly quotes, punctuation, dashes and hyphens (compounds, and words broken at a line
+    end) do not matter. Every page is
     searched for the whole quote before any is searched for its first ``head_words``
     words (``source="text-head"``). On a scanned page (images cover ``scan_coverage``
     of it) the text layer's boxes are not trusted: they are read off the rendered page
     with ``ocr_words`` when given (accepted only if the OCR'd words spell the quote),
     else the page is returned with no boxes (``source="none"``). With ``ocr_words``, a
-    scanned page with no text layer is OCR'd too.
+    scanned page with no text layer at all is OCR'd too (only those: OCR is slow).
 
     :param pdf: path, bytes, file object, or an open PyMuPDF document.
     :param quote: the text to find.
@@ -725,11 +843,16 @@ def find_passage(
                     continue
                 if not is_scanned(doc[i], coverage=scan_coverage):
                     return Passage(i, _merge_lines(hit), source)
-                boxes = ocr_boxes(i, quote) or ocr_boxes(i, text)
-                return Passage(i, boxes, "ocr") if boxes else Passage(i, (), "none")
+                boxes = ocr_boxes(i, quote)
+                if boxes:
+                    return Passage(i, boxes, "ocr")
+                boxes = ocr_boxes(i, text) if text is not quote else None
+                return Passage(i, boxes, "ocr-head") if boxes else Passage(i, (), "none")
         if ocr_words is not None:
+            # a scan with no text layer at all: nothing above could have found the quote
             for i in pages:
-                if is_scanned(doc[i], coverage=scan_coverage):
+                pg = doc[i]
+                if is_scanned(pg, coverage=scan_coverage) and not pg.get_text().strip():
                     boxes = ocr_boxes(i, quote)
                     if boxes:
                         return Passage(i, boxes, "ocr")
@@ -771,10 +894,9 @@ def _split_line(text: str, box: Box) -> list:
     """
     x0, y0, x1, y1 = box
     n = len(text) or 1
-    out, pos = [], 0
+    out = []
     for m in re.finditer(r"\S+", text):
         a = x0 + (x1 - x0) * m.start() / n
         b = x0 + (x1 - x0) * m.end() / n
         out.append((m.group(), (a, y0, b, y1)))
-        pos = m.end()
     return out
