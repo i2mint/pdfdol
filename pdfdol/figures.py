@@ -24,8 +24,12 @@ Scanned PDFs (a page covered by one image, its text layer made by OCR) are a kno
 the text layer's boxes can sit tens of pixels off the glyphs. ``find_passage`` detects
 such pages and, unless it is given an ``ocr_words`` function to read word boxes off the
 rendered pixels (``ocracy_words`` is one, built on ``ocracy``), returns the page with no
-boxes rather than a highlight in the wrong place. Figures on scanned pages are best
-effort.
+boxes rather than a highlight in the wrong place. A figure on a scanned page has no
+drawings to find it by, and an OCR layer splits prose into one block per line, so it is
+read off the pixels instead (``source="pixels"``, see ``pixel_figure_box``): the ink
+above the caption, up to the first prose or caption above it. Best effort still: the
+``scan_strategy`` keyword of ``figure_box`` takes another strategy, or ``"layout"`` to
+treat the scan like any page.
 
 Needs PyMuPDF, the ``figures`` extra of pdfdol, imported only when called. PyMuPDF is
 AGPL-3.0: whoever distributes or serves pdfdol together with it takes on its terms.
@@ -59,6 +63,8 @@ from typing import Any, NamedTuple
 
 Box = tuple  # (x0, y0, x1, y1) in PDF points
 OcrWords = Callable[[bytes], Iterable[tuple]]  # png -> [(text, (x0, y0, x1, y1)), ...]
+# (page, caption box, *, max_up, max_gap) -> the figure's box without its caption, or None
+ScanStrategy = Callable[..., Any]
 
 DFLT_ZOOM = 4.0
 DFLT_MARGIN = 6.0  # points of white space kept around a crop
@@ -80,6 +86,20 @@ DFLT_BODY_WORDS = (
 DFLT_SCAN_COVERAGE = 0.8  # a page whose images cover this fraction of it is a scan
 DFLT_OCR_ZOOM = 3.0
 DFLT_QUOTE_HEAD_WORDS = 6  # retry a long quote on its first words
+DFLT_SCAN_ZOOM = 2.0  # rendering scale of a scanned page read for its figures' pixels
+DFLT_INK_LEVEL = 128  # gray level (0 to 255) below which a scanned pixel is ink
+DFLT_SCAN_STRATEGY = "pixels"
+_SCAN_EDGE = 0.02  # fraction of the page: scanner borders and edge shadows live here
+_PROSE_WORDS = 6  # a text-layer line with this many words, mostly words, is prose
+_PROSE_WORDISH = (
+    0.6  # share of a prose line's tokens that are words (OCR of a drawing is not)
+)
+_LINE_FILL = 0.6  # a printed line inks at least this share of the columns it spans
+_LINE_WIDTH = 0.5  # a full printed line spans at least this share of the column
+_LINE_HEIGHT = (0.3, 1.6)  # a printed line's ink is this many body font sizes tall
+_DFLT_BODY_SIZE = (
+    10.0  # points: the body font size assumed when a page has no text layer
+)
 _MARGIN_BAND = (
     0.06  # fraction of the page height: running headers and footers live here
 )
@@ -118,7 +138,7 @@ class FigureBox(NamedTuple):
     """Where a figure or table is: its page, its box, and how the box was found.
 
     ``source`` is one of ``"graphics"``, ``"text"`` (a figure drawn as text), ``"beside"``
-    (a side caption), ``"table"`` (a table PyMuPDF detected), ``"rules"`` (a booktabs
+    (a side caption), ``"pixels"`` (the ink above the caption on a scanned page), ``"table"`` (a table PyMuPDF detected), ``"rules"`` (a booktabs
     table), ``"caption-only"`` (nothing found next to the caption) or ``"fallback"`` (a
     share of the page below a table caption).
     """
@@ -549,6 +569,238 @@ def _figure_body(lay, blk, *, max_up, max_gap):
     return None, "caption-only"
 
 
+# --------------------------------------------------------------------------- scanned pages
+
+
+class _Band(NamedTuple):
+    """A run of rows holding ink, in page points, with the share of its span it inks."""
+
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+    fill: float
+
+
+def _ink_bands(page, clip, *, zoom, ink) -> list:
+    """The :class:`_Band` s of ``clip`` on ``page``, top to bottom: maximal runs of rows
+    holding ink (a pixel darker than ``ink``), split by blank rows."""
+    import fitz
+
+    pix = page.get_pixmap(
+        matrix=fitz.Matrix(zoom, zoom), clip=clip, colorspace=fitz.csGRAY, alpha=False
+    )
+    w, h, stride, data = pix.width, pix.height, pix.stride, pix.samples
+    ox, oy = pix.x, pix.y  # the clip's top left, in pixels of the zoomed page
+    dark = bytes(1 if v < ink else 0 for v in range(256))
+    min_ink = max(1, round(zoom))  # fewer dark pixels than this in a row is noise
+    bands, run = [], None
+
+    def close(run):
+        r0, r1, c0, c1, cols = run
+        # every byte of a row is 0 or 1, so each inked column is one set bit
+        inked = bin(cols).count("1")  # noqa: FURB161 - int.bit_count needs 3.10
+        bands.append(
+            _Band(
+                (ox + c0) / zoom,
+                (oy + r0) / zoom,
+                (ox + c1 + 1) / zoom,
+                (oy + r1 + 1) / zoom,
+                inked / (c1 - c0 + 1),
+            )
+        )
+
+    for r in range(h):
+        row = data[r * stride : r * stride + w].translate(dark)
+        if row.count(1) < min_ink:
+            if run is not None:
+                close(run)
+                run = None
+            continue
+        c0, c1, cols = row.find(1), row.rfind(1), int.from_bytes(row, "big")
+        if run is None:
+            run = [r, r, c0, c1, cols]
+        else:
+            run[1], run[2], run[3], run[4] = (
+                r,
+                min(run[2], c0),
+                max(run[3], c1),
+                run[4] | cols,
+            )
+    if run is not None:
+        close(run)
+    return bands
+
+
+def _is_prose_line(lay, block) -> bool:
+    """Whether a text block is prose: a body paragraph, or (an OCR layer gives one block per
+    line) one line of several words that read as words, not as OCR of a drawing."""
+    if lay.is_body(block):
+        return True
+    tokens = block.text.split()
+    if "\n" in block.text.strip() or len(tokens) < _PROSE_WORDS:
+        return False
+    wordish = sum(1 for t in tokens if re.fullmatch(r"[^\W\d_]{2,}[.,;:]?", t))
+    return wordish >= _PROSE_WORDISH * len(tokens)
+
+
+def _scan_columns(lay, blk, top):
+    """The x-range to read for the figure above ``blk``: the caption's share of the page,
+    less the prose beside it (the other column of a two-column page) and the scan's edges.
+    """
+    lo, hi = _column_limits(lay, blk)
+    edge = _SCAN_EDGE * lay.W
+    lo, hi = max(lo, lay.rect.x0 + edge), min(hi, lay.rect.x1 - edge)
+    for b in lay.blocks:
+        r = b.rect
+        if r.y1 <= top or r.y0 >= blk.y0 or not _is_prose_line(lay, b):
+            continue
+        if r.x0 >= blk.x1:
+            hi = min(hi, r.x0 - 1)
+        elif r.x1 <= blk.x0:
+            lo = max(lo, r.x1 + 1)
+    return lo, hi
+
+
+def _caption_ink(lay, blk, *, zoom=DFLT_SCAN_ZOOM, ink=DFLT_INK_LEVEL):
+    """``blk`` widened to the ink of its own line on a scan (an OCR box can stop short of
+    the glyphs): the runs of inked columns in its rows that it overlaps, joined across
+    gaps narrower than a few letters."""
+    import fitz
+
+    edge = _SCAN_EDGE * lay.W
+    clip = fitz.Rect(lay.rect.x0 + edge, blk.y0, lay.rect.x1 - edge, blk.y1)
+    if clip.is_empty:
+        return blk
+    pix = lay.page.get_pixmap(
+        matrix=fitz.Matrix(zoom, zoom), clip=clip, colorspace=fitz.csGRAY, alpha=False
+    )
+    dark = bytes(1 if v < ink else 0 for v in range(256))
+    cols = 0
+    for r in range(pix.height):
+        row = pix.samples[r * pix.stride : r * pix.stride + pix.width]
+        cols |= int.from_bytes(row.translate(dark), "big")
+    inked = cols.to_bytes(pix.width, "big")
+    size = lay.body_size if lay.body_size >= 4 else _DFLT_BODY_SIZE
+    join = size * zoom  # a gap this wide (pixels) is inside a line, not between columns
+    w = pix.width
+    x0 = min(w, max(0, int(blk.x0 * zoom) - pix.x))
+    x1 = min(w, max(0, int(blk.x1 * zoom) - pix.x))
+    while True:  # rightwards, word by word, while the next ink is near
+        nxt = inked.find(1, x1)
+        if nxt < 0 or nxt - x1 > join:
+            break
+        end = inked.find(0, nxt)
+        x1 = w if end < 0 else end
+    while True:  # leftwards
+        prv = inked.rfind(1, 0, x0)
+        if prv < 0 or x0 - prv > join:
+            break
+        x0 = inked.rfind(0, 0, prv) + 1
+    return fitz.Rect((x0 + pix.x) / zoom, blk.y0, (x1 + pix.x) / zoom, blk.y1) | blk
+
+
+def pixel_figure_box(
+    page,
+    caption_box: Box,
+    *,
+    max_up: float = DFLT_MAX_UP,
+    max_gap: float = DFLT_MAX_GAP,
+    body_words: int = DFLT_BODY_WORDS,
+    zoom: float = DFLT_SCAN_ZOOM,
+    ink: int = DFLT_INK_LEVEL,
+) -> Box | None:
+    """The box of the figure above ``caption_box`` on a scanned PyMuPDF ``page``, read off
+    its pixels, without the caption; None when there is no ink above the caption.
+
+    The page is rendered in gray above the caption and cut into bands of rows holding
+    ink. The figure is the bands climbed from the caption upwards, each within
+    ``max_gap`` points of the last, up to the first that is text: another caption or a
+    prose line in the text layer, or a run of printed lines in the pixels (a band one
+    line tall that inks most of its span, under a full line). Boxes, arrows and labels
+    inside a figure are ink like any other, so a figure of separate boxes comes whole.
+    The default ``scan_strategy`` of ``figure_box``; its signature is the one a
+    replacement takes (``page, caption_box, *, max_up, max_gap``).
+
+    :param page: a PyMuPDF page; its rotation must be 0 (else None: use the layout).
+    :param caption_box: the caption's ``(x0, y0, x1, y1)``, from the page's text layer.
+    :param zoom: rendering scale (2.0 is 144 dpi).
+    :param ink: gray level (0 to 255) below which a pixel is ink.
+    """
+    import fitz
+
+    lay = _Layout(page, body_words=body_words)
+    return _pixel_body(
+        lay, fitz.Rect(caption_box), max_up=max_up, max_gap=max_gap, zoom=zoom, ink=ink
+    )
+
+
+def _pixel_body(lay, blk, *, max_up, max_gap, zoom=DFLT_SCAN_ZOOM, ink=DFLT_INK_LEVEL):
+    """``pixel_figure_box`` on a page already read into a ``_Layout``."""
+    import fitz
+
+    page = lay.page
+    if page.rotation:  # the pixels would not be in the text layer's coordinates
+        return None
+    top = max(lay.rect.y0 + _SCAN_EDGE * lay.H, blk.y0 - max_up * lay.H)
+    lo, hi = _scan_columns(lay, blk, top)
+    if blk.y1 <= top or hi <= lo:
+        return None
+    bands = _ink_bands(page, fitz.Rect(lo, top, hi, blk.y1), zoom=zoom, ink=ink)
+    # the caption's own ink tells where its glyphs start (an OCR box can be points off)
+    cap = [b for b in bands if b.y1 > blk.y0 and b.y0 < blk.y1]
+    cap_top = min((b.y0 for b in cap), default=blk.y0)
+    if cap_top < blk.y0 - blk.height:  # the caption's ink runs into the figure's
+        cap_top = blk.y0
+    above = sorted((b for b in bands if b.y1 <= cap_top), key=lambda b: -b.y1)
+
+    size = lay.body_size if lay.body_size >= 4 else _DFLT_BODY_SIZE
+    width = hi - lo
+    text = [
+        b.rect
+        for b in lay.blocks
+        if not b.rect.intersects(blk)
+        and (lay.is_caption_like(b.text) or _is_prose_line(lay, b))
+    ]
+
+    def line_tall(b):
+        return _LINE_HEIGHT[0] * size <= b.y1 - b.y0 <= _LINE_HEIGHT[1] * size
+
+    def full_line(b):
+        return (
+            line_tall(b) and b.fill >= _LINE_FILL and b.x1 - b.x0 >= _LINE_WIDTH * width
+        )
+
+    def is_text(i):
+        b = above[i]
+        for r in text:
+            overlap = min(b.y1, r.y1) - max(b.y0, r.y0)
+            if (
+                overlap > 0.5 * min(b.y1 - b.y0, r.height)
+                and r.x0 < b.x1
+                and r.x1 > b.x0
+            ):
+                return True
+        if not (line_tall(b) and b.fill >= _LINE_FILL) or i + 1 >= len(above):
+            return False
+        up = above[i + 1]  # a printed line under another one is a paragraph
+        return full_line(up) and b.y0 - up.y1 <= size
+
+    def speck(b):
+        return max(b.x1 - b.x0, b.y1 - b.y0) < _MIN_GRAPHIC_SPAN
+
+    box, reach = None, cap_top
+    for i, b in enumerate(above):
+        if reach - b.y1 > max_gap or is_text(i):
+            break
+        if speck(b):
+            continue
+        r = fitz.Rect(b.x0, b.y0, b.x1, b.y1)
+        box = r if box is None else box | r
+        reach = b.y0
+    return None if box is None else _as_box(box)
+
+
 # --------------------------------------------------------------------------- tables
 
 
@@ -678,6 +930,7 @@ def figure_box(
     table_height: float = DFLT_TABLE_HEIGHT,
     rule_gap: float = DFLT_RULE_GAP,
     body_words: int = DFLT_BODY_WORDS,
+    scan_strategy: str | ScanStrategy = DFLT_SCAN_STRATEGY,
 ) -> FigureBox:
     """Where the figure or table captioned ``caption`` is: ``FigureBox(page, box, source)``.
 
@@ -701,6 +954,10 @@ def figure_box(
         apart.
     :param body_words: a text block with at least this many words is body text: a figure
         never grows across it.
+    :param scan_strategy: how a figure on a scanned page (see ``is_scanned``) is found:
+        ``"pixels"`` (``pixel_figure_box``, ``source="pixels"``), ``"layout"`` (as on any
+        page), or a callable with ``pixel_figure_box``'s signature. When it finds nothing,
+        the layout is used. Tables are always found from the layout.
     :raises LookupError: no caption starts with ``caption`` (or, ``with_caption=False``,
         nothing was found next to it).
     :raises IndexError: ``page`` is not a page of the PDF.
@@ -711,6 +968,13 @@ def figure_box(
         kind = "table" if _norm(caption).startswith("tab") else "figure"
     if kind not in ("figure", "table"):
         raise ValueError(f"kind must be 'figure' or 'table', not {kind!r}")
+    if scan_strategy == "pixels":
+        scan_strategy = pixel_figure_box
+    elif scan_strategy != "layout" and not callable(scan_strategy):
+        raise ValueError(
+            "scan_strategy must be 'pixels', 'layout' or a callable, "
+            f"not {scan_strategy!r}"
+        )
     weak = ("caption-only", "fallback")
     with _opened(pdf) as doc:
         tried = []
@@ -719,7 +983,21 @@ def figure_box(
                 doc[pno], body_words=body_words, running=_running_rules(doc, pno)
             )
             if kind == "figure":
-                body, source = _figure_body(lay, blk, max_up=max_up, max_gap=max_gap)
+                body, source = None, None
+                if callable(scan_strategy) and is_scanned(doc[pno]):
+                    if scan_strategy is pixel_figure_box:  # the page is read already
+                        found = _pixel_body(lay, blk, max_up=max_up, max_gap=max_gap)
+                    else:
+                        found = scan_strategy(
+                            doc[pno], _as_box(blk), max_up=max_up, max_gap=max_gap
+                        )
+                    if found is not None:
+                        body, source = fitz.Rect(found), "pixels"
+                        blk = _caption_ink(lay, blk)
+                if body is None:
+                    body, source = _figure_body(
+                        lay, blk, max_up=max_up, max_gap=max_gap
+                    )
             else:
                 body, source = _table_body(
                     lay,

@@ -435,3 +435,128 @@ def test_a_head_only_ocr_match_says_so():
 
     p = find_passage(_scan("the quoted words are here and"), quote, ocr_words=fake_ocr)
     assert p.source == "ocr-head"
+
+
+# --------------------------------------------------------------------------- scanned figures
+
+PROSE = [
+    "The design of the system was reviewed in detail by the whole team before",
+    "any of the coding started, and every one of the steps below was agreed on",
+    "in writing so that nobody could later claim that the plan had been unclear.",
+]
+
+
+def _rasterize(pdf: bytes, *, text_layer=lambda text: True, zoom=2) -> bytes:
+    """``pdf`` as a scan: each page an image of itself, with an invisible text layer of
+    the lines ``text_layer`` keeps, one block per line (as OCR gives)."""
+    src = fitz.open(stream=pdf, filetype="pdf")
+    out = fitz.open()
+    for page in src:
+        new = out.new_page(width=page.rect.width, height=page.rect.height)
+        new.insert_image(
+            new.rect, pixmap=page.get_pixmap(matrix=fitz.Matrix(zoom, zoom))
+        )
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                text = "".join(s["text"] for s in line["spans"])
+                if text.strip() and text_layer(text):
+                    span = line["spans"][0]
+                    new.insert_text(
+                        span["origin"], text, fontsize=span["size"], render_mode=3
+                    )
+    return out.tobytes()
+
+
+def _boxes_paper(p):
+    """Prose, then a figure of three boxes that do not touch, its caption, then prose."""
+    for k, line in enumerate(PROSE):
+        p.insert_text((50, 70 + 14 * k), line, fontsize=10)
+    for k, (x, y) in enumerate([(80, 150), (250, 215), (420, 280)]):
+        p.draw_rect(fitz.Rect(x, y, x + 120, y + 45), color=(0, 0, 0), width=1.5)
+        p.insert_text((x + 20, y + 27), f"STEP {k + 1}", fontsize=10)
+    p.insert_text((80, 355), "Figure 1. Three steps that never touch.", fontsize=10)
+    for k, line in enumerate(PROSE):
+        p.insert_text((50, 400 + 14 * k), line, fontsize=10)
+
+
+def _two_figures(p):
+    """A figure and its caption, then another figure (two boxes) and its caption."""
+    p.draw_rect(fitz.Rect(100, 60, 300, 160), color=(0, 0, 0), width=1.5)
+    p.insert_text((100, 180), "Figure 3. The first one.", fontsize=10)
+    p.draw_rect(fitz.Rect(100, 205, 250, 260), color=(0, 0, 0), width=1.5)
+    p.draw_rect(fitz.Rect(300, 280, 450, 335), color=(0, 0, 0), width=1.5)
+    p.insert_text((100, 360), "Figure 4. The second one.", fontsize=10)
+
+
+def _contains(outer, inner, slack=1.0):
+    return (
+        outer[0] <= inner[0] + slack
+        and outer[1] <= inner[1] + slack
+        and outer[2] >= inner[2] - slack
+        and outer[3] >= inner[3] - slack
+    )
+
+
+@pytest.mark.parametrize(
+    "text_layer",
+    [lambda t: True, lambda t: t.startswith("Figure")],
+    ids=["prose-in-text-layer", "caption-only-in-text-layer"],
+)
+def test_a_figure_on_a_scan_is_read_off_its_pixels_whole_and_without_the_prose(
+    text_layer,
+):
+    pdf = _rasterize(_pdf(_boxes_paper), text_layer=text_layer)
+    with fitz.open(stream=pdf, filetype="pdf") as doc:
+        assert is_scanned(doc[0])
+    got = figure_box(pdf, "Figure 1.", margin=0)
+    assert got.source == "pixels"
+    assert _contains(got.box, (80, 150, 540, 325))  # every box
+    assert _contains(got.box, (80, 345, 270, 357))  # the caption
+    assert got.box[1] > 70 + 14 * 2 + 2  # nothing of the prose above
+    assert got.box[3] < 390  # nor below
+    body = figure_box(pdf, "Figure 1.", margin=0, with_caption=False)
+    assert body.box[3] < 345
+
+
+def test_a_figure_on_a_scan_stops_at_the_caption_of_the_figure_above():
+    pdf = _rasterize(_pdf(_two_figures))
+    got = figure_box(pdf, "Figure 4.", margin=0)
+    assert got.source == "pixels"
+    assert _contains(got.box, (100, 205, 450, 335))
+    assert got.box[1] > 180  # not the first figure's caption, nor the figure
+    first = figure_box(pdf, "Figure 3.", margin=0)
+    assert _contains(first.box, (100, 60, 300, 160)) and first.box[3] < 200
+
+
+def test_scan_strategy_is_a_seam():
+    pdf = _rasterize(_pdf(_boxes_paper))
+    assert figure_box(pdf, "Figure 1.", scan_strategy="layout").source != "pixels"
+    seen = []
+
+    def mine(page, caption_box, *, max_up, max_gap):
+        seen.append(caption_box)
+        return (100.0, 100.0, 200.0, 200.0)
+
+    got = figure_box(pdf, "Figure 1.", scan_strategy=mine, margin=0)
+    assert got.source == "pixels" and len(seen) == 1
+    assert _contains(got.box, (100, 100, 200, 200))
+
+    def nothing(page, caption_box, *, max_up, max_gap):
+        return None
+
+    assert figure_box(pdf, "Figure 1.", scan_strategy=nothing).source != "pixels"
+    # a page that is not a scan never asks the strategy
+    figure_box(_pdf(_boxes_paper), "Figure 1.", scan_strategy=mine)
+    assert len(seen) == 1
+    with pytest.raises(ValueError):
+        figure_box(pdf, "Figure 1.", scan_strategy="magic")
+
+
+def test_pixel_figure_box_takes_a_page_and_a_caption_box():
+    from pdfdol.figures import pixel_figure_box
+
+    pdf = _rasterize(_pdf(_boxes_paper))
+    with fitz.open(stream=pdf, filetype="pdf") as doc:
+        box = pixel_figure_box(doc[0], (80, 345, 270, 357))
+        assert _contains(box, (80, 150, 540, 325))
+        assert pixel_figure_box(doc[0], (80, 40, 270, 50)) is None  # nothing above
