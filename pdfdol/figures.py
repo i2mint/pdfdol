@@ -100,6 +100,10 @@ _LINE_HEIGHT = (0.3, 1.6)  # a printed line's ink is this many body font sizes t
 _DFLT_BODY_SIZE = (
     10.0  # points: the body font size assumed when a page has no text layer
 )
+_GUTTER_WIDTH = (
+    1.0  # body font sizes: a blank strip this wide between columns is a gutter
+)
+_GUTTER_WINDOW = 0.15  # fraction of the page width: a gutter's distance from the middle
 _MARGIN_BAND = (
     0.06  # fraction of the page height: running headers and footers live here
 )
@@ -662,6 +666,39 @@ def _scan_columns(lay, blk, top):
     return lo, hi
 
 
+def _column_gutter(page, clip, *, zoom, ink, min_width, window):
+    """The x (points) of the middle of the blank vertical strip, at least ``min_width``
+    points wide, running the whole height of ``clip`` with ink on both sides, within
+    ``window`` of the page's middle and nearest to it: a two-column page's gutter.
+    None if there is none."""
+    import fitz
+
+    pix = page.get_pixmap(
+        matrix=fitz.Matrix(zoom, zoom), clip=clip, colorspace=fitz.csGRAY, alpha=False
+    )
+    data, dark, cols = pix.samples, bytes(1 if v < ink else 0 for v in range(256)), 0
+    for r in range(pix.height):
+        row = data[r * pix.stride : r * pix.stride + pix.width]
+        cols |= int.from_bytes(row.translate(dark), "big")
+    inked = cols.to_bytes(pix.width, "big")
+    mid = (page.rect.x0 + page.rect.x1) / 2
+    best, c = None, 0
+    while c < pix.width:
+        if inked[c]:
+            c += 1
+            continue
+        end = inked.find(1, c)
+        end = pix.width if end < 0 else end
+        x0, x1 = (pix.x + c) / zoom, (pix.x + end) / zoom
+        centre = (x0 + x1) / 2
+        inner = c > 0 and end < pix.width  # ink on both sides: a gutter, not a margin
+        if inner and x1 - x0 >= min_width and abs(centre - mid) <= window:
+            if best is None or abs(centre - mid) < abs(best - mid):
+                best = centre
+        c = end
+    return best
+
+
 def _caption_ink(lay, blk, *, zoom=DFLT_SCAN_ZOOM, ink=DFLT_INK_LEVEL):
     """``blk`` widened to the ink of its own line on a scan (an OCR box can stop short of
     the glyphs): the runs of inked columns in its rows that it overlaps, joined across
@@ -677,8 +714,9 @@ def _caption_ink(lay, blk, *, zoom=DFLT_SCAN_ZOOM, ink=DFLT_INK_LEVEL):
     )
     dark = bytes(1 if v < ink else 0 for v in range(256))
     cols = 0
+    data = pix.samples  # a copy: read it once
     for r in range(pix.height):
-        row = pix.samples[r * pix.stride : r * pix.stride + pix.width]
+        row = data[r * pix.stride : r * pix.stride + pix.width]
         cols |= int.from_bytes(row.translate(dark), "big")
     inked = cols.to_bytes(pix.width, "big")
     size = lay.body_size if lay.body_size >= 4 else _DFLT_BODY_SIZE
@@ -746,15 +784,32 @@ def _pixel_body(lay, blk, *, max_up, max_gap, zoom=DFLT_SCAN_ZOOM, ink=DFLT_INK_
     lo, hi = _scan_columns(lay, blk, top)
     if blk.y1 <= top or hi <= lo:
         return None
+    # a caption on one side of a two-column page's gutter: its figure stays on that side
+    size = lay.body_size if lay.body_size >= 4 else _DFLT_BODY_SIZE
+    gutter = _column_gutter(
+        page,
+        fitz.Rect(lo, top, hi, blk.y0),
+        zoom=zoom,
+        ink=ink,
+        min_width=_GUTTER_WIDTH * size,
+        window=_GUTTER_WINDOW * lay.W,
+    )
+    if gutter is not None and blk.x1 <= gutter:
+        hi = gutter
+    elif gutter is not None and blk.x0 >= gutter:
+        lo = gutter
     bands = _ink_bands(page, fitz.Rect(lo, top, hi, blk.y1), zoom=zoom, ink=ink)
     # the caption's own ink tells where its glyphs start (an OCR box can be points off)
     cap = [b for b in bands if b.y1 > blk.y0 and b.y0 < blk.y1]
     cap_top = min((b.y0 for b in cap), default=blk.y0)
-    if cap_top < blk.y0 - blk.height:  # the caption's ink runs into the figure's
-        cap_top = blk.y0
-    above = sorted((b for b in bands if b.y1 <= cap_top), key=lambda b: -b.y1)
+    if cap_top < blk.y0 - blk.height:  # the caption's ink runs into the figure's:
+        cap_top = blk.y0  # read again, cut at the caption's top
+        bands = _ink_bands(page, fitz.Rect(lo, top, hi, cap_top), zoom=zoom, ink=ink)
+    # (a band cut at the caption's top may end a pixel below it)
+    above = sorted(
+        (b for b in bands if b.y1 <= cap_top + 1 / zoom), key=lambda b: -b.y1
+    )
 
-    size = lay.body_size if lay.body_size >= 4 else _DFLT_BODY_SIZE
     width = hi - lo
     text = [
         b.rect
@@ -773,14 +828,15 @@ def _pixel_body(lay, blk, *, max_up, max_gap, zoom=DFLT_SCAN_ZOOM, ink=DFLT_INK_
 
     def is_text(i):
         b = above[i]
-        for r in text:
-            overlap = min(b.y1, r.y1) - max(b.y0, r.y0)
-            if (
-                overlap > 0.5 * min(b.y1 - b.y0, r.height)
-                and r.x0 < b.x1
-                and r.x1 > b.x0
-            ):
-                return True
+        # text-layer prose covering most of the band's height (a sentence-like label
+        # inside a tall figure band does not make the band text)
+        covered = sum(
+            max(0.0, min(b.y1, r.y1) - max(b.y0, r.y0))
+            for r in text
+            if r.x0 < b.x1 and r.x1 > b.x0
+        )
+        if covered > 0.5 * (b.y1 - b.y0):
+            return True
         if not (line_tall(b) and b.fill >= _LINE_FILL) or i + 1 >= len(above):
             return False
         up = above[i + 1]  # a printed line under another one is a paragraph
@@ -956,8 +1012,11 @@ def figure_box(
         never grows across it.
     :param scan_strategy: how a figure on a scanned page (see ``is_scanned``) is found:
         ``"pixels"`` (``pixel_figure_box``, ``source="pixels"``), ``"layout"`` (as on any
-        page), or a callable with ``pixel_figure_box``'s signature. When it finds nothing,
-        the layout is used. Tables are always found from the layout.
+        page), or a callable with ``pixel_figure_box``'s signature. It runs only when
+        the layout finds no graphics for the figure (a scan has none to find; a page
+        with drawings over a page-sized image keeps its ``"graphics"`` box), and when
+        it finds nothing the layout's result stands. Tables are always found from the
+        layout.
     :raises LookupError: no caption starts with ``caption`` (or, ``with_caption=False``,
         nothing was found next to it).
     :raises IndexError: ``page`` is not a page of the PDF.
@@ -983,21 +1042,22 @@ def figure_box(
                 doc[pno], body_words=body_words, running=_running_rules(doc, pno)
             )
             if kind == "figure":
-                body, source = None, None
-                if callable(scan_strategy) and is_scanned(doc[pno]):
+                body, source = _figure_body(lay, blk, max_up=max_up, max_gap=max_gap)
+                # graphics found: the page has drawings, whatever image lies under them
+                if (
+                    callable(scan_strategy)
+                    and source not in ("graphics", "beside")
+                    and is_scanned(doc[pno])
+                ):
                     if scan_strategy is pixel_figure_box:  # the page is read already
                         found = _pixel_body(lay, blk, max_up=max_up, max_gap=max_gap)
                     else:
                         found = scan_strategy(
                             doc[pno], _as_box(blk), max_up=max_up, max_gap=max_gap
                         )
-                    if found is not None:
+                    if found is not None and not fitz.Rect(found).is_empty:
                         body, source = fitz.Rect(found), "pixels"
                         blk = _caption_ink(lay, blk)
-                if body is None:
-                    body, source = _figure_body(
-                        lay, blk, max_up=max_up, max_gap=max_gap
-                    )
             else:
                 body, source = _table_body(
                     lay,

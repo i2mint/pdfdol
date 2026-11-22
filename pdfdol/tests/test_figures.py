@@ -560,3 +560,62 @@ def test_pixel_figure_box_takes_a_page_and_a_caption_box():
         box = pixel_figure_box(doc[0], (80, 345, 270, 357))
         assert _contains(box, (80, 150, 540, 325))
         assert pixel_figure_box(doc[0], (80, 40, 270, 50)) is None  # nothing above
+
+
+def test_a_sentence_like_label_inside_a_figure_on_a_scan_does_not_stop_it():
+    def draw(p):
+        _boxes_paper(p)
+        p.draw_rect(fitz.Rect(80, 100, 540, 140), color=(0, 0, 0), width=1.5)
+        p.insert_text(
+            (90, 125), "Collect the readings from all of the sensors", fontsize=10
+        )
+
+    got = figure_box(_rasterize(_pdf(draw)), "Figure 1.", margin=0)
+    assert got.source == "pixels" and _contains(got.box, (80, 100, 540, 325))
+
+
+def test_a_vector_figure_over_a_page_sized_image_keeps_its_graphics_box():
+    def draw(p):
+        pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 60, 80), False)
+        pix.clear_with(255)
+        p.insert_image(p.rect, pixmap=pix)  # a white background image
+        _paper_p0(p)
+
+    got = figure_box(_pdf(draw), "Figure 1:")
+    assert got.source == "graphics"
+
+
+def test_a_column_caption_on_a_two_column_scan_keeps_its_figure_in_its_column():
+    def draw(p):
+        p.draw_rect(fitz.Rect(60, 150, 250, 300), color=(0, 0, 0), width=1.5)
+        p.insert_text((60, 320), "Figure 2. Left column.", fontsize=10)
+        for k in range(20):  # the right column's prose, beside the figure
+            p.insert_text(
+                (320, 100 + 14 * k), "words in the other column here", fontsize=10
+            )
+
+    pdf = _rasterize(_pdf(draw), text_layer=lambda t: t.startswith("Figure"))
+    got = figure_box(pdf, "Figure 2.", margin=0)
+    assert got.source == "pixels" and _contains(got.box, (60, 150, 250, 300))
+    assert got.box[2] < 320
+
+
+def test_a_figure_touching_its_caption_on_a_scan_is_still_found():
+    def draw(p):
+        p.draw_rect(fitz.Rect(80, 150, 300, 318), color=(0, 0, 0), width=1.5)
+        p.draw_line(
+            (150, 318), (150, 326), color=(0, 0, 0), width=1.5
+        )  # into the caption
+        p.insert_text((80, 330), "Figure 5. Touching.", fontsize=10)
+
+    got = figure_box(_rasterize(_pdf(draw)), "Figure 5.", margin=0)
+    assert got.source == "pixels" and _contains(got.box, (80, 150, 300, 318))
+
+
+def test_an_empty_box_from_a_strategy_counts_as_nothing():
+    pdf = _rasterize(_pdf(_boxes_paper))
+
+    def empty(page, caption_box, *, max_up, max_gap):
+        return (0.0, 0.0, 0.0, 0.0)
+
+    assert figure_box(pdf, "Figure 1.", scan_strategy=empty).source != "pixels"
