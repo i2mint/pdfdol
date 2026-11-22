@@ -4,7 +4,7 @@ Checks that verify a PDF, rather than looking at a few of its pages.
 
 `text_overlaps` finds text lines whose boxes overlap, the signature of a broken
 pagination (a block drawn on top of another). It needs PyMuPDF, which is part of the
-`chromium` extra of pdfdol.
+`figures` (and `chromium`) extra of pdfdol.
 
 ### Functions
 

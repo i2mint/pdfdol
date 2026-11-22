@@ -1,0 +1,23 @@
+pdfdol.figures
+==============
+
+.. automodule:: pdfdol.figures
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      figure
+      figure_box
+      find_passage
+      is_scanned
+      ocracy_words
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FigureBox
+      Passage
+   

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=8f14641f"></script>
+    <script src="../../_static/documentation_options.js?v=2b6ce006"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.34" />
+  <meta name="docsearch:version" content="0.1.35" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -686,7 +686,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">``text_overlaps`` finds text lines whose boxes overlap, the signature of a broken</span>
 <span class="sd">pagination (a block drawn on top of another). It needs PyMuPDF, which is part of the</span>
-<span class="sd">``chromium`` extra of pdfdol.</span>
+<span class="sd">``figures`` (and ``chromium``) extra of pdfdol.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -702,13 +702,19 @@ window.runMermaid = runMermaid;</script>
         <span class="kn">import</span><span class="w"> </span><span class="nn">fitz</span>  <span class="c1"># PyMuPDF</span>
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-            <span class="s2">"text_overlaps needs PyMuPDF: install pymupdf (it is in the chromium extra)"</span>
+            <span class="s2">"This needs PyMuPDF: install pymupdf (the figures or chromium extra of pdfdol)"</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="nb">bytes</span><span class="p">(</span><span class="n">pdf</span><span class="p">),</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">"pdf"</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">pdf</span>  <span class="c1"># an already open fitz.Document</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">):</span>  <span class="c1"># a file object</span>
+        <span class="k">return</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">pdf</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">"pdf"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pdf</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"expected a path, bytes, a file object or an open PyMuPDF document, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="text_overlaps">

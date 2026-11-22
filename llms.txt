@@ -13,10 +13,11 @@
 - [pdfdol.checks](_autosummary/pdfdol.checks.html.md): Checks that verify a PDF, rather than looking at a few of its pages.
 - [pdfdol.chromium](_autosummary/pdfdol.chromium.html.md): Headless Chromium engine: print web pages designed for the screen.
 - [pdfdol.download](_autosummary/pdfdol.download.html.md): Download PDF articles from markdown-formatted text.
+- [pdfdol.figures](_autosummary/pdfdol.figures.html.md): Crop a figure or table out of a PDF by its caption, and locate a quoted passage.
 - [pdfdol.tools](_autosummary/pdfdol.tools.html.md): | &#96;add_css&#96;(html_text&#91;, css&#93;)                                                                       ...
 - [pdfdol.util](_autosummary/pdfdol.util.html.md): Utils for pdfdol
 - [For AI agents](ai-agents.html.md): &#96;pdfdol&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 11:46 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 14:34 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
 
 ## Optional
 

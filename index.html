@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=8f14641f"></script>
+    <script src="_static/documentation_options.js?v=2b6ce006"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.34" />
+  <meta name="docsearch:version" content="0.1.35" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -353,6 +353,23 @@ ways. Here’s one:</p>
 </pre></div>
 </div>
 </section>
+<section id="figures-tables-and-quoted-passages-optional-pymupdf">
+<h2>Figures, tables and quoted passages (optional PyMuPDF)<a class="headerlink" href="#figures-tables-and-quoted-passages-optional-pymupdf" title="Link to this heading">#</a></h2>
+<p>To illustrate commentary about a paper: crop a figure or a table by its caption, and find where a quote sits on its page so it can be highlighted. Needs PyMuPDF: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pymupdf</span></code> (the <code class="docutils literal notranslate"><span class="pre">figures</span></code> extra).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pdfdol</span><span class="w"> </span><span class="kn">import</span> <span class="n">figure</span><span class="p">,</span> <span class="n">figure_box</span><span class="p">,</span> <span class="n">find_passage</span>
+
+<span class="n">png</span> <span class="o">=</span> <span class="n">figure</span><span class="p">(</span><span class="s1">'paper.pdf'</span><span class="p">,</span> <span class="s1">'Figure 3:'</span><span class="p">)</span>               <span class="c1"># PNG bytes of the figure, caption included</span>
+<span class="n">png</span> <span class="o">=</span> <span class="n">figure</span><span class="p">(</span><span class="s1">'paper.pdf'</span><span class="p">,</span> <span class="s1">'Table 2'</span><span class="p">)</span>                 <span class="c1"># a table (caption above or below it)</span>
+<span class="n">page</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">figure_box</span><span class="p">(</span><span class="s1">'paper.pdf'</span><span class="p">,</span> <span class="s1">'Figure 3:'</span><span class="p">)</span>  <span class="c1"># where it is, and how it was found</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">find_passage</span><span class="p">(</span><span class="s1">'paper.pdf'</span><span class="p">,</span> <span class="s1">'the results hold across models'</span><span class="p">)</span>
+<span class="n">p</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">boxes</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">source</span>   <span class="c1"># 0-based page, (x0, y0, x1, y1) boxes in points, 'text'</span>
+</pre></div>
+</div>
+<p>A figure is the graphics above its caption, else the short text blocks above it (a figure drawn as text), else the graphics beside it (side captions); it never grows across another caption or a body paragraph. A table is the table PyMuPDF detects next to its caption, else its rules (booktabs), else the nearer graphics. <code class="docutils literal notranslate"><span class="pre">source</span></code> says which, and <code class="docutils literal notranslate"><span class="pre">'caption-only'</span></code> or <code class="docutils literal notranslate"><span class="pre">'fallback'</span></code> says nothing better was found. Quotes match regardless of case, curly quotes, attached punctuation and words broken at a line end.</p>
+<p>PyMuPDF is licensed AGPL-3.0, so whoever distributes or serves pdfdol together with it takes on the AGPL’s terms; pdfdol itself stays MIT and imports it only when these functions are called.</p>
+<p>On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so <code class="docutils literal notranslate"><span class="pre">find_passage</span></code> returns the page with no boxes (<code class="docutils literal notranslate"><span class="pre">source='none'</span></code>) unless you give it <code class="docutils literal notranslate"><span class="pre">ocr_words</span></code>, a function reading word boxes off the rendered page (<code class="docutils literal notranslate"><span class="pre">pdfdol.figures.ocracy_words</span></code> uses <a class="reference external" href="https://github.com/thorwhalen/ocracy">ocracy</a>). Figure crops on scanned pages are best effort.</p>
+</section>
 <section id="converting-ebooks-and-documents-to-pdf-optional-calibre-integration">
 <h2>Converting ebooks and documents to PDF (optional Calibre integration)<a class="headerlink" href="#converting-ebooks-and-documents-to-pdf-optional-calibre-integration" title="Link to this heading">#</a></h2>
 <p>pdfdol natively converts images, HTML, and Markdown to PDF.
@@ -451,7 +468,7 @@ converter functions.  You can register your own:</p>
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-22 11:46 UTC from <a href="https://github.com/i2mint/pdfdol/commit/ae5d79710331eb31e78f740ad1fb63ae45856c27">ae5d797</a> (master) · pdfdol 0.1.34 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-22 14:34 UTC from <a href="https://github.com/i2mint/pdfdol/commit/a618b03784feb410ea576349207f161707171ff4">a618b03</a> (master) · pdfdol 0.1.35 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               
@@ -493,6 +510,7 @@ converter functions.  You can register your own:</p>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">pdfdol</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pdf-stores">Pdf “Stores”</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#figures-tables-and-quoted-passages-optional-pymupdf">Figures, tables and quoted passages (optional PyMuPDF)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-ebooks-and-documents-to-pdf-optional-calibre-integration">Converting ebooks and documents to PDF (optional Calibre integration)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-cannot-be-converted">What cannot be converted</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-converters">Custom converters</a></li>

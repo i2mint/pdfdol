@@ -22,5 +22,6 @@ Data Object Layers for PDF data.
 | [`checks`](pdfdol.checks.html.md#module-pdfdol.checks)     | Checks that verify a PDF, rather than looking at a few of its pages.                    |
 | [`chromium`](pdfdol.chromium.html.md#module-pdfdol.chromium) | Headless Chromium engine: print web pages designed for the screen.                      |
 | [`download`](pdfdol.download.html.md#module-pdfdol.download) | Download PDF articles from markdown-formatted text.                                     |
+| [`figures`](pdfdol.figures.html.md#module-pdfdol.figures)   | Crop a figure or table out of a PDF by its caption, and locate a quoted passage.        |
 | [`tools`](pdfdol.tools.html.md#module-pdfdol.tools)       | Pdf Tools.                                                                              |
 | [`util`](pdfdol.util.html.md#module-pdfdol.util)         | Utils for pdfdol                                                                        |

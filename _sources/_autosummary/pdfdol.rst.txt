@@ -15,5 +15,6 @@
    checks
    chromium
    download
+   figures
    tools
    util

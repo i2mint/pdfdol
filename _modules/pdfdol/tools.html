@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=8f14641f"></script>
+    <script src="../../_static/documentation_options.js?v=2b6ce006"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.34" />
+  <meta name="docsearch:version" content="0.1.35" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1621,7 +1621,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; buf = io.BytesIO(); _ = w.write(buf)</span>
 <span class="sd">    &gt;&gt;&gt; readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]</span>
 <span class="sd">    &gt;&gt;&gt; out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")</span>
-<span class="sd">    &gt;&gt;&gt; [(o.title, out.get_destination_page_number(o)) for o in out.outline]</span>
+
+<span class="sd">    Read the bookmarks back from the written bytes: on the unwritten writer, pypdf 6</span>
+<span class="sd">    resolves a bookmark to the first of two identical pages.</span>
+
+<span class="sd">    &gt;&gt;&gt; buf = io.BytesIO(); _ = out.write(buf)</span>
+<span class="sd">    &gt;&gt;&gt; back = pypdf.PdfReader(buf)</span>
+<span class="sd">    &gt;&gt;&gt; [(o.title, back.get_destination_page_number(o)) for o in back.outline]</span>
 <span class="sd">    [('A', 0), ('B', 1)]</span>
 <span class="sd">    """</span>
     <span class="n">writer</span> <span class="o">=</span> <span class="n">pypdf</span><span class="o">.</span><span class="n">PdfWriter</span><span class="p">()</span>
