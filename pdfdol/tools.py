@@ -902,7 +902,7 @@ def concat_pdf_readers(
 
     >>> import io
     >>> w = pypdf.PdfWriter(); _ = w.add_blank_page(100, 100)
-    >>> buf = io.BytesIO(); w.write(buf)
+    >>> buf = io.BytesIO(); _ = w.write(buf)
     >>> readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]
     >>> out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")
     >>> [(o.title, out.get_destination_page_number(o)) for o in out.outline]
