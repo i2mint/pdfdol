@@ -889,19 +889,59 @@ file_to_bytes = Pipe(Path, methodcaller("read_bytes"))
 DFLT_SAVE_PDF_NAME = "combined.pdf"
 
 
-def concat_pdf_readers(pdf_readers: Iterable[pypdf.PdfReader]) -> pypdf.PdfWriter:
-    """Concatenate multiple PdfReader objects into a single PdfWriter object."""
+def concat_pdf_readers(
+    pdf_readers: Iterable[pypdf.PdfReader],
+    *,
+    titles: Iterable[str] | None = None,
+    metadata_title: str | None = None,
+) -> pypdf.PdfWriter:
+    """Concatenate multiple PdfReader objects into a single PdfWriter object.
+
+    With ``titles`` (one per input, in order) an outline item (bookmark) is added
+    at the first page of each input; ``metadata_title`` sets the document title.
+
+    >>> import io
+    >>> w = pypdf.PdfWriter(); _ = w.add_blank_page(100, 100)
+    >>> buf = io.BytesIO(); w.write(buf)
+    >>> readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]
+    >>> out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")
+    >>> [(o.title, out.get_destination_page_number(o)) for o in out.outline]
+    [('A', 0), ('B', 1)]
+    """
     writer = pypdf.PdfWriter()
-    for reader in pdf_readers:
+    title_list = None if titles is None else list(titles)
+    n_readers = 0
+    for i, reader in enumerate(pdf_readers):
+        n_readers += 1
+        first_page = len(writer.pages)
         for page in reader.pages:
             writer.add_page(page)
+        if title_list is not None and i < len(title_list) and len(reader.pages):
+            writer.add_outline_item(title_list[i], first_page)
+    if title_list is not None and len(title_list) != n_readers:
+        raise ValueError(
+            f"titles has {len(title_list)} items but there are {n_readers} inputs"
+        )
+    if metadata_title is not None:
+        writer.add_metadata({"/Title": metadata_title})
     return writer
 
 
-def concat_pdf_bytes(list_of_pdf_bytes: Iterable[bytes]) -> bytes:
-    """Concatenate multiple PDF bytes into a single PDF bytes."""
+def concat_pdf_bytes(
+    list_of_pdf_bytes: Iterable[bytes],
+    *,
+    titles: Iterable[str] | None = None,
+    metadata_title: str | None = None,
+) -> bytes:
+    """Concatenate multiple PDF bytes into a single PDF bytes.
+
+    ``titles`` (one per input) adds a bookmark at each input's first page, and
+    ``metadata_title`` sets the document title; see :func:`concat_pdf_readers`.
+    """
     pdf_readers = map(bytes_to_pdf_reader_obj, list_of_pdf_bytes)
-    writer = concat_pdf_readers(pdf_readers)
+    writer = concat_pdf_readers(
+        pdf_readers, titles=titles, metadata_title=metadata_title
+    )
     output_buffer = io.BytesIO()
     writer.write(output_buffer)
     return output_buffer.getvalue()
