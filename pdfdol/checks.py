@@ -24,7 +24,13 @@ def _open_pdf(pdf):
         return fitz.open(stream=bytes(pdf), filetype="pdf")
     if isinstance(pdf, (str, Path)):
         return fitz.open(str(pdf))
-    return pdf  # an already open fitz.Document
+    if hasattr(pdf, "read"):  # a file object
+        return fitz.open(stream=pdf.read(), filetype="pdf")
+    if isinstance(pdf, fitz.Document):
+        return pdf
+    raise TypeError(
+        f"expected a path, bytes, a file object or an open PyMuPDF document, not {type(pdf).__name__}"
+    )
 
 
 def text_overlaps(

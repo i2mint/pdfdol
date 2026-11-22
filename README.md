@@ -63,14 +63,16 @@ To illustrate commentary about a paper: crop a figure or a table by its caption,
 from pdfdol import figure, figure_box, find_passage
 
 png = figure('paper.pdf', 'Figure 3:')               # PNG bytes of the figure, caption included
-png = figure('paper.pdf', 'Table 2', kind='table')   # a table (caption above or below it)
-page, box = figure_box('paper.pdf', 'Figure 3:')     # where it is, without rendering
+png = figure('paper.pdf', 'Table 2')                 # a table (caption above or below it)
+page, box, source = figure_box('paper.pdf', 'Figure 3:')  # where it is, and how it was found
 
 p = find_passage('paper.pdf', 'the results hold across models')
 p.page, p.boxes, p.source   # 0-based page, (x0, y0, x1, y1) boxes in points, 'text'
 ```
 
-A figure is the graphics above its caption, else beside it (side captions), else the short text blocks above it (a figure drawn as text). A table is the table PyMuPDF detects next to its caption, else its rules (booktabs), else the nearer graphics.
+A figure is the graphics above its caption, else the short text blocks above it (a figure drawn as text), else the graphics beside it (side captions); it never grows across another caption or a body paragraph. A table is the table PyMuPDF detects next to its caption, else its rules (booktabs), else the nearer graphics. `source` says which, and `'caption-only'` or `'fallback'` says nothing better was found. Quotes match regardless of case, curly quotes, attached punctuation and words broken at a line end.
+
+PyMuPDF is licensed AGPL-3.0, so whoever distributes or serves pdfdol together with it takes on the AGPL's terms; pdfdol itself stays MIT and imports it only when these functions are called.
 
 On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so `find_passage` returns the page with no boxes (`source='none'`) unless you give it `ocr_words`, a function reading word boxes off the rendered page (`pdfdol.figures.ocracy_words` uses [ocracy](https://github.com/thorwhalen/ocracy)). Figure crops on scanned pages are best effort.
 

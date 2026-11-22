@@ -901,13 +901,17 @@ def concat_pdf_readers(
     at the first page of each input; ``metadata_title`` sets the document title.
 
     >>> import io
-    >>> def one_page(size):  # distinct pages: pypdf may merge byte-identical ones
-    ...     w = pypdf.PdfWriter(); _ = w.add_blank_page(size, size)
-    ...     buf = io.BytesIO(); _ = w.write(buf)
-    ...     return pypdf.PdfReader(io.BytesIO(buf.getvalue()))
-    >>> readers = [one_page(100), one_page(120)]
+    >>> w = pypdf.PdfWriter(); _ = w.add_blank_page(100, 100)
+    >>> buf = io.BytesIO(); _ = w.write(buf)
+    >>> readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]
     >>> out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")
-    >>> [(o.title, out.get_destination_page_number(o)) for o in out.outline]
+
+    Read the bookmarks back from the written bytes: on the unwritten writer, pypdf 6
+    resolves a bookmark to the first of two identical pages.
+
+    >>> buf = io.BytesIO(); _ = out.write(buf)
+    >>> back = pypdf.PdfReader(buf)
+    >>> [(o.title, back.get_destination_page_number(o)) for o in back.outline]
     [('A', 0), ('B', 1)]
     """
     writer = pypdf.PdfWriter()
