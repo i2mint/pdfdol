@@ -193,3 +193,45 @@ def test_ebook_convert_to_pdf_not_installed(monkeypatch):
     monkeypatch.setattr("pdfdol.tools.find_ebook_convert", lambda: None)
     with pytest.raises(FileNotFoundError, match="ebook-convert"):
         ebook_convert_to_pdf(b"data", extension=".epub")
+
+
+def _pdf_bytes(n_pages):
+    import pypdf
+
+    w = pypdf.PdfWriter()
+    for _ in range(n_pages):
+        w.add_blank_page(100, 100)
+    buf = io.BytesIO()
+    w.write(buf)
+    return buf.getvalue()
+
+
+def test_concat_pdf_bytes_titles_make_bookmarks_at_first_pages():
+    import pypdf
+    from pdfdol.tools import concat_pdf_bytes
+
+    out = pypdf.PdfReader(
+        io.BytesIO(
+            concat_pdf_bytes(
+                [_pdf_bytes(2), _pdf_bytes(3)],
+                titles=["one", "two"],
+                metadata_title="Both",
+            )
+        )
+    )
+    assert len(out.pages) == 5
+    assert [(o.title, out.get_destination_page_number(o)) for o in out.outline] == [
+        ("one", 0),
+        ("two", 2),
+    ]
+    assert out.metadata.title == "Both"
+
+
+def test_concat_pdf_bytes_default_is_unchanged_and_title_count_checked():
+    import pypdf
+    from pdfdol.tools import concat_pdf_bytes
+
+    out = pypdf.PdfReader(io.BytesIO(concat_pdf_bytes([_pdf_bytes(1)] * 2)))
+    assert len(out.pages) == 2 and not out.outline
+    with pytest.raises(ValueError, match="titles has 1"):
+        concat_pdf_bytes([_pdf_bytes(1)] * 2, titles=["x"])
