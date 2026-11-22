@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=449df4d2"></script>
+    <script src="../_static/documentation_options.js?v=8f14641f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.33" />
+  <meta name="docsearch:version" content="0.1.34" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -374,13 +374,13 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#pdfdol.tools.any_to_pdf_bytes" title="pdfdol.tools.any_to_pdf_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">any_to_pdf_bytes</span></code></a>(src, *[, src_kind])</p></td>
 <td><p>Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pdfdol.tools.concat_pdf_bytes" title="pdfdol.tools.concat_pdf_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_pdf_bytes</span></code></a>(list_of_pdf_bytes)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pdfdol.tools.concat_pdf_bytes" title="pdfdol.tools.concat_pdf_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_pdf_bytes</span></code></a>(list_of_pdf_bytes, *[, ...])</p></td>
 <td><p>Concatenate multiple PDF bytes into a single PDF bytes.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pdfdol.tools.concat_pdf_files" title="pdfdol.tools.concat_pdf_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_pdf_files</span></code></a>(pdf_filepaths[, save_filepath])</p></td>
 <td><p>Concatenate multiple PDF files into a single PDF file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pdfdol.tools.concat_pdf_readers" title="pdfdol.tools.concat_pdf_readers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_pdf_readers</span></code></a>(pdf_readers)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pdfdol.tools.concat_pdf_readers" title="pdfdol.tools.concat_pdf_readers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_pdf_readers</span></code></a>(pdf_readers, *[, titles, ...])</p></td>
 <td><p>Concatenate multiple PdfReader objects into a single PdfWriter object.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pdfdol.tools.concat_pdfs" title="pdfdol.tools.concat_pdfs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_pdfs</span></code></a>(pdf_source[, save_filepath, ...])</p></td>
@@ -456,8 +456,10 @@ be determined heuristically.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.concat_pdf_bytes">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_of_pdf_bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/tools.html#concat_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_bytes" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_of_pdf_bytes</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">titles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/tools.html#concat_pdf_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_bytes" title="Link to this definition">#</a></dt>
 <dd><p>Concatenate multiple PDF bytes into a single PDF bytes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">titles</span></code> (one per input) adds a bookmark at each input’s first page, and
+<code class="docutils literal notranslate"><span class="pre">metadata_title</span></code> sets the document title; see <a class="reference internal" href="#pdfdol.tools.concat_pdf_readers" title="pdfdol.tools.concat_pdf_readers"><code class="xref py py-func docutils literal notranslate"><span class="pre">concat_pdf_readers()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
@@ -475,8 +477,19 @@ be determined heuristically.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.tools.concat_pdf_readers">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_readers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_readers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/tools.html#concat_pdf_readers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_readers" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.tools.</span></span><span class="sig-name descname"><span class="pre">concat_pdf_readers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_readers</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">titles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/tools.html#concat_pdf_readers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.tools.concat_pdf_readers" title="Link to this definition">#</a></dt>
 <dd><p>Concatenate multiple PdfReader objects into a single PdfWriter object.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">titles</span></code> (one per input, in order) an outline item (bookmark) is added
+at the first page of each input; <code class="docutils literal notranslate"><span class="pre">metadata_title</span></code> sets the document title.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">pypdf</span><span class="o">.</span><span class="n">PdfWriter</span><span class="p">();</span> <span class="n">_</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">add_blank_page</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">();</span> <span class="n">_</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">pypdf</span><span class="o">.</span><span class="n">PdfReader</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">concat_pdf_readers</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">titles</span><span class="o">=</span><span class="p">[</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">],</span> <span class="n">metadata_title</span><span class="o">=</span><span class="s2">"T"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">o</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">get_destination_page_number</span><span class="p">(</span><span class="n">o</span><span class="p">))</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">outline</span><span class="p">]</span>
+<span class="go">[('A', 0), ('B', 1)]</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PdfWriter</span></code></span></p>

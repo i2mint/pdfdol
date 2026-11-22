@@ -7,9 +7,9 @@ Pdf Tools.
 | `add_css`(html_text[, css])                                                                         |                                                                                                                                 |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | [`any_to_pdf_bytes`](#pdfdol.tools.any_to_pdf_bytes)(src, \*[, src_kind])              | Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.                                                    |
-| [`concat_pdf_bytes`](#pdfdol.tools.concat_pdf_bytes)(list_of_pdf_bytes)                | Concatenate multiple PDF bytes into a single PDF bytes.                                                                         |
+| [`concat_pdf_bytes`](#pdfdol.tools.concat_pdf_bytes)(list_of_pdf_bytes, \*[, ...])     | Concatenate multiple PDF bytes into a single PDF bytes.                                                                         |
 | [`concat_pdf_files`](#pdfdol.tools.concat_pdf_files)(pdf_filepaths[, save_filepath])   | Concatenate multiple PDF files into a single PDF file.                                                                          |
-| [`concat_pdf_readers`](#pdfdol.tools.concat_pdf_readers)(pdf_readers)                    | Concatenate multiple PdfReader objects into a single PdfWriter object.                                                          |
+| [`concat_pdf_readers`](#pdfdol.tools.concat_pdf_readers)(pdf_readers, \*[, titles, ...]) | Concatenate multiple PdfReader objects into a single PdfWriter object.                                                          |
 | [`concat_pdfs`](#pdfdol.tools.concat_pdfs)(pdf_source[, save_filepath, ...])      | Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.                                               |
 | [`ebook_convert_to_pdf`](#pdfdol.tools.ebook_convert_to_pdf)(source, \*[, extension, ...]) | Convert a file to PDF using Calibre's `ebook-convert`.                                                                          |
 | [`find_ebook_convert`](#pdfdol.tools.find_ebook_convert)()                               | Find the `ebook-convert` binary from Calibre.                                                                                   |
@@ -53,9 +53,12 @@ return PDF bytes regardless of the source type.
 >>> pdf_bytes = any_to_pdf_bytes(html, src_kind="html")
 ```
 
-### pdfdol.tools.concat_pdf_bytes(list_of_pdf_bytes)
+### pdfdol.tools.concat_pdf_bytes(list_of_pdf_bytes, , titles=None, metadata_title=None)
 
 Concatenate multiple PDF bytes into a single PDF bytes.
+
+`titles` (one per input) adds a bookmark at each input’s first page, and
+`metadata_title` sets the document title; see [`concat_pdf_readers()`](#pdfdol.tools.concat_pdf_readers).
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
@@ -64,9 +67,22 @@ Concatenate multiple PDF bytes into a single PDF bytes.
 
 Concatenate multiple PDF files into a single PDF file.
 
-### pdfdol.tools.concat_pdf_readers(pdf_readers)
+### pdfdol.tools.concat_pdf_readers(pdf_readers, , titles=None, metadata_title=None)
 
 Concatenate multiple PdfReader objects into a single PdfWriter object.
+
+With `titles` (one per input, in order) an outline item (bookmark) is added
+at the first page of each input; `metadata_title` sets the document title.
+
+```pycon
+>>> import io
+>>> w = pypdf.PdfWriter(); _ = w.add_blank_page(100, 100)
+>>> buf = io.BytesIO(); _ = w.write(buf)
+>>> readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]
+>>> out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")
+>>> [(o.title, out.get_destination_page_number(o)) for o in out.outline]
+[('A', 0), ('B', 1)]
+```
 
 * **Return type:**
   `PdfWriter`

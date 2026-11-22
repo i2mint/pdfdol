@@ -1,4 +1,4 @@
-> built 2026-11-21 18:36 UTC from 05a6791 (master) · pdfdol 0.1.33. Details: build_info.json
+> built 2026-11-22 11:46 UTC from ae5d797 (master) · pdfdol 0.1.34. Details: build_info.json
 
 # index.html.md
 
@@ -558,9 +558,9 @@ Pdf Tools.
 | `add_css`(html_text[, css])                                                                         |                                                                                                                                 |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | [`any_to_pdf_bytes`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.any_to_pdf_bytes)(src, \*[, src_kind])              | Convert any source (string, bytes, file path, URL, HTML, etc.) to PDF bytes.                                                    |
-| [`concat_pdf_bytes`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdf_bytes)(list_of_pdf_bytes)                | Concatenate multiple PDF bytes into a single PDF bytes.                                                                         |
+| [`concat_pdf_bytes`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdf_bytes)(list_of_pdf_bytes, \*[, ...])     | Concatenate multiple PDF bytes into a single PDF bytes.                                                                         |
 | [`concat_pdf_files`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdf_files)(pdf_filepaths[, save_filepath])   | Concatenate multiple PDF files into a single PDF file.                                                                          |
-| [`concat_pdf_readers`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdf_readers)(pdf_readers)                    | Concatenate multiple PdfReader objects into a single PdfWriter object.                                                          |
+| [`concat_pdf_readers`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdf_readers)(pdf_readers, \*[, titles, ...]) | Concatenate multiple PdfReader objects into a single PdfWriter object.                                                          |
 | [`concat_pdfs`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdfs)(pdf_source[, save_filepath, ...])      | Concatenate multiple PDFs and/or images given as a mapping of filepaths to bytes.                                               |
 | [`ebook_convert_to_pdf`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.ebook_convert_to_pdf)(source, \*[, extension, ...]) | Convert a file to PDF using Calibre's `ebook-convert`.                                                                          |
 | [`find_ebook_convert`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.find_ebook_convert)()                               | Find the `ebook-convert` binary from Calibre.                                                                                   |
@@ -604,9 +604,12 @@ return PDF bytes regardless of the source type.
 >>> pdf_bytes = any_to_pdf_bytes(html, src_kind="html")
 ```
 
-### pdfdol.tools.concat_pdf_bytes(list_of_pdf_bytes)
+### pdfdol.tools.concat_pdf_bytes(list_of_pdf_bytes, , titles=None, metadata_title=None)
 
 Concatenate multiple PDF bytes into a single PDF bytes.
+
+`titles` (one per input) adds a bookmark at each input’s first page, and
+`metadata_title` sets the document title; see [`concat_pdf_readers()`](_autosummary/pdfdol.tools.html.md#pdfdol.tools.concat_pdf_readers).
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
@@ -615,9 +618,22 @@ Concatenate multiple PDF bytes into a single PDF bytes.
 
 Concatenate multiple PDF files into a single PDF file.
 
-### pdfdol.tools.concat_pdf_readers(pdf_readers)
+### pdfdol.tools.concat_pdf_readers(pdf_readers, , titles=None, metadata_title=None)
 
 Concatenate multiple PdfReader objects into a single PdfWriter object.
+
+With `titles` (one per input, in order) an outline item (bookmark) is added
+at the first page of each input; `metadata_title` sets the document title.
+
+```pycon
+>>> import io
+>>> w = pypdf.PdfWriter(); _ = w.add_blank_page(100, 100)
+>>> buf = io.BytesIO(); _ = w.write(buf)
+>>> readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]
+>>> out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")
+>>> [(o.title, out.get_destination_page_number(o)) for o in out.outline]
+[('A', 0), ('B', 1)]
+```
 
 * **Return type:**
   `PdfWriter`
@@ -936,18 +952,20 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-11-21 18:36 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/05a67911d0ba7405251c5d47888cf7671c1a46c8"><code>05a6791</code></a> on branch <code>master</code>, for **pdfdol 0.1.33** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-22 11:46 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/ae5d79710331eb31e78f740ad1fb63ae45856c27"><code>ae5d797</code></a> on branch <code>master</code>, for **pdfdol 0.1.34** (from <code>setup.cfg</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.34) is ahead of the latest release on PyPI (0.1.33): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/05a67911d0ba7405251c5d47888cf7671c1a46c8"><code>05a67911d0ba7405251c5d47888cf7671c1a46c8</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/ae5d79710331eb31e78f740ad1fb63ae45856c27"><code>ae5d79710331eb31e78f740ad1fb63ae45856c27</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.33</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.34</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -956,9 +974,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/44936349636">44936349636</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45018835658">45018835658</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>a5c55726d72822e92bdc290e2818cad1d822f28a</code> (in the history of the built commit) |
+| Event commit | <code>19e9d83725ffd0cebe208451f122ac04f807a63c</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -983,13 +1001,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.33/">0.1.33</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.33/">0.1.33</a>, older than the documented version (0.1.34).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout 05a67911d0ba7405251c5d47888cf7671c1a46c8
+git checkout ae5d79710331eb31e78f740ad1fb63ae45856c27
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
