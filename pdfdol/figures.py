@@ -62,20 +62,36 @@ OcrWords = Callable[[bytes], Iterable[tuple]]  # png -> [(text, (x0, y0, x1, y1)
 
 DFLT_ZOOM = 4.0
 DFLT_MARGIN = 6.0  # points of white space kept around a crop
-DFLT_MAX_UP = 0.65  # a figure's graphics reach at most this fraction of a page from its caption
-DFLT_MAX_GAP = 40.0  # points: graphics further apart than this belong to different things
-DFLT_TABLE_HEIGHT = 0.35  # fraction of the page taken below a table caption when nothing is found
-DFLT_RULE_GAP = 0.3  # fraction of the page: consecutive rules of one table are at most this apart
-DFLT_BODY_WORDS = 25  # a text block with this many words is body text, not part of a figure
+DFLT_MAX_UP = (
+    0.65  # a figure's graphics reach at most this fraction of a page from its caption
+)
+DFLT_MAX_GAP = (
+    40.0  # points: graphics further apart than this belong to different things
+)
+DFLT_TABLE_HEIGHT = (
+    0.35  # fraction of the page taken below a table caption when nothing is found
+)
+DFLT_RULE_GAP = (
+    0.3  # fraction of the page: consecutive rules of one table are at most this apart
+)
+DFLT_BODY_WORDS = (
+    25  # a text block with this many words is body text, not part of a figure
+)
 DFLT_SCAN_COVERAGE = 0.8  # a page whose images cover this fraction of it is a scan
 DFLT_OCR_ZOOM = 3.0
 DFLT_QUOTE_HEAD_WORDS = 6  # retry a long quote on its first words
-_MARGIN_BAND = 0.06  # fraction of the page height: running headers and footers live here
-_LABEL_MAX_HEIGHT = 40.0  # points: taller text blocks inside a figure area are not axis labels
+_MARGIN_BAND = (
+    0.06  # fraction of the page height: running headers and footers live here
+)
+_LABEL_MAX_HEIGHT = (
+    40.0  # points: taller text blocks inside a figure area are not axis labels
+)
 _LABEL_X_SLACK = 30.0  # points: axis labels may stick out of the graphics this much
 _MIN_GRAPHIC_SPAN = 2.0  # points: drawings smaller than this both ways are specks
 _HAIRLINE_PAD = 0.5  # points added around a zero-width or zero-height drawing
-_RULE_X_TOL = 3.0  # points: table rules whose ends differ less than this are one table's
+_RULE_X_TOL = (
+    3.0  # points: table rules whose ends differ less than this are one table's
+)
 _COL_SLACK = 20.0  # points: graphics this close to the caption's column count as in it
 _SIDE_CAPTION_MAX_WIDTH = 0.35  # fraction of the page width: a side caption is narrower
 _CAPTION_LIKE = re.compile(
@@ -133,7 +149,9 @@ def _pages(doc, page: int | None) -> Sequence[int]:
     if page is None:
         return range(len(doc))
     if not isinstance(page, int) or not 0 <= page < len(doc):
-        raise IndexError(f"page {page!r} is out of range: the PDF has {len(doc)} pages, 0-based")
+        raise IndexError(
+            f"page {page!r} is out of range: the PDF has {len(doc)} pages, 0-based"
+        )
     return [page]
 
 
@@ -191,7 +209,11 @@ def _text_blocks(page) -> list:
 
     def flush(rect, lines, chars, weight, split):
         if lines:
-            out.append(_TextBlock(rect, "\n".join(lines), weight / chars if chars else 0.0, split))
+            out.append(
+                _TextBlock(
+                    rect, "\n".join(lines), weight / chars if chars else 0.0, split
+                )
+            )
 
     for block in page.get_text("dict")["blocks"]:
         if block.get("type", 0) != 0:
@@ -264,14 +286,18 @@ class _Layout:
     def is_body(self, block) -> bool:
         """A paragraph of body text: many words, in the page's body font size (a legend or
         a sub-caption in a smaller size belongs to its figure)."""
-        return len(block.text.split()) >= self.body_words and block.size >= self.body_size - 0.6
+        return (
+            len(block.text.split()) >= self.body_words
+            and block.size >= self.body_size - 0.6
+        )
 
     def barriers(self, blk):
         """Text a figure never grows across: other captions, and body paragraphs."""
         return [
             b.rect
             for b in self.blocks
-            if not b.rect.intersects(blk) and (self.is_caption_like(b.text) or self.is_body(b))
+            if not b.rect.intersects(blk)
+            and (self.is_caption_like(b.text) or self.is_body(b))
         ]
 
     def in_band(self, r) -> bool:
@@ -384,7 +410,11 @@ def _caption_candidates(doc, caption, page) -> list:
     where = f"page {page}" if page is not None else "any page"
     raise LookupError(
         f"no caption starts with {caption!r} on {where}"
-        + (f"; it is only mentioned in text on page(s) {mentioned}" if mentioned else "")
+        + (
+            f"; it is only mentioned in text on page(s) {mentioned}"
+            if mentioned
+            else ""
+        )
     )
 
 
@@ -419,10 +449,14 @@ def _graphics_from_caption(lay, blk, side, *, max_up, max_gap):
     lo, hi = _column_limits(lay, blk)
     reach = max_up * lay.H
     if side == "above":
-        cands = [r for r in lay.graphics if r.y1 <= blk.y0 + 2 and r.y0 >= blk.y0 - reach]
+        cands = [
+            r for r in lay.graphics if r.y1 <= blk.y0 + 2 and r.y0 >= blk.y0 - reach
+        ]
         seed = fitz.Rect(blk.x0, blk.y0 - 1, blk.x1, blk.y0)
     else:
-        cands = [r for r in lay.graphics if r.y0 >= blk.y1 - 2 and r.y1 <= blk.y1 + reach]
+        cands = [
+            r for r in lay.graphics if r.y0 >= blk.y1 - 2 and r.y1 <= blk.y1 + reach
+        ]
         seed = fitz.Rect(blk.x0, blk.y1, blk.x1, blk.y1 + 1)
     graphics = [r for r in cands if r.x0 >= lo - 1 and r.x1 <= hi + 1]
     # legends and sub-captions (text smaller than the body's) bridge a figure to its caption
@@ -434,13 +468,21 @@ def _graphics_from_caption(lay, blk, side, *, max_up, max_gap):
         and not b.rect.intersects(blk)
         and b.rect.x0 >= lo - 1
         and b.rect.x1 <= hi + 1
-        and ((b.rect.y1 <= blk.y0 + 2 and b.rect.y0 >= blk.y0 - reach) if side == "above"
-             else (b.rect.y0 >= blk.y1 - 2 and b.rect.y1 <= blk.y1 + reach))
+        and (
+            (b.rect.y1 <= blk.y0 + 2 and b.rect.y0 >= blk.y0 - reach)
+            if side == "above"
+            else (b.rect.y0 >= blk.y1 - 2 and b.rect.y1 <= blk.y1 + reach)
+        )
     ]
     cands = graphics + small
     col = fitz.Rect(blk.x0 - _COL_SLACK, lay.rect.y0, blk.x1 + _COL_SLACK, lay.rect.y1)
     barriers = lay.barriers(blk)
-    first = _grow(seed, [r for r in cands if r.intersects(col)], max_gap=max_gap, barriers=barriers)
+    first = _grow(
+        seed,
+        [r for r in cands if r.intersects(col)],
+        max_gap=max_gap,
+        barriers=barriers,
+    )
     if first is None:
         return None
     rest = [r for r in cands if not first.contains(r)]
@@ -516,7 +558,9 @@ def _detected_table(lay, blk, *, max_gap):
 
     try:
         tables = [fitz.Rect(t.bbox) for t in lay.page.find_tables().tables]
-    except Exception:  # noqa: BLE001 - find_tables needs PyMuPDF >= 1.23; any failure: none found
+    except (
+        Exception
+    ):  # noqa: BLE001 - find_tables needs PyMuPDF >= 1.23; any failure: none found
         return None
     near = [
         t for t in tables if t.x0 < blk.x1 and t.x1 > blk.x0 and _gap(t, blk) <= max_gap
@@ -528,7 +572,8 @@ def _joined_rules(graphics) -> list:
     """The horizontal hairlines, with collinear segments that touch joined into one rule
     (tables often draw a row's rule one cell at a time)."""
     segs = sorted(
-        (r for r in graphics if r.height <= 2 * _HAIRLINE_PAD + 1), key=lambda r: (round(r.y0), r.x0)
+        (r for r in graphics if r.height <= 2 * _HAIRLINE_PAD + 1),
+        key=lambda r: (round(r.y0), r.x0),
     )
     out = []
     for r in segs:
@@ -566,7 +611,9 @@ def _ruled_table(lay, blk, *, max_gap, rule_gap):
         ),
         key=lambda r: -r.y0 if above else r.y0,
     )
-    captions = [r for r, t, *_ in lay.blocks if lay.is_caption_like(t) and not r.intersects(blk)]
+    captions = [
+        r for r, t, *_ in lay.blocks if lay.is_caption_like(t) and not r.intersects(blk)
+    ]
     box, last = first, first
     for r in same:
         if r is first:
@@ -579,7 +626,12 @@ def _ruled_table(lay, blk, *, max_gap, rule_gap):
         box, last = box | r, r
     page_area = lay.rect.get_area() or 1
     for g in lay.graphics:
-        if g.height > 3 and g.width > 3 and g.intersects(box) and g.get_area() < 0.5 * page_area:
+        if (
+            g.height > 3
+            and g.width > 3
+            and g.intersects(box)
+            and g.get_area() < 0.5 * page_area
+        ):
             box |= g
     return box
 
@@ -663,18 +715,26 @@ def figure_box(
     with _opened(pdf) as doc:
         tried = []
         for pno, blk in _caption_candidates(doc, caption, page):
-            lay = _Layout(doc[pno], body_words=body_words, running=_running_rules(doc, pno))
+            lay = _Layout(
+                doc[pno], body_words=body_words, running=_running_rules(doc, pno)
+            )
             if kind == "figure":
                 body, source = _figure_body(lay, blk, max_up=max_up, max_gap=max_gap)
             else:
                 body, source = _table_body(
-                    lay, blk, max_up=max_up, max_gap=max_gap, table_height=table_height,
+                    lay,
+                    blk,
+                    max_up=max_up,
+                    max_gap=max_gap,
+                    table_height=table_height,
                     rule_gap=rule_gap,
                 )
             tried.append((pno, blk, lay, body, source))
             if source not in weak:
                 break
-        pno, blk, lay, body, source = next((t for t in tried if t[4] not in weak), tried[0])
+        pno, blk, lay, body, source = next(
+            (t for t in tried if t[4] not in weak), tried[0]
+        )
         if body is None and not with_caption:
             raise LookupError(
                 f"nothing found next to the caption {caption!r} on page {pno}; "
@@ -686,7 +746,9 @@ def figure_box(
             box = body | blk
         else:
             box = fitz.Rect(body)
-        box = fitz.Rect(box.x0 - margin, box.y0 - margin, box.x1 + margin, box.y1 + margin)
+        box = fitz.Rect(
+            box.x0 - margin, box.y0 - margin, box.x1 + margin, box.y1 + margin
+        )
         return FigureBox(pno, _as_box(box & lay.rect), source)
 
 
@@ -847,7 +909,9 @@ def find_passage(
                 if boxes:
                     return Passage(i, boxes, "ocr")
                 boxes = ocr_boxes(i, text) if text is not quote else None
-                return Passage(i, boxes, "ocr-head") if boxes else Passage(i, (), "none")
+                return (
+                    Passage(i, boxes, "ocr-head") if boxes else Passage(i, (), "none")
+                )
         if ocr_words is not None:
             # a scan with no text layer at all: nothing above could have found the quote
             for i in pages:
@@ -869,7 +933,9 @@ def ocracy_words(png: bytes, **ocr_kwargs) -> list:
     try:
         import ocracy
     except ImportError as e:
-        raise ImportError("ocracy_words needs ocracy: install ocracy and a backend") from e
+        raise ImportError(
+            "ocracy_words needs ocracy: install ocracy and a backend"
+        ) from e
     result = ocracy.ocr(png, **ocr_kwargs)
     words = [w for w in result.words if w.bbox is not None]
     if words:

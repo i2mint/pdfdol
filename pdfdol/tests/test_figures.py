@@ -36,9 +36,13 @@ def _paper_p0(p):
     p.draw_rect(fitz.Rect(150, 200, 450, 380), color=(0, 0, 0))  # chart frame
     p.draw_line((170, 360), (430, 220), color=(1, 0, 0))  # a series
     p.insert_text((280, 395), "time (s)", fontsize=9)  # axis label below the frame
-    p.insert_textbox(fitz.Rect(100, 410, 500, 440), "Figure 1: A rising line.", fontsize=10)
+    p.insert_textbox(
+        fitz.Rect(100, 410, 500, 440), "Figure 1: A rising line.", fontsize=10
+    )
     p.insert_textbox(fitz.Rect(50, 470, 550, 550), BODY, fontsize=10)
-    p.insert_textbox(fitz.Rect(100, 580, 500, 600), "Table 1: Some numbers.", fontsize=10)
+    p.insert_textbox(
+        fitz.Rect(100, 580, 500, 600), "Table 1: Some numbers.", fontsize=10
+    )
     for k, row in enumerate(["a 1", "b 2", "c 3"]):
         p.insert_text((150, 620 + 15 * k), row, fontsize=10)
 
@@ -46,9 +50,13 @@ def _paper_p0(p):
 def _paper_p1(q):
     """A figure drawn as positioned text, then its caption."""
     q.insert_textbox(fitz.Rect(50, 40, 550, 120), BODY, fontsize=10)
-    for k, step in enumerate(["REQUIREMENTS", "  DESIGN", "    CODING", "      TESTING"]):
+    for k, step in enumerate(
+        ["REQUIREMENTS", "  DESIGN", "    CODING", "      TESTING"]
+    ):
         q.insert_text((150, 200 + 30 * k), step, fontsize=10)
-    q.insert_textbox(fitz.Rect(100, 330, 500, 350), "Figure 2: A waterfall.", fontsize=10)
+    q.insert_textbox(
+        fitz.Rect(100, 330, 500, 350), "Figure 2: A waterfall.", fontsize=10
+    )
 
 
 def _paper() -> bytes:
@@ -69,8 +77,12 @@ def _ml_paper() -> bytes:
             p.insert_text((130, 182 + 13 * k), row, fontsize=9)
         p.insert_textbox(fitz.Rect(100, 228, 500, 250), "Table 3: Levels.", fontsize=10)
         p.insert_textbox(fitz.Rect(50, 260, 550, 340), BODY, fontsize=10)
-        p.draw_rect(fitz.Rect(190, 400, 550, 600), color=(0, 0, 0))  # chart right of caption
-        p.insert_textbox(fitz.Rect(50, 450, 180, 520), "Figure 4. A side caption.", fontsize=10)
+        p.draw_rect(
+            fitz.Rect(190, 400, 550, 600), color=(0, 0, 0)
+        )  # chart right of caption
+        p.insert_textbox(
+            fitz.Rect(50, 450, 180, 520), "Figure 4. A side caption.", fontsize=10
+        )
 
     return _pdf(draw)
 
@@ -100,7 +112,9 @@ def test_figure_box_takes_graphics_label_and_caption_but_not_body():
 
 
 def test_figure_box_without_caption_stops_above_it():
-    _, (_, _, _, y1), _ = figure_box(_paper(), "Figure 1:", margin=0, with_caption=False)
+    _, (_, _, _, y1), _ = figure_box(
+        _paper(), "Figure 1:", margin=0, with_caption=False
+    )
     assert y1 < 412
 
 
@@ -134,7 +148,9 @@ def test_a_figure_does_not_grow_across_the_caption_of_the_figure_above():
     def draw(p):
         p.draw_rect(fitz.Rect(150, 100, 450, 250), color=(0, 0, 0))  # figure 5
         p.insert_textbox(fitz.Rect(150, 255, 450, 275), "Figure 5: Above.", fontsize=10)
-        p.draw_rect(fitz.Rect(150, 285, 450, 400), color=(0, 0, 0))  # figure 6, 35 pt below 5
+        p.draw_rect(
+            fitz.Rect(150, 285, 450, 400), color=(0, 0, 0)
+        )  # figure 6, 35 pt below 5
         p.insert_textbox(fitz.Rect(150, 405, 450, 425), "Figure 6: Below.", fontsize=10)
 
     _, (_, y0, _, _), _ = figure_box(_pdf(draw), "Figure 6:", margin=0)
@@ -143,7 +159,9 @@ def test_a_figure_does_not_grow_across_the_caption_of_the_figure_above():
 
 def test_a_full_width_figure_with_a_short_caption_is_kept_whole():
     def draw(p):
-        p.draw_rect(fitz.Rect(40, 100, 280, 250), color=(0, 0, 0))  # left half of a diagram
+        p.draw_rect(
+            fitz.Rect(40, 100, 280, 250), color=(0, 0, 0)
+        )  # left half of a diagram
         p.draw_rect(fitz.Rect(300, 100, 560, 250), color=(0, 0, 0))  # right half
         p.insert_textbox(fitz.Rect(40, 260, 120, 280), "Fig. 2.", fontsize=10)
 
@@ -167,7 +185,9 @@ def test_a_text_figure_wins_over_a_chart_in_the_other_column():
         for k, step in enumerate(["INPUT", "  PARSE", "    OUTPUT"]):
             p.insert_text((60, 270 + 25 * k), step, fontsize=10)
         p.insert_textbox(fitz.Rect(50, 340, 280, 360), "Figure 3: Steps.", fontsize=10)
-        p.draw_rect(fitz.Rect(320, 250, 550, 420), color=(0, 0, 0))  # unrelated, right column
+        p.draw_rect(
+            fitz.Rect(320, 250, 550, 420), color=(0, 0, 0)
+        )  # unrelated, right column
 
     _, (_, _, x1, _), source = figure_box(_pdf(draw), "Figure 3:", margin=0)
     assert source == "text" and x1 < 300
@@ -175,11 +195,17 @@ def test_a_text_figure_wins_over_a_chart_in_the_other_column():
 
 def test_a_caption_merged_into_a_block_is_found_by_its_line_and_a_mention_is_never_taken():
     def mention(p):
-        p.insert_textbox(fitz.Rect(50, 50, 550, 100), "As Figure 10 shows, things grow.", fontsize=10)
+        p.insert_textbox(
+            fitz.Rect(50, 50, 550, 100), "As Figure 10 shows, things grow.", fontsize=10
+        )
 
     def merged(p):
         p.draw_rect(fitz.Rect(150, 100, 450, 300), color=(0, 0, 0))
-        p.insert_textbox(fitz.Rect(150, 305, 450, 340), "x axis label\nFigure 1: Growth.", fontsize=10)
+        p.insert_textbox(
+            fitz.Rect(150, 305, 450, 340),
+            "x axis label\nFigure 1: Growth.",
+            fontsize=10,
+        )
 
     assert figure_box(_pdf(mention, merged), "Figure 1").page == 1
     with pytest.raises(LookupError, match="only mentioned"):
@@ -237,7 +263,9 @@ def test_quotes_match_across_curly_quotes_case_and_hyphenated_line_ends():
         p.insert_text((50, 114), "itories using context.", fontsize=10)
 
     pdf = _pdf(draw)
-    assert find_passage(pdf, "the AI’s Impact").source == "text"  # curly quote in the quote
+    assert (
+        find_passage(pdf, "the AI’s Impact").source == "text"
+    )  # curly quote in the quote
     p = find_passage(pdf, "agents and repositories using context")
     assert p.source == "text" and len(p.boxes) == 2  # one box per line
 
@@ -246,7 +274,9 @@ def test_the_whole_quote_on_a_later_page_beats_its_head_on_an_earlier_one():
     quote = "we found that the results hold in general across all of the models"
 
     def head_only(p):
-        p.insert_text((50, 100), "we found that the results hold in general, mostly.", fontsize=10)
+        p.insert_text(
+            (50, 100), "we found that the results hold in general, mostly.", fontsize=10
+        )
 
     def whole(p):
         p.insert_text((50, 100), quote, fontsize=10)
@@ -263,8 +293,11 @@ def test_find_passage_on_a_scan_needs_ocr():
     assert find_passage(pdf, "quoted words") == Passage(0, (), "none")
 
     def fake_ocr(png):  # words and pixel boxes, with the punctuation OCR attaches
-        return [("the", (60, 280, 90, 300)), ("“quoted", (100, 280, 160, 300)),
-                ("words,", (170, 280, 220, 300))]
+        return [
+            ("the", (60, 280, 90, 300)),
+            ("“quoted", (100, 280, 160, 300)),
+            ("words,", (170, 280, 220, 300)),
+        ]
 
     p = find_passage(pdf, "quoted words", ocr_words=fake_ocr, ocr_zoom=2)
     assert p.source == "ocr"
@@ -285,7 +318,10 @@ def test_a_scan_with_no_text_layer_is_ocrd_when_ocr_is_given():
 
     pdf = _scan()
     assert find_passage(pdf, "quoted words") is None
-    assert find_passage(pdf, "quoted words", ocr_words=fake_ocr, ocr_zoom=2).source == "ocr"
+    assert (
+        find_passage(pdf, "quoted words", ocr_words=fake_ocr, ocr_zoom=2).source
+        == "ocr"
+    )
     assert len(calls) == 1
 
 
@@ -294,8 +330,11 @@ def test_a_scan_with_no_text_layer_is_ocrd_when_ocr_is_given():
 
 def test_a_bare_caption_skips_prose_that_starts_with_its_label():
     def prose(p):
-        p.insert_textbox(fitz.Rect(50, 50, 550, 120), BODY + "\nTable 2 shows the totals, and\n"
-                         "Table 2) is long.", fontsize=10)
+        p.insert_textbox(
+            fitz.Rect(50, 50, 550, 120),
+            BODY + "\nTable 2 shows the totals, and\n" "Table 2) is long.",
+            fontsize=10,
+        )
 
     def real(p):
         for y in (100, 118, 170):
@@ -310,7 +349,9 @@ def test_a_bare_caption_skips_prose_that_starts_with_its_label():
 def test_a_heading_above_a_side_caption_does_not_hide_the_chart_beside_it():
     def draw(p):
         p.insert_textbox(fitz.Rect(50, 425, 180, 445), "3.2 Results", fontsize=12)
-        p.insert_textbox(fitz.Rect(50, 450, 180, 520), "Figure 4. A side caption.", fontsize=10)
+        p.insert_textbox(
+            fitz.Rect(50, 450, 180, 520), "Figure 4. A side caption.", fontsize=10
+        )
         p.draw_rect(fitz.Rect(190, 400, 550, 600), color=(0, 0, 0))
 
     _, (x0, _, x1, _), source = figure_box(_pdf(draw), "Figure 4.", margin=0)
@@ -334,14 +375,22 @@ def test_a_long_legend_in_a_small_font_stays_part_of_its_figure():
 def test_a_running_header_rule_is_left_out_but_a_table_near_the_page_bottom_is_whole():
     def page(p, table=False):
         p.insert_text((50, 30), "Running header", fontsize=8)
-        p.draw_line((120, 36), (480, 36), color=(0, 0, 0))  # same width as the table's rules
+        p.draw_line(
+            (120, 36), (480, 36), color=(0, 0, 0)
+        )  # same width as the table's rules
         p.insert_textbox(fitz.Rect(50, 45, 550, 125), BODY, fontsize=10)
         if table:
             p.insert_textbox(fitz.Rect(100, 60, 500, 80), "", fontsize=10)
-            for y in (700, 718, 770):  # the bottom rule sits in the bottom 6 % of the page
+            for y in (
+                700,
+                718,
+                770,
+            ):  # the bottom rule sits in the bottom 6 % of the page
                 p.draw_line((120, y), (480, y), color=(0, 0, 0))
             p.insert_text((130, 712), "Level   Count", fontsize=9)
-            p.insert_textbox(fitz.Rect(100, 676, 500, 696), "Table 9: Bottom.", fontsize=10)
+            p.insert_textbox(
+                fitz.Rect(100, 676, 500, 696), "Table 9: Bottom.", fontsize=10
+            )
 
     pdf = _pdf(page, page, lambda p: page(p, table=True), page)
     got = figure_box(pdf, "Table 9:", margin=0)
@@ -360,11 +409,18 @@ def test_without_caption_nothing_found_raises():
 def test_compound_and_suspended_hyphens_and_dashes_match():
     def draw(p):
         p.insert_text((50, 100), "LLM-generated and developer-", fontsize=10)
-        p.insert_text((50, 114), "committed files, pre- and post-training results-which hold.", fontsize=10)
+        p.insert_text(
+            (50, 114),
+            "committed files, pre- and post-training results-which hold.",
+            fontsize=10,
+        )
 
     pdf = _pdf(draw)
-    for quote in ("LLM-generated and developer-committed files.", "pre- and post-training",
-                  "results \u2014 which hold"):
+    for quote in (
+        "LLM-generated and developer-committed files.",
+        "pre- and post-training",
+        "results \u2014 which hold",
+    ):
         assert find_passage(pdf, quote).source == "text", quote
 
 
@@ -372,7 +428,10 @@ def test_a_head_only_ocr_match_says_so():
     quote = "the quoted words are here and then some more words"
 
     def fake_ocr(png):
-        return [(w, (10 * i, 0, 10 * i + 8, 10)) for i, w in enumerate("the quoted words are here and".split())]
+        return [
+            (w, (10 * i, 0, 10 * i + 8, 10))
+            for i, w in enumerate("the quoted words are here and".split())
+        ]
 
     p = find_passage(_scan("the quoted words are here and"), quote, ocr_words=fake_ocr)
     assert p.source == "ocr-head"
