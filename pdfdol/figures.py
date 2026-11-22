@@ -692,9 +692,9 @@ def _column_gutter(page, clip, *, zoom, ink, min_width, window):
         x0, x1 = (pix.x + c) / zoom, (pix.x + end) / zoom
         centre = (x0 + x1) / 2
         inner = c > 0 and end < pix.width  # ink on both sides: a gutter, not a margin
-        if inner and x1 - x0 >= min_width and abs(centre - mid) <= window:
-            if best is None or abs(centre - mid) < abs(best - mid):
-                best = centre
+        nearer = best is None or abs(centre - mid) < abs(best - mid)
+        if inner and x1 - x0 >= min_width and abs(centre - mid) <= window and nearer:
+            best = centre
         c = end
     return best
 
