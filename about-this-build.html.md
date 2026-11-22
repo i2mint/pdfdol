@@ -2,18 +2,20 @@
 
 # About this build
 
-This documentation was built on **2026-11-22 14:34 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/a618b03784feb410ea576349207f161707171ff4"><code>a618b03</code></a> on branch <code>master</code>, for **pdfdol 0.1.35** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-22 19:09 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/323050a43c7da0b51a0a8cae745e7cd0760b51d4"><code>323050a</code></a> on branch <code>master</code>, for **pdfdol 0.1.36** (from <code>setup.cfg</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.36) is ahead of the latest release on PyPI (0.1.35): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/a618b03784feb410ea576349207f161707171ff4"><code>a618b03784feb410ea576349207f161707171ff4</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/323050a43c7da0b51a0a8cae745e7cd0760b51d4"><code>323050a43c7da0b51a0a8cae745e7cd0760b51d4</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.35</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.36</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/pdfdol</code>                                                                                                        |
 
@@ -22,9 +24,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45033377294">45033377294</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45058988482">45058988482</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>06b62b90c3460931540e9e67e306765a5a832ba3</code> (in the history of the built commit) |
+| Event commit | <code>d74eb737382c0ad81b9a39d959e599221e4e9293</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +51,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.35/">0.1.35</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.35/">0.1.35</a>, older than the documented version (0.1.36).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout a618b03784feb410ea576349207f161707171ff4
+git checkout 323050a43c7da0b51a0a8cae745e7cd0760b51d4
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

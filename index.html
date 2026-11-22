@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=2b6ce006"></script>
+    <script src="_static/documentation_options.js?v=1c946a6c"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.35" />
+  <meta name="docsearch:version" content="0.1.36" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -368,7 +368,7 @@ ways. Here’s one:</p>
 </div>
 <p>A figure is the graphics above its caption, else the short text blocks above it (a figure drawn as text), else the graphics beside it (side captions); it never grows across another caption or a body paragraph. A table is the table PyMuPDF detects next to its caption, else its rules (booktabs), else the nearer graphics. <code class="docutils literal notranslate"><span class="pre">source</span></code> says which, and <code class="docutils literal notranslate"><span class="pre">'caption-only'</span></code> or <code class="docutils literal notranslate"><span class="pre">'fallback'</span></code> says nothing better was found. Quotes match regardless of case, curly quotes, attached punctuation and words broken at a line end.</p>
 <p>PyMuPDF is licensed AGPL-3.0, so whoever distributes or serves pdfdol together with it takes on the AGPL’s terms; pdfdol itself stays MIT and imports it only when these functions are called.</p>
-<p>On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so <code class="docutils literal notranslate"><span class="pre">find_passage</span></code> returns the page with no boxes (<code class="docutils literal notranslate"><span class="pre">source='none'</span></code>) unless you give it <code class="docutils literal notranslate"><span class="pre">ocr_words</span></code>, a function reading word boxes off the rendered page (<code class="docutils literal notranslate"><span class="pre">pdfdol.figures.ocracy_words</span></code> uses <a class="reference external" href="https://github.com/thorwhalen/ocracy">ocracy</a>). Figure crops on scanned pages are best effort.</p>
+<p>On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so <code class="docutils literal notranslate"><span class="pre">find_passage</span></code> returns the page with no boxes (<code class="docutils literal notranslate"><span class="pre">source='none'</span></code>) unless you give it <code class="docutils literal notranslate"><span class="pre">ocr_words</span></code>, a function reading word boxes off the rendered page (<code class="docutils literal notranslate"><span class="pre">pdfdol.figures.ocracy_words</span></code> uses <a class="reference external" href="https://github.com/thorwhalen/ocracy">ocracy</a>). A figure on a scanned page has no drawings to find it by, so it is read off the pixels: the ink above its caption, up to the prose or the caption above it (<code class="docutils literal notranslate"><span class="pre">source='pixels'</span></code>). That is still best effort; <code class="docutils literal notranslate"><span class="pre">figure_box(...,</span> <span class="pre">scan_strategy=...)</span></code> takes your own <code class="docutils literal notranslate"><span class="pre">(page,</span> <span class="pre">caption_box,</span> <span class="pre">*,</span> <span class="pre">max_up,</span> <span class="pre">max_gap)</span> <span class="pre">-&gt;</span> <span class="pre">box</span></code> function, or <code class="docutils literal notranslate"><span class="pre">'layout'</span></code> to treat the scan like any page.</p>
 </section>
 <section id="converting-ebooks-and-documents-to-pdf-optional-calibre-integration">
 <h2>Converting ebooks and documents to PDF (optional Calibre integration)<a class="headerlink" href="#converting-ebooks-and-documents-to-pdf-optional-calibre-integration" title="Link to this heading">#</a></h2>
@@ -468,7 +468,7 @@ converter functions.  You can register your own:</p>
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-22 14:34 UTC from <a href="https://github.com/i2mint/pdfdol/commit/a618b03784feb410ea576349207f161707171ff4">a618b03</a> (master) · pdfdol 0.1.35 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-22 19:09 UTC from <a href="https://github.com/i2mint/pdfdol/commit/323050a43c7da0b51a0a8cae745e7cd0760b51d4">323050a</a> (master) · pdfdol 0.1.36 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               

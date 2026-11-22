@@ -76,7 +76,7 @@ A figure is the graphics above its caption, else the short text blocks above it 
 
 PyMuPDF is licensed AGPL-3.0, so whoever distributes or serves pdfdol together with it takes on the AGPL’s terms; pdfdol itself stays MIT and imports it only when these functions are called.
 
-On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so `find_passage` returns the page with no boxes (`source='none'`) unless you give it `ocr_words`, a function reading word boxes off the rendered page (`pdfdol.figures.ocracy_words` uses [ocracy](https://github.com/thorwhalen/ocracy)). Figure crops on scanned pages are best effort.
+On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so `find_passage` returns the page with no boxes (`source='none'`) unless you give it `ocr_words`, a function reading word boxes off the rendered page (`pdfdol.figures.ocracy_words` uses [ocracy](https://github.com/thorwhalen/ocracy)). A figure on a scanned page has no drawings to find it by, so it is read off the pixels: the ink above its caption, up to the prose or the caption above it (`source='pixels'`). That is still best effort; `figure_box(..., scan_strategy=...)` takes your own `(page, caption_box, *, max_up, max_gap) -> box` function, or `'layout'` to treat the scan like any page.
 
 ## Converting ebooks and documents to PDF (optional Calibre integration)
 

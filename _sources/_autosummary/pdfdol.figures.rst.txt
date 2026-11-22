@@ -13,6 +13,7 @@ pdfdol.figures
       find_passage
       is_scanned
       ocracy_words
+      pixel_figure_box
    
    .. rubric:: Classes
 

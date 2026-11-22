@@ -26,8 +26,12 @@ Scanned PDFs (a page covered by one image, its text layer made by OCR) are a kno
 the text layer’s boxes can sit tens of pixels off the glyphs. `find_passage` detects
 such pages and, unless it is given an `ocr_words` function to read word boxes off the
 rendered pixels (`ocracy_words` is one, built on `ocracy`), returns the page with no
-boxes rather than a highlight in the wrong place. Figures on scanned pages are best
-effort.
+boxes rather than a highlight in the wrong place. A figure on a scanned page has no
+drawings to find it by, and an OCR layer splits prose into one block per line, so it is
+read off the pixels instead (`source="pixels"`, see `pixel_figure_box`): the ink
+above the caption, up to the first prose or caption above it. Best effort still: the
+`scan_strategy` keyword of `figure_box` takes another strategy, or `"layout"` to
+treat the scan like any page.
 
 Needs PyMuPDF, the `figures` extra of pdfdol, imported only when called. PyMuPDF is
 AGPL-3.0: whoever distributes or serves pdfdol together with it takes on its terms.
@@ -56,12 +60,13 @@ dashes and hyphens do not matter):
 
 ### Functions
 
-| [`figure`](#pdfdol.figures.figure)(pdf, caption, \*[, page, kind, zoom])    | The figure or table captioned `caption`, as PNG bytes.                            |
-|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`figure_box`](#pdfdol.figures.figure_box)(pdf, caption, \*[, page, kind, ...]) | Where the figure or table captioned `caption` is: `FigureBox(page, box, source)`. |
-| [`find_passage`](#pdfdol.figures.find_passage)(pdf, quote, \*[, page, ...])       | The page and boxes of `quote` in `pdf`, or None when it is not there.             |
-| [`is_scanned`](#pdfdol.figures.is_scanned)(page, \*[, coverage])                | Whether a PyMuPDF page is a scan: one image covers at least `coverage` of it.     |
-| [`ocracy_words`](#pdfdol.figures.ocracy_words)(png, \*\*ocr_kwargs)               | Word boxes of an image with `ocracy`: an `ocr_words` for `find_passage`.          |
+| [`figure`](#pdfdol.figures.figure)(pdf, caption, \*[, page, kind, zoom])    | The figure or table captioned `caption`, as PNG bytes.                                                                                                        |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`figure_box`](#pdfdol.figures.figure_box)(pdf, caption, \*[, page, kind, ...]) | Where the figure or table captioned `caption` is: `FigureBox(page, box, source)`.                                                                             |
+| [`find_passage`](#pdfdol.figures.find_passage)(pdf, quote, \*[, page, ...])       | The page and boxes of `quote` in `pdf`, or None when it is not there.                                                                                         |
+| [`is_scanned`](#pdfdol.figures.is_scanned)(page, \*[, coverage])                | Whether a PyMuPDF page is a scan: one image covers at least `coverage` of it.                                                                                 |
+| [`ocracy_words`](#pdfdol.figures.ocracy_words)(png, \*\*ocr_kwargs)               | Word boxes of an image with `ocracy`: an `ocr_words` for `find_passage`.                                                                                      |
+| [`pixel_figure_box`](#pdfdol.figures.pixel_figure_box)(page, caption_box, \*[, ...])  | The box of the figure above `caption_box` on a scanned PyMuPDF `page`, read off its pixels, without the caption; None when there is no ink above the caption. |
 
 ### Classes
 
@@ -76,7 +81,7 @@ Bases: [`NamedTuple`](https://docs.python.org/3/library/typing.html#typing.Named
 Where a figure or table is: its page, its box, and how the box was found.
 
 `source` is one of `"graphics"`, `"text"` (a figure drawn as text), `"beside"`
-(a side caption), `"table"` (a table PyMuPDF detected), `"rules"` (a booktabs
+(a side caption), `"pixels"` (the ink above the caption on a scanned page), `"table"` (a table PyMuPDF detected), `"rules"` (a booktabs
 table), `"caption-only"` (nothing found next to the caption) or `"fallback"` (a
 share of the page below a table caption).
 
@@ -131,7 +136,7 @@ keyword is passed to `figure_box`, which says how the box is found.
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
-### pdfdol.figures.figure_box(pdf, caption, , page=None, kind=None, with_caption=True, margin=6.0, max_up=0.65, max_gap=40.0, table_height=0.35, rule_gap=0.3, body_words=25)
+### pdfdol.figures.figure_box(pdf, caption, , page=None, kind=None, with_caption=True, margin=6.0, max_up=0.65, max_gap=40.0, table_height=0.35, rule_gap=0.3, body_words=25, scan_strategy='pixels')
 
 Where the figure or table captioned `caption` is: `FigureBox(page, box, source)`.
 
@@ -156,6 +161,13 @@ Where the figure or table captioned `caption` is: `FigureBox(page, box, source)`
     apart.
   * **body_words** ([`int`](https://docs.python.org/3/builtins/functions.html#int)) – a text block with at least this many words is body text: a figure
     never grows across it.
+  * **scan_strategy** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]) – how a figure on a scanned page (see `is_scanned`) is found:
+    `"pixels"` (`pixel_figure_box`, `source="pixels"`), `"layout"` (as on any
+    page), or a callable with `pixel_figure_box`’s signature. It runs only when
+    the layout finds no graphics for the figure (a scan has none to find; a page
+    with drawings over a page-sized image keeps its `"graphics"` box), and when
+    it finds nothing the layout’s result stands. Tables are always found from the
+    layout.
 * **Raises:**
   * [**LookupError**](https://docs.python.org/3/builtins/exceptions.html#LookupError) – no caption starts with `caption` (or, `with_caption=False`,
     nothing was found next to it).
@@ -210,3 +222,25 @@ Needs `ocracy` and an OCR backend.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
+
+### pdfdol.figures.pixel_figure_box(page, caption_box, , max_up=0.65, max_gap=40.0, body_words=25, zoom=2.0, ink=128)
+
+The box of the figure above `caption_box` on a scanned PyMuPDF `page`, read off
+its pixels, without the caption; None when there is no ink above the caption.
+
+The page is rendered in gray above the caption and cut into bands of rows holding
+ink. The figure is the bands climbed from the caption upwards, each within
+`max_gap` points of the last, up to the first that is text: another caption or a
+prose line in the text layer, or a run of printed lines in the pixels (a band one
+line tall that inks most of its span, under a full line). Boxes, arrows and labels
+inside a figure are ink like any other, so a figure of separate boxes comes whole.
+The default `scan_strategy` of `figure_box`; its signature is the one a
+replacement takes (`page, caption_box, *, max_up, max_gap`).
+
+* **Parameters:**
+  * **page** – a PyMuPDF page; its rotation must be 0 (else None: use the layout).
+  * **caption_box** ([`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)) – the caption’s `(x0, y0, x1, y1)`, from the page’s text layer.
+  * **zoom** ([`float`](https://docs.python.org/3/builtins/functions.html#float)) – rendering scale (2.0 is 144 dpi).
+  * **ink** ([`int`](https://docs.python.org/3/builtins/functions.html#int)) – gray level (0 to 255) below which a pixel is ink.
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

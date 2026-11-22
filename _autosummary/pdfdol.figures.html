@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=2b6ce006"></script>
+    <script src="../_static/documentation_options.js?v=1c946a6c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.35" />
+  <meta name="docsearch:version" content="0.1.36" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -388,8 +388,12 @@ nothing better was found.</p>
 the text layer’s boxes can sit tens of pixels off the glyphs. <code class="docutils literal notranslate"><span class="pre">find_passage</span></code> detects
 such pages and, unless it is given an <code class="docutils literal notranslate"><span class="pre">ocr_words</span></code> function to read word boxes off the
 rendered pixels (<code class="docutils literal notranslate"><span class="pre">ocracy_words</span></code> is one, built on <code class="docutils literal notranslate"><span class="pre">ocracy</span></code>), returns the page with no
-boxes rather than a highlight in the wrong place. Figures on scanned pages are best
-effort.</p>
+boxes rather than a highlight in the wrong place. A figure on a scanned page has no
+drawings to find it by, and an OCR layer splits prose into one block per line, so it is
+read off the pixels instead (<code class="docutils literal notranslate"><span class="pre">source=&quot;pixels&quot;</span></code>, see <code class="docutils literal notranslate"><span class="pre">pixel_figure_box</span></code>): the ink
+above the caption, up to the first prose or caption above it. Best effort still: the
+<code class="docutils literal notranslate"><span class="pre">scan_strategy</span></code> keyword of <code class="docutils literal notranslate"><span class="pre">figure_box</span></code> takes another strategy, or <code class="docutils literal notranslate"><span class="pre">&quot;layout&quot;</span></code> to
+treat the scan like any page.</p>
 <p>Needs PyMuPDF, the <code class="docutils literal notranslate"><span class="pre">figures</span></code> extra of pdfdol, imported only when called. PyMuPDF is
 AGPL-3.0: whoever distributes or serves pdfdol together with it takes on its terms.</p>
 <p>The caption-matching rule (a caption is text that <em>starts</em> with the given caption, not a
@@ -428,6 +432,9 @@ dashes and hyphens do not matter):</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pdfdol.figures.ocracy_words" title="pdfdol.figures.ocracy_words"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ocracy_words</span></code></a>(png, **ocr_kwargs)</p></td>
 <td><p>Word boxes of an image with <code class="docutils literal notranslate"><span class="pre">ocracy</span></code>: an <code class="docutils literal notranslate"><span class="pre">ocr_words</span></code> for <code class="docutils literal notranslate"><span class="pre">find_passage</span></code>.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pdfdol.figures.pixel_figure_box" title="pdfdol.figures.pixel_figure_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pixel_figure_box</span></code></a>(page, caption_box, *[, ...])</p></td>
+<td><p>The box of the figure above <code class="docutils literal notranslate"><span class="pre">caption_box</span></code> on a scanned PyMuPDF <code class="docutils literal notranslate"><span class="pre">page</span></code>, read off its pixels, without the caption; None when there is no ink above the caption.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -449,7 +456,7 @@ dashes and hyphens do not matter):</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
 <p>Where a figure or table is: its page, its box, and how the box was found.</p>
 <p><code class="docutils literal notranslate"><span class="pre">source</span></code> is one of <code class="docutils literal notranslate"><span class="pre">&quot;graphics&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;text&quot;</span></code> (a figure drawn as text), <code class="docutils literal notranslate"><span class="pre">&quot;beside&quot;</span></code>
-(a side caption), <code class="docutils literal notranslate"><span class="pre">&quot;table&quot;</span></code> (a table PyMuPDF detected), <code class="docutils literal notranslate"><span class="pre">&quot;rules&quot;</span></code> (a booktabs
+(a side caption), <code class="docutils literal notranslate"><span class="pre">&quot;pixels&quot;</span></code> (the ink above the caption on a scanned page), <code class="docutils literal notranslate"><span class="pre">&quot;table&quot;</span></code> (a table PyMuPDF detected), <code class="docutils literal notranslate"><span class="pre">&quot;rules&quot;</span></code> (a booktabs
 table), <code class="docutils literal notranslate"><span class="pre">&quot;caption-only&quot;</span></code> (nothing found next to the caption) or <code class="docutils literal notranslate"><span class="pre">&quot;fallback&quot;</span></code> (a
 share of the page below a table caption).</p>
 <dl class="field-list simple">
@@ -525,7 +532,7 @@ keyword is passed to <code class="docutils literal notranslate"><span class="pre
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pdfdol.figures.figure_box">
-<span class="sig-prename descclassname"><span class="pre">pdfdol.figures.</span></span><span class="sig-name descname"><span class="pre">figure_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caption</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_caption</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.65</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule_gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/figures.html#figure_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.figures.figure_box" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pdfdol.figures.</span></span><span class="sig-name descname"><span class="pre">figure_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caption</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_caption</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.65</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule_gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scan_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pixels'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/figures.html#figure_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.figures.figure_box" title="Link to this definition">#</a></dt>
 <dd><p>Where the figure or table captioned <code class="docutils literal notranslate"><span class="pre">caption</span></code> is: <code class="docutils literal notranslate"><span class="pre">FigureBox(page,</span> <span class="pre">box,</span> <span class="pre">source)</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -550,6 +557,13 @@ found next to it (<code class="docutils literal notranslate"><span class="pre">s
 apart.</p></li>
 <li><p><strong>body_words</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – a text block with at least this many words is body text: a figure
 never grows across it.</p></li>
+<li><p><strong>scan_strategy</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span>) – how a figure on a scanned page (see <code class="docutils literal notranslate"><span class="pre">is_scanned</span></code>) is found:
+<code class="docutils literal notranslate"><span class="pre">&quot;pixels&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">pixel_figure_box</span></code>, <code class="docutils literal notranslate"><span class="pre">source=&quot;pixels&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">&quot;layout&quot;</span></code> (as on any
+page), or a callable with <code class="docutils literal notranslate"><span class="pre">pixel_figure_box</span></code>’s signature. It runs only when
+the layout finds no graphics for the figure (a scan has none to find; a page
+with drawings over a page-sized image keeps its <code class="docutils literal notranslate"><span class="pre">&quot;graphics&quot;</span></code> box), and when
+it finds nothing the layout’s result stands. Tables are always found from the
+layout.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -625,6 +639,34 @@ Needs <code class="docutils literal notranslate"><span class="pre">ocracy</span>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="pdfdol.figures.pixel_figure_box">
+<span class="sig-prename descclassname"><span class="pre">pdfdol.figures.</span></span><span class="sig-name descname"><span class="pre">pixel_figure_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caption_box</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.65</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfdol/figures.html#pixel_figure_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pdfdol.figures.pixel_figure_box" title="Link to this definition">#</a></dt>
+<dd><p>The box of the figure above <code class="docutils literal notranslate"><span class="pre">caption_box</span></code> on a scanned PyMuPDF <code class="docutils literal notranslate"><span class="pre">page</span></code>, read off
+its pixels, without the caption; None when there is no ink above the caption.</p>
+<p>The page is rendered in gray above the caption and cut into bands of rows holding
+ink. The figure is the bands climbed from the caption upwards, each within
+<code class="docutils literal notranslate"><span class="pre">max_gap</span></code> points of the last, up to the first that is text: another caption or a
+prose line in the text layer, or a run of printed lines in the pixels (a band one
+line tall that inks most of its span, under a full line). Boxes, arrows and labels
+inside a figure are ink like any other, so a figure of separate boxes comes whole.
+The default <code class="docutils literal notranslate"><span class="pre">scan_strategy</span></code> of <code class="docutils literal notranslate"><span class="pre">figure_box</span></code>; its signature is the one a
+replacement takes (<code class="docutils literal notranslate"><span class="pre">page,</span> <span class="pre">caption_box,</span> <span class="pre">*,</span> <span class="pre">max_up,</span> <span class="pre">max_gap</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – a PyMuPDF page; its rotation must be 0 (else None: use the layout).</p></li>
+<li><p><strong>caption_box</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></span>) – the caption’s <code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code>, from the page’s text layer.</p></li>
+<li><p><strong>zoom</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – rendering scale (2.0 is 144 dpi).</p></li>
+<li><p><strong>ink</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – gray level (0 to 255) below which a pixel is ink.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -691,6 +733,7 @@ Needs <code class="docutils literal notranslate"><span class="pre">ocracy</span>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pdfdol.figures.find_passage"><code class="docutils literal notranslate"><span class="pre">find_passage()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pdfdol.figures.is_scanned"><code class="docutils literal notranslate"><span class="pre">is_scanned()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pdfdol.figures.ocracy_words"><code class="docutils literal notranslate"><span class="pre">ocracy_words()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pdfdol.figures.pixel_figure_box"><code class="docutils literal notranslate"><span class="pre">pixel_figure_box()</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=2b6ce006"></script>
+    <script src="../../_static/documentation_options.js?v=1c946a6c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.35" />
+  <meta name="docsearch:version" content="0.1.36" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -708,8 +708,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">the text layer's boxes can sit tens of pixels off the glyphs. ``find_passage`` detects</span>
 <span class="sd">such pages and, unless it is given an ``ocr_words`` function to read word boxes off the</span>
 <span class="sd">rendered pixels (``ocracy_words`` is one, built on ``ocracy``), returns the page with no</span>
-<span class="sd">boxes rather than a highlight in the wrong place. Figures on scanned pages are best</span>
-<span class="sd">effort.</span>
+<span class="sd">boxes rather than a highlight in the wrong place. A figure on a scanned page has no</span>
+<span class="sd">drawings to find it by, and an OCR layer splits prose into one block per line, so it is</span>
+<span class="sd">read off the pixels instead (``source="pixels"``, see ``pixel_figure_box``): the ink</span>
+<span class="sd">above the caption, up to the first prose or caption above it. Best effort still: the</span>
+<span class="sd">``scan_strategy`` keyword of ``figure_box`` takes another strategy, or ``"layout"`` to</span>
+<span class="sd">treat the scan like any page.</span>
 
 <span class="sd">Needs PyMuPDF, the ``figures`` extra of pdfdol, imported only when called. PyMuPDF is</span>
 <span class="sd">AGPL-3.0: whoever distributes or serves pdfdol together with it takes on its terms.</span>
@@ -743,6 +747,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">Box</span> <span class="o">=</span> <span class="nb">tuple</span>  <span class="c1"># (x0, y0, x1, y1) in PDF points</span>
 <span class="n">OcrWords</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span>  <span class="c1"># png -&gt; [(text, (x0, y0, x1, y1)), ...]</span>
+<span class="c1"># (page, caption box, *, max_up, max_gap) -&gt; the figure's box without its caption, or None</span>
+<span class="n">ScanStrategy</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 
 <span class="n">DFLT_ZOOM</span> <span class="o">=</span> <span class="mf">4.0</span>
 <span class="n">DFLT_MARGIN</span> <span class="o">=</span> <span class="mf">6.0</span>  <span class="c1"># points of white space kept around a crop</span>
@@ -764,6 +770,24 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DFLT_SCAN_COVERAGE</span> <span class="o">=</span> <span class="mf">0.8</span>  <span class="c1"># a page whose images cover this fraction of it is a scan</span>
 <span class="n">DFLT_OCR_ZOOM</span> <span class="o">=</span> <span class="mf">3.0</span>
 <span class="n">DFLT_QUOTE_HEAD_WORDS</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># retry a long quote on its first words</span>
+<span class="n">DFLT_SCAN_ZOOM</span> <span class="o">=</span> <span class="mf">2.0</span>  <span class="c1"># rendering scale of a scanned page read for its figures' pixels</span>
+<span class="n">DFLT_INK_LEVEL</span> <span class="o">=</span> <span class="mi">128</span>  <span class="c1"># gray level (0 to 255) below which a scanned pixel is ink</span>
+<span class="n">DFLT_SCAN_STRATEGY</span> <span class="o">=</span> <span class="s2">"pixels"</span>
+<span class="n">_SCAN_EDGE</span> <span class="o">=</span> <span class="mf">0.02</span>  <span class="c1"># fraction of the page: scanner borders and edge shadows live here</span>
+<span class="n">_PROSE_WORDS</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># a text-layer line with this many words, mostly words, is prose</span>
+<span class="n">_PROSE_WORDISH</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="mf">0.6</span>  <span class="c1"># share of a prose line's tokens that are words (OCR of a drawing is not)</span>
+<span class="p">)</span>
+<span class="n">_LINE_FILL</span> <span class="o">=</span> <span class="mf">0.6</span>  <span class="c1"># a printed line inks at least this share of the columns it spans</span>
+<span class="n">_LINE_WIDTH</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># a full printed line spans at least this share of the column</span>
+<span class="n">_LINE_HEIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">)</span>  <span class="c1"># a printed line's ink is this many body font sizes tall</span>
+<span class="n">_DFLT_BODY_SIZE</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="mf">10.0</span>  <span class="c1"># points: the body font size assumed when a page has no text layer</span>
+<span class="p">)</span>
+<span class="n">_GUTTER_WIDTH</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="mf">1.0</span>  <span class="c1"># body font sizes: a blank strip this wide between columns is a gutter</span>
+<span class="p">)</span>
+<span class="n">_GUTTER_WINDOW</span> <span class="o">=</span> <span class="mf">0.15</span>  <span class="c1"># fraction of the page width: a gutter's distance from the middle</span>
 <span class="n">_MARGIN_BAND</span> <span class="o">=</span> <span class="p">(</span>
     <span class="mf">0.06</span>  <span class="c1"># fraction of the page height: running headers and footers live here</span>
 <span class="p">)</span>
@@ -807,7 +831,7 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Where a figure or table is: its page, its box, and how the box was found.</span>
 
 <span class="sd">    ``source`` is one of ``"graphics"``, ``"text"`` (a figure drawn as text), ``"beside"``</span>
-<span class="sd">    (a side caption), ``"table"`` (a table PyMuPDF detected), ``"rules"`` (a booktabs</span>
+<span class="sd">    (a side caption), ``"pixels"`` (the ink above the caption on a scanned page), ``"table"`` (a table PyMuPDF detected), ``"rules"`` (a booktabs</span>
 <span class="sd">    table), ``"caption-only"`` (nothing found next to the caption) or ``"fallback"`` (a</span>
 <span class="sd">    share of the page below a table caption).</span>
 <span class="sd">    """</span>
@@ -1239,6 +1263,293 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"caption-only"</span>
 
 
+<span class="c1"># --------------------------------------------------------------------------- scanned pages</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_Band</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A run of rows holding ink, in page points, with the share of its span it inks."""</span>
+
+    <span class="n">x0</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">y0</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">x1</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">y1</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">fill</span><span class="p">:</span> <span class="nb">float</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ink_bands</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">clip</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">ink</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The :class:`_Band` s of ``clip`` on ``page``, top to bottom: maximal runs of rows</span>
+<span class="sd">    holding ink (a pixel darker than ``ink``), split by blank rows."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fitz</span>
+
+    <span class="n">pix</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">get_pixmap</span><span class="p">(</span>
+        <span class="n">matrix</span><span class="o">=</span><span class="n">fitz</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">zoom</span><span class="p">),</span> <span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span> <span class="n">colorspace</span><span class="o">=</span><span class="n">fitz</span><span class="o">.</span><span class="n">csGRAY</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">pix</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">pix</span><span class="o">.</span><span class="n">stride</span><span class="p">,</span> <span class="n">pix</span><span class="o">.</span><span class="n">samples</span>
+    <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pix</span><span class="o">.</span><span class="n">y</span>  <span class="c1"># the clip's top left, in pixels of the zoomed page</span>
+    <span class="n">dark</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">ink</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">256</span><span class="p">))</span>
+    <span class="n">min_ink</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">zoom</span><span class="p">))</span>  <span class="c1"># fewer dark pixels than this in a row is noise</span>
+    <span class="n">bands</span><span class="p">,</span> <span class="n">run</span> <span class="o">=</span> <span class="p">[],</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">run</span><span class="p">):</span>
+        <span class="n">r0</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">c0</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">run</span>
+        <span class="c1"># every byte of a row is 0 or 1, so each inked column is one set bit</span>
+        <span class="n">inked</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">"1"</span><span class="p">)</span>  <span class="c1"># noqa: FURB161 - int.bit_count needs 3.10</span>
+        <span class="n">bands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">_Band</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">ox</span> <span class="o">+</span> <span class="n">c0</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">oy</span> <span class="o">+</span> <span class="n">r0</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ox</span> <span class="o">+</span> <span class="n">c1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">oy</span> <span class="o">+</span> <span class="n">r1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span>
+                <span class="n">inked</span> <span class="o">/</span> <span class="p">(</span><span class="n">c1</span> <span class="o">-</span> <span class="n">c0</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">r</span> <span class="o">*</span> <span class="n">stride</span> <span class="p">:</span> <span class="n">r</span> <span class="o">*</span> <span class="n">stride</span> <span class="o">+</span> <span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dark</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_ink</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">close</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+                <span class="n">run</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">continue</span>
+        <span class="n">c0</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">row</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">"big"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c0</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">cols</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">run</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">run</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">run</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">run</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">r</span><span class="p">,</span>
+                <span class="nb">min</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">c0</span><span class="p">),</span>
+                <span class="nb">max</span><span class="p">(</span><span class="n">run</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c1</span><span class="p">),</span>
+                <span class="n">run</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">|</span> <span class="n">cols</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">close</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bands</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_prose_line</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">block</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a text block is prose: a body paragraph, or (an OCR layer gives one block per</span>
+<span class="sd">    line) one line of several words that read as words, not as OCR of a drawing."""</span>
+    <span class="k">if</span> <span class="n">lay</span><span class="o">.</span><span class="n">is_body</span><span class="p">(</span><span class="n">block</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_PROSE_WORDS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">wordish</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[^\W\d_]{2,}[.,;:]?"</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">wordish</span> <span class="o">&gt;=</span> <span class="n">_PROSE_WORDISH</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scan_columns</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The x-range to read for the figure above ``blk``: the caption's share of the page,</span>
+<span class="sd">    less the prose beside it (the other column of a two-column page) and the scan's edges.</span>
+<span class="sd">    """</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">_column_limits</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">)</span>
+    <span class="n">edge</span> <span class="o">=</span> <span class="n">_SCAN_EDGE</span> <span class="o">*</span> <span class="n">lay</span><span class="o">.</span><span class="n">W</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">lay</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">edge</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">lay</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="n">edge</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">rect</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">top</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">y0</span> <span class="o">&gt;=</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_is_prose_line</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">x0</span> <span class="o">&gt;=</span> <span class="n">blk</span><span class="o">.</span><span class="n">x1</span><span class="p">:</span>
+            <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">x0</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">x1</span> <span class="o">&lt;=</span> <span class="n">blk</span><span class="o">.</span><span class="n">x0</span><span class="p">:</span>
+            <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">x1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_column_gutter</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">clip</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">ink</span><span class="p">,</span> <span class="n">min_width</span><span class="p">,</span> <span class="n">window</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The x (points) of the middle of the blank vertical strip, at least ``min_width``</span>
+<span class="sd">    points wide, running the whole height of ``clip`` with ink on both sides, within</span>
+<span class="sd">    ``window`` of the page's middle and nearest to it: a two-column page's gutter.</span>
+<span class="sd">    None if there is none."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fitz</span>
+
+    <span class="n">pix</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">get_pixmap</span><span class="p">(</span>
+        <span class="n">matrix</span><span class="o">=</span><span class="n">fitz</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">zoom</span><span class="p">),</span> <span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span> <span class="n">colorspace</span><span class="o">=</span><span class="n">fitz</span><span class="o">.</span><span class="n">csGRAY</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">dark</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">ink</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">256</span><span class="p">)),</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">r</span> <span class="o">*</span> <span class="n">pix</span><span class="o">.</span><span class="n">stride</span> <span class="p">:</span> <span class="n">r</span> <span class="o">*</span> <span class="n">pix</span><span class="o">.</span><span class="n">stride</span> <span class="o">+</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span><span class="p">]</span>
+        <span class="n">cols</span> <span class="o">|=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dark</span><span class="p">),</span> <span class="s2">"big"</span><span class="p">)</span>
+    <span class="n">inked</span> <span class="o">=</span> <span class="n">cols</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="s2">"big"</span><span class="p">)</span>
+    <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">page</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">best</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">inked</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span>
+            <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">inked</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span> <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">end</span>
+        <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span> <span class="o">=</span> <span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span> <span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">end</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span>
+        <span class="n">centre</span> <span class="o">=</span> <span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">end</span> <span class="o">&lt;</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span>  <span class="c1"># ink on both sides: a gutter, not a margin</span>
+        <span class="n">nearer</span> <span class="o">=</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">centre</span> <span class="o">-</span> <span class="n">mid</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">best</span> <span class="o">-</span> <span class="n">mid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inner</span> <span class="ow">and</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span> <span class="o">&gt;=</span> <span class="n">min_width</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">centre</span> <span class="o">-</span> <span class="n">mid</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">window</span> <span class="ow">and</span> <span class="n">nearer</span><span class="p">:</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="n">centre</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">end</span>
+    <span class="k">return</span> <span class="n">best</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_caption_ink</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">DFLT_SCAN_ZOOM</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">DFLT_INK_LEVEL</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``blk`` widened to the ink of its own line on a scan (an OCR box can stop short of</span>
+<span class="sd">    the glyphs): the runs of inked columns in its rows that it overlaps, joined across</span>
+<span class="sd">    gaps narrower than a few letters."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fitz</span>
+
+    <span class="n">edge</span> <span class="o">=</span> <span class="n">_SCAN_EDGE</span> <span class="o">*</span> <span class="n">lay</span><span class="o">.</span><span class="n">W</span>
+    <span class="n">clip</span> <span class="o">=</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">lay</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">edge</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="n">lay</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="n">edge</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clip</span><span class="o">.</span><span class="n">is_empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">blk</span>
+    <span class="n">pix</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">page</span><span class="o">.</span><span class="n">get_pixmap</span><span class="p">(</span>
+        <span class="n">matrix</span><span class="o">=</span><span class="n">fitz</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">zoom</span><span class="p">),</span> <span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span> <span class="n">colorspace</span><span class="o">=</span><span class="n">fitz</span><span class="o">.</span><span class="n">csGRAY</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">dark</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">ink</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">256</span><span class="p">))</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">samples</span>  <span class="c1"># a copy: read it once</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">r</span> <span class="o">*</span> <span class="n">pix</span><span class="o">.</span><span class="n">stride</span> <span class="p">:</span> <span class="n">r</span> <span class="o">*</span> <span class="n">pix</span><span class="o">.</span><span class="n">stride</span> <span class="o">+</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span><span class="p">]</span>
+        <span class="n">cols</span> <span class="o">|=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dark</span><span class="p">),</span> <span class="s2">"big"</span><span class="p">)</span>
+    <span class="n">inked</span> <span class="o">=</span> <span class="n">cols</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="s2">"big"</span><span class="p">)</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">body_size</span> <span class="k">if</span> <span class="n">lay</span><span class="o">.</span><span class="n">body_size</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">_DFLT_BODY_SIZE</span>
+    <span class="n">join</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="n">zoom</span>  <span class="c1"># a gap this wide (pixels) is inside a line, not between columns</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">blk</span><span class="o">.</span><span class="n">x0</span> <span class="o">*</span> <span class="n">zoom</span><span class="p">)</span> <span class="o">-</span> <span class="n">pix</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">blk</span><span class="o">.</span><span class="n">x1</span> <span class="o">*</span> <span class="n">zoom</span><span class="p">)</span> <span class="o">-</span> <span class="n">pix</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># rightwards, word by word, while the next ink is near</span>
+        <span class="n">nxt</span> <span class="o">=</span> <span class="n">inked</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nxt</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nxt</span> <span class="o">-</span> <span class="n">x1</span> <span class="o">&gt;</span> <span class="n">join</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">inked</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nxt</span><span class="p">)</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">w</span> <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">end</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># leftwards</span>
+        <span class="n">prv</span> <span class="o">=</span> <span class="n">inked</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prv</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">prv</span> <span class="o">&gt;</span> <span class="n">join</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">inked</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prv</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">((</span><span class="n">x0</span> <span class="o">+</span> <span class="n">pix</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">pix</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">|</span> <span class="n">blk</span>
+
+
+<div class="viewcode-block" id="pixel_figure_box">
+<a class="viewcode-back" href="../../_autosummary/pdfdol.figures.html#pdfdol.figures.pixel_figure_box">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pixel_figure_box</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">,</span>
+    <span class="n">caption_box</span><span class="p">:</span> <span class="n">Box</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">max_up</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MAX_UP</span><span class="p">,</span>
+    <span class="n">max_gap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MAX_GAP</span><span class="p">,</span>
+    <span class="n">body_words</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_BODY_WORDS</span><span class="p">,</span>
+    <span class="n">zoom</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_SCAN_ZOOM</span><span class="p">,</span>
+    <span class="n">ink</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_INK_LEVEL</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The box of the figure above ``caption_box`` on a scanned PyMuPDF ``page``, read off</span>
+<span class="sd">    its pixels, without the caption; None when there is no ink above the caption.</span>
+
+<span class="sd">    The page is rendered in gray above the caption and cut into bands of rows holding</span>
+<span class="sd">    ink. The figure is the bands climbed from the caption upwards, each within</span>
+<span class="sd">    ``max_gap`` points of the last, up to the first that is text: another caption or a</span>
+<span class="sd">    prose line in the text layer, or a run of printed lines in the pixels (a band one</span>
+<span class="sd">    line tall that inks most of its span, under a full line). Boxes, arrows and labels</span>
+<span class="sd">    inside a figure are ink like any other, so a figure of separate boxes comes whole.</span>
+<span class="sd">    The default ``scan_strategy`` of ``figure_box``; its signature is the one a</span>
+<span class="sd">    replacement takes (``page, caption_box, *, max_up, max_gap``).</span>
+
+<span class="sd">    :param page: a PyMuPDF page; its rotation must be 0 (else None: use the layout).</span>
+<span class="sd">    :param caption_box: the caption's ``(x0, y0, x1, y1)``, from the page's text layer.</span>
+<span class="sd">    :param zoom: rendering scale (2.0 is 144 dpi).</span>
+<span class="sd">    :param ink: gray level (0 to 255) below which a pixel is ink.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fitz</span>
+
+    <span class="n">lay</span> <span class="o">=</span> <span class="n">_Layout</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">body_words</span><span class="o">=</span><span class="n">body_words</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_pixel_body</span><span class="p">(</span>
+        <span class="n">lay</span><span class="p">,</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">caption_box</span><span class="p">),</span> <span class="n">max_up</span><span class="o">=</span><span class="n">max_up</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">max_gap</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">ink</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pixel_body</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_up</span><span class="p">,</span> <span class="n">max_gap</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">DFLT_SCAN_ZOOM</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">DFLT_INK_LEVEL</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``pixel_figure_box`` on a page already read into a ``_Layout``."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fitz</span>
+
+    <span class="n">page</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">page</span>
+    <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">rotation</span><span class="p">:</span>  <span class="c1"># the pixels would not be in the text layer's coordinates</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lay</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="n">_SCAN_EDGE</span> <span class="o">*</span> <span class="n">lay</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">max_up</span> <span class="o">*</span> <span class="n">lay</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">_scan_columns</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="n">top</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">blk</span><span class="o">.</span><span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">top</span> <span class="ow">or</span> <span class="n">hi</span> <span class="o">&lt;=</span> <span class="n">lo</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1"># a caption on one side of a two-column page's gutter: its figure stays on that side</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">body_size</span> <span class="k">if</span> <span class="n">lay</span><span class="o">.</span><span class="n">body_size</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">_DFLT_BODY_SIZE</span>
+    <span class="n">gutter</span> <span class="o">=</span> <span class="n">_column_gutter</span><span class="p">(</span>
+        <span class="n">page</span><span class="p">,</span>
+        <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span><span class="p">),</span>
+        <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span>
+        <span class="n">ink</span><span class="o">=</span><span class="n">ink</span><span class="p">,</span>
+        <span class="n">min_width</span><span class="o">=</span><span class="n">_GUTTER_WIDTH</span> <span class="o">*</span> <span class="n">size</span><span class="p">,</span>
+        <span class="n">window</span><span class="o">=</span><span class="n">_GUTTER_WINDOW</span> <span class="o">*</span> <span class="n">lay</span><span class="o">.</span><span class="n">W</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">gutter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">blk</span><span class="o">.</span><span class="n">x1</span> <span class="o">&lt;=</span> <span class="n">gutter</span><span class="p">:</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="n">gutter</span>
+    <span class="k">elif</span> <span class="n">gutter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">blk</span><span class="o">.</span><span class="n">x0</span> <span class="o">&gt;=</span> <span class="n">gutter</span><span class="p">:</span>
+        <span class="n">lo</span> <span class="o">=</span> <span class="n">gutter</span>
+    <span class="n">bands</span> <span class="o">=</span> <span class="n">_ink_bands</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">blk</span><span class="o">.</span><span class="n">y1</span><span class="p">),</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">ink</span><span class="p">)</span>
+    <span class="c1"># the caption's own ink tells where its glyphs start (an OCR box can be points off)</span>
+    <span class="n">cap</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">y1</span> <span class="o">&gt;</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span> <span class="ow">and</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span> <span class="o">&lt;</span> <span class="n">blk</span><span class="o">.</span><span class="n">y1</span><span class="p">]</span>
+    <span class="n">cap_top</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">b</span><span class="o">.</span><span class="n">y0</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">cap</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="n">blk</span><span class="o">.</span><span class="n">y0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cap_top</span> <span class="o">&lt;</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">blk</span><span class="o">.</span><span class="n">height</span><span class="p">:</span>  <span class="c1"># the caption's ink runs into the figure's:</span>
+        <span class="n">cap_top</span> <span class="o">=</span> <span class="n">blk</span><span class="o">.</span><span class="n">y0</span>  <span class="c1"># read again, cut at the caption's top</span>
+        <span class="n">bands</span> <span class="o">=</span> <span class="n">_ink_bands</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">cap_top</span><span class="p">),</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">ink</span><span class="p">)</span>
+    <span class="c1"># (a band cut at the caption's top may end a pixel below it)</span>
+    <span class="n">above</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bands</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">cap_top</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">zoom</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="o">-</span><span class="n">b</span><span class="o">.</span><span class="n">y1</span>
+    <span class="p">)</span>
+
+    <span class="n">width</span> <span class="o">=</span> <span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">rect</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">blocks</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">b</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">blk</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">lay</span><span class="o">.</span><span class="n">is_caption_like</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_is_prose_line</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">line_tall</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_LINE_HEIGHT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="o">.</span><span class="n">y1</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span> <span class="o">&lt;=</span> <span class="n">_LINE_HEIGHT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">size</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">full_line</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">line_tall</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="ow">and</span> <span class="n">b</span><span class="o">.</span><span class="n">fill</span> <span class="o">&gt;=</span> <span class="n">_LINE_FILL</span> <span class="ow">and</span> <span class="n">b</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">x0</span> <span class="o">&gt;=</span> <span class="n">_LINE_WIDTH</span> <span class="o">*</span> <span class="n">width</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_text</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">above</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># text-layer prose covering most of the band's height (a sentence-like label</span>
+        <span class="c1"># inside a tall figure band does not make the band text)</span>
+        <span class="n">covered</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">y1</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">y0</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">text</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">b</span><span class="o">.</span><span class="n">x1</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">x1</span> <span class="o">&gt;</span> <span class="n">b</span><span class="o">.</span><span class="n">x0</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">covered</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">y1</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">line_tall</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="ow">and</span> <span class="n">b</span><span class="o">.</span><span class="n">fill</span> <span class="o">&gt;=</span> <span class="n">_LINE_FILL</span><span class="p">)</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">above</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">up</span> <span class="o">=</span> <span class="n">above</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># a printed line under another one is a paragraph</span>
+        <span class="k">return</span> <span class="n">full_line</span><span class="p">(</span><span class="n">up</span><span class="p">)</span> <span class="ow">and</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">up</span><span class="o">.</span><span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">size</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">speck</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">y1</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_MIN_GRAPHIC_SPAN</span>
+
+    <span class="n">box</span><span class="p">,</span> <span class="n">reach</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cap_top</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">above</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">reach</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">y1</span> <span class="o">&gt;</span> <span class="n">max_gap</span> <span class="ow">or</span> <span class="n">is_text</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">speck</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">x1</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">r</span> <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">box</span> <span class="o">|</span> <span class="n">r</span>
+        <span class="n">reach</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">y0</span>
+    <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_as_box</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+
+
 <span class="c1"># --------------------------------------------------------------------------- tables</span>
 
 
@@ -1370,6 +1681,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">table_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TABLE_HEIGHT</span><span class="p">,</span>
     <span class="n">rule_gap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_RULE_GAP</span><span class="p">,</span>
     <span class="n">body_words</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_BODY_WORDS</span><span class="p">,</span>
+    <span class="n">scan_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">ScanStrategy</span> <span class="o">=</span> <span class="n">DFLT_SCAN_STRATEGY</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FigureBox</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Where the figure or table captioned ``caption`` is: ``FigureBox(page, box, source)``.</span>
 
@@ -1393,6 +1705,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        apart.</span>
 <span class="sd">    :param body_words: a text block with at least this many words is body text: a figure</span>
 <span class="sd">        never grows across it.</span>
+<span class="sd">    :param scan_strategy: how a figure on a scanned page (see ``is_scanned``) is found:</span>
+<span class="sd">        ``"pixels"`` (``pixel_figure_box``, ``source="pixels"``), ``"layout"`` (as on any</span>
+<span class="sd">        page), or a callable with ``pixel_figure_box``'s signature. It runs only when</span>
+<span class="sd">        the layout finds no graphics for the figure (a scan has none to find; a page</span>
+<span class="sd">        with drawings over a page-sized image keeps its ``"graphics"`` box), and when</span>
+<span class="sd">        it finds nothing the layout's result stands. Tables are always found from the</span>
+<span class="sd">        layout.</span>
 <span class="sd">    :raises LookupError: no caption starts with ``caption`` (or, ``with_caption=False``,</span>
 <span class="sd">        nothing was found next to it).</span>
 <span class="sd">    :raises IndexError: ``page`` is not a page of the PDF.</span>
@@ -1403,6 +1722,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">kind</span> <span class="o">=</span> <span class="s2">"table"</span> <span class="k">if</span> <span class="n">_norm</span><span class="p">(</span><span class="n">caption</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"tab"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"figure"</span>
     <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"figure"</span><span class="p">,</span> <span class="s2">"table"</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"kind must be 'figure' or 'table', not </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scan_strategy</span> <span class="o">==</span> <span class="s2">"pixels"</span><span class="p">:</span>
+        <span class="n">scan_strategy</span> <span class="o">=</span> <span class="n">pixel_figure_box</span>
+    <span class="k">elif</span> <span class="n">scan_strategy</span> <span class="o">!=</span> <span class="s2">"layout"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">scan_strategy</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"scan_strategy must be 'pixels', 'layout' or a callable, "</span>
+            <span class="sa">f</span><span class="s2">"not </span><span class="si">{</span><span class="n">scan_strategy</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
     <span class="n">weak</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"caption-only"</span><span class="p">,</span> <span class="s2">"fallback"</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">_opened</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span> <span class="k">as</span> <span class="n">doc</span><span class="p">:</span>
         <span class="n">tried</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1412,6 +1738,21 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"figure"</span><span class="p">:</span>
                 <span class="n">body</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">_figure_body</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="n">max_up</span><span class="o">=</span><span class="n">max_up</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">max_gap</span><span class="p">)</span>
+                <span class="c1"># graphics found: the page has drawings, whatever image lies under them</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">callable</span><span class="p">(</span><span class="n">scan_strategy</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"graphics"</span><span class="p">,</span> <span class="s2">"beside"</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">is_scanned</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="n">pno</span><span class="p">])</span>
+                <span class="p">):</span>
+                    <span class="k">if</span> <span class="n">scan_strategy</span> <span class="ow">is</span> <span class="n">pixel_figure_box</span><span class="p">:</span>  <span class="c1"># the page is read already</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="n">_pixel_body</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="n">max_up</span><span class="o">=</span><span class="n">max_up</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">max_gap</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="n">scan_strategy</span><span class="p">(</span>
+                            <span class="n">doc</span><span class="p">[</span><span class="n">pno</span><span class="p">],</span> <span class="n">_as_box</span><span class="p">(</span><span class="n">blk</span><span class="p">),</span> <span class="n">max_up</span><span class="o">=</span><span class="n">max_up</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">max_gap</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">found</span><span class="p">)</span><span class="o">.</span><span class="n">is_empty</span><span class="p">:</span>
+                        <span class="n">body</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">found</span><span class="p">),</span> <span class="s2">"pixels"</span>
+                        <span class="n">blk</span> <span class="o">=</span> <span class="n">_caption_ink</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">body</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">_table_body</span><span class="p">(</span>
                     <span class="n">lay</span><span class="p">,</span>
