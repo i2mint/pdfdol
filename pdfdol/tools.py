@@ -905,7 +905,13 @@ def concat_pdf_readers(
     >>> buf = io.BytesIO(); _ = w.write(buf)
     >>> readers = [pypdf.PdfReader(io.BytesIO(buf.getvalue())) for _ in range(2)]
     >>> out = concat_pdf_readers(readers, titles=["A", "B"], metadata_title="T")
-    >>> [(o.title, out.get_destination_page_number(o)) for o in out.outline]
+
+    Read the bookmarks back from the written bytes: on the unwritten writer, pypdf 6
+    resolves a bookmark to the first of two identical pages.
+
+    >>> buf = io.BytesIO(); _ = out.write(buf)
+    >>> back = pypdf.PdfReader(buf)
+    >>> [(o.title, back.get_destination_page_number(o)) for o in back.outline]
     [('A', 0), ('B', 1)]
     """
     writer = pypdf.PdfWriter()

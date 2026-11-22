@@ -24,6 +24,7 @@ jobs:
         uses: i2mint/isee/actions/install-packages@master
         with:
           dependency-files: setup.cfg
+          pypi-packages: pymupdf  # optional extra, so pdfdol.figures and checks are tested
           # ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Uncomment this if you need to install private dependencies from source
 
       - name: Format Source Code

@@ -46,3 +46,9 @@ from pdfdol.bundle import (
 from pdfdol.checks import (
     text_overlaps,  # Find overlapping text lines in a PDF (a broken-pagination check).
 )
+
+from pdfdol.figures import (
+    figure,  # A figure or table cropped by its caption, as PNG bytes (needs pymupdf).
+    figure_box,  # Where a captioned figure or table is: (page, box).
+    find_passage,  # The page and boxes of a quoted passage, scan-aware.
+)

@@ -2,7 +2,7 @@
 
 ``text_overlaps`` finds text lines whose boxes overlap, the signature of a broken
 pagination (a block drawn on top of another). It needs PyMuPDF, which is part of the
-``chromium`` extra of pdfdol.
+``figures`` (and ``chromium``) extra of pdfdol.
 """
 
 from __future__ import annotations
@@ -18,13 +18,19 @@ def _open_pdf(pdf):
         import fitz  # PyMuPDF
     except ImportError as e:
         raise ImportError(
-            "text_overlaps needs PyMuPDF: install pymupdf (it is in the chromium extra)"
+            "This needs PyMuPDF: install pymupdf (the figures or chromium extra of pdfdol)"
         ) from e
     if isinstance(pdf, (bytes, bytearray)):
         return fitz.open(stream=bytes(pdf), filetype="pdf")
     if isinstance(pdf, (str, Path)):
         return fitz.open(str(pdf))
-    return pdf  # an already open fitz.Document
+    if hasattr(pdf, "read"):  # a file object
+        return fitz.open(stream=pdf.read(), filetype="pdf")
+    if isinstance(pdf, fitz.Document):
+        return pdf
+    raise TypeError(
+        f"expected a path, bytes, a file object or an open PyMuPDF document, not {type(pdf).__name__}"
+    )
 
 
 def text_overlaps(
