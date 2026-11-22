@@ -9,6 +9,8 @@ pdfdol/
   base.py      # PDF store classes: PdfFilesReader, PdfTextReader
   tools.py     # Conversion: get_pdf, any_to_pdf_bytes, concat_pdfs
   download.py  # Download PDFs from markdown: download_articles
+  figures.py   # figure/figure_box (crop by caption), find_passage (quote boxes); lazy PyMuPDF
+  checks.py    # text_overlaps (broken-pagination check); lazy PyMuPDF
   util.py      # Utilities
 ```
 

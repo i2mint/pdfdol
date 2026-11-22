@@ -55,6 +55,26 @@ concat_pdfs(s, key_order=sorted)
 ```
 
 
+## Figures, tables and quoted passages (optional PyMuPDF)
+
+To illustrate commentary about a paper: crop a figure or a table by its caption, and find where a quote sits on its page so it can be highlighted. Needs PyMuPDF: `pip install pymupdf` (the `figures` extra).
+
+```python
+from pdfdol import figure, figure_box, find_passage
+
+png = figure('paper.pdf', 'Figure 3:')               # PNG bytes of the figure, caption included
+png = figure('paper.pdf', 'Table 2', kind='table')   # a table (caption above or below it)
+page, box = figure_box('paper.pdf', 'Figure 3:')     # where it is, without rendering
+
+p = find_passage('paper.pdf', 'the results hold across models')
+p.page, p.boxes, p.source   # 0-based page, (x0, y0, x1, y1) boxes in points, 'text'
+```
+
+A figure is the graphics above its caption, else beside it (side captions), else the short text blocks above it (a figure drawn as text). A table is the table PyMuPDF detects next to its caption, else its rules (booktabs), else the nearer graphics.
+
+On a scanned page the text layer comes from OCR and its boxes can sit off the glyphs, so `find_passage` returns the page with no boxes (`source='none'`) unless you give it `ocr_words`, a function reading word boxes off the rendered page (`pdfdol.figures.ocracy_words` uses [ocracy](https://github.com/thorwhalen/ocracy)). Figure crops on scanned pages are best effort.
+
+
 ## Converting ebooks and documents to PDF (optional Calibre integration)
 
 pdfdol natively converts images, HTML, and Markdown to PDF.
