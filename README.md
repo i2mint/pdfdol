@@ -1,8 +1,10 @@
 # pdfdol
 
-Data Object Layer for PDF data
+Data Object Layer for PDF data: read the pdfs of a folder as a dict-like object of their text, pull out figures, tables and quoted passages, and convert ebooks and documents to pdf.
 
-To install:	```pip install pdfdol```
+```bash
+pip install pdfdol
+```
 
 [Documentation](https://i2mint.github.io/pdfdol/)
 
@@ -23,8 +25,7 @@ Get a dict-like object to list and read the pdfs of a folder, as text:
     ...     'Page 1\nThis is a sample text for testing Python PDF tools.'
     ... ]
 
-See that the values of a `PdfFilesReader` are lists of pages. 
-If you need strings (i.e. all the pages together) you can add a decoder like so:
+See that the values of a `PdfFilesReader` are lists of pages. If you need strings (i.e. all the pages together) you can add a decoder like so:
 
 ```python
 from dol import add_decoder
@@ -43,8 +44,7 @@ pdfs = FilesReader(folder_path)
 # ...
 ```
 
-If you need to concatinate a bunch of pdfs together, you can do so in many
-ways. Here's one:
+If you need to concatinate a bunch of pdfs together, you can do so in many ways. Here's one:
 
 ```python
 from dol import Files
@@ -79,14 +79,9 @@ On a scanned page the text layer comes from OCR and its boxes can sit off the gl
 
 ## Converting ebooks and documents to PDF (optional Calibre integration)
 
-pdfdol natively converts images, HTML, and Markdown to PDF.
-For additional formats -- EPUB, MOBI, DOCX, ODT, DJVU, RTF, and 
-[many more](https://manual.calibre-ebook.com/conversion.html) -- 
-install [Calibre](https://calibre-ebook.com/download), which provides the
-`ebook-convert` command-line tool.
+pdfdol natively converts images, HTML, and Markdown to PDF. For additional formats -- EPUB, MOBI, DOCX, ODT, DJVU, RTF, and [many more](https://manual.calibre-ebook.com/conversion.html) -- install [Calibre](https://calibre-ebook.com/download), which provides the `ebook-convert` command-line tool.
 
-pdfdol does **not** depend on Calibre; it auto-detects the tool at runtime
-and uses it only for formats that have no built-in converter.
+pdfdol does **not** depend on Calibre; it auto-detects the tool at runtime and uses it only for formats that have no built-in converter.
 
 **Installing ebook-convert:**
 
@@ -97,8 +92,7 @@ and uses it only for formats that have no built-in converter.
 | Fedora / RHEL | `sudo dnf install calibre` |
 | Linux servers (headless) | `sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh \| sudo sh /dev/stdin` |
 
-The Linux CLI installer is self-contained (no GUI/X11 needed) and recommended
-for servers.  See https://calibre-ebook.com/download for all options.
+The Linux CLI installer is self-contained (no GUI/X11 needed) and recommended for servers.  See https://calibre-ebook.com/download for all options.
 
 ```python
 from pdfdol import ebook_convert_to_pdf, find_ebook_convert
@@ -108,8 +102,7 @@ if find_ebook_convert():
     pdf_bytes = ebook_convert_to_pdf("book.epub")
 ```
 
-You can also go through the usual `get_pdf` entry point -- it will
-automatically route to `ebook-convert` when it recognises the file extension:
+You can also go through the usual `get_pdf` entry point -- it will automatically route to `ebook-convert` when it recognises the file extension:
 
 ```python
 from pdfdol import get_pdf
@@ -119,16 +112,11 @@ get_pdf("book.epub", egress="book.pdf")              # saves to file
 
 ### What cannot be converted
 
-DRM-protected ebooks (Amazon KFX/AZW, Adobe-DRM EPUB) are encrypted, so neither
-Calibre nor pdfdol can read them; the DRM has to be removed first, where you are
-legally entitled to do so. Image-only sources (CBZ/CBR, DJVU, scanned PDF) do
-convert, but carry no text layer -- extracting their words needs OCR, which
-pdfdol does not do.
+DRM-protected ebooks (Amazon KFX/AZW, Adobe-DRM EPUB) are encrypted, so neither Calibre nor pdfdol can read them; the DRM has to be removed first, where you are legally entitled to do so. Image-only sources (CBZ/CBR, DJVU, scanned PDF) do convert, but carry no text layer -- extracting their words needs OCR, which pdfdol does not do.
 
 ### Custom converters
 
-pdfdol maintains a **format converter registry** that maps file extensions to
-converter functions.  You can register your own:
+pdfdol maintains a **format converter registry** that maps file extensions to converter functions.  You can register your own:
 
 ```python
 from pdfdol import register_format_converter, supported_extensions
