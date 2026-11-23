@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T22:17:54Z",
+  "built_at": "2026-11-23T03:05:56Z",
   "package": {
     "name": "pdfdol",
     "version": "0.1.36",
@@ -9,24 +9,24 @@
   },
   "git": {
     "available": true,
-    "commit": "0632261bccd5e1b2aaf2897fc08eafdc10d496f3",
-    "short_commit": "0632261",
+    "commit": "4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0",
+    "short_commit": "4f74f6f",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/pdfdol",
-    "commit_url": "https://github.com/i2mint/pdfdol/commit/0632261bccd5e1b2aaf2897fc08eafdc10d496f3",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/pdfdol",
-    "sha": "0632261bccd5e1b2aaf2897fc08eafdc10d496f3",
+    "sha": "4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "45076769926",
-    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/45076769926",
+    "run_id": "45103749083",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/45103749083",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -64,7 +64,7 @@
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 0632261bccd5e1b2aaf2897fc08eafdc10d496f3\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

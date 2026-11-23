@@ -5,7 +5,7 @@
 
 ## Pages
 
-- [pdfdol](index.html.md): Data Object Layer for PDF data
+- [pdfdol](index.html.md): Data Object Layer for PDF data: read the pdfs of a folder as a dict-like object of their text, pull ...
 - [API reference](api.html.md): | &#96;pdfdol&#96;   | Data Object Layers for PDF data.   |
 - [pdfdol](_autosummary/pdfdol.html.md): Data Object Layers for PDF data.
 - [pdfdol.base](_autosummary/pdfdol.base.html.md): Base objects for pdfdol
@@ -17,7 +17,7 @@
 - [pdfdol.tools](_autosummary/pdfdol.tools.html.md): | &#96;add_css&#96;(html_text&#91;, css&#93;)                                                                       ...
 - [pdfdol.util](_autosummary/pdfdol.util.html.md): Utils for pdfdol
 - [For AI agents](ai-agents.html.md): &#96;pdfdol&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 22:17 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-23 03:05 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
 
 ## Optional
 

@@ -5,7 +5,7 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-11-22 22:17 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/0632261bccd5e1b2aaf2897fc08eafdc10d496f3"><code>0632261</code></a> on branch <code>master</code>, for **pdfdol 0.1.36** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-23 03:05 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0"><code>4f74f6f</code></a> on branch <code>master</code>, for **pdfdol 0.1.36** (from <code>pyproject.toml</code>).
 
 :::{note}
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -15,7 +15,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/i2mint/pdfdol/commit/0632261bccd5e1b2aaf2897fc08eafdc10d496f3"><code>0632261bccd5e1b2aaf2897fc08eafdc10d496f3</code></a> |
+| Commit | <a href="https://github.com/i2mint/pdfdol/commit/4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0"><code>4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0</code></a> |
 | Branch | <code>master</code> |
 | Tags at this commit | none |
 | Working tree | clean |
@@ -26,9 +26,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>i2mint/pdfdol</code> |
-| Run | <a href="https://github.com/i2mint/pdfdol/actions/runs/45076769926">45076769926</a> |
+| Run | <a href="https://github.com/i2mint/pdfdol/actions/runs/45103749083">45103749083</a> |
 | Ref | <code>refs/heads/master</code> |
-| Event commit | <code>0632261bccd5e1b2aaf2897fc08eafdc10d496f3</code> (in the history of the built commit) |
+| Event commit | <code>4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -59,7 +59,7 @@ Latest release: <a href="https://pypi.org/project/pdfdol/0.1.36/">0.1.36</a>, th
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout 0632261bccd5e1b2aaf2897fc08eafdc10d496f3
+git checkout 4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
