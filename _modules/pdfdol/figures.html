@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1c946a6c"></script>
+    <script src="../../_static/documentation_options.js?v=b8ecee75"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.36" />
+  <meta name="docsearch:version" content="0.1.37" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1889,17 +1889,30 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``words`` are ``(word, payload)`` in reading order. Both sides are compared as their</span>
 <span class="sd">    letters and digits only, so case, curly quotes, attached punctuation, dashes, and</span>
 <span class="sd">    hyphens (a compound, a suspended "pre-", or a word broken at a line end) do not</span>
-<span class="sd">    matter.</span>
+<span class="sd">    matter. A hit must start where a word, or a part of one between punctuation (the</span>
+<span class="sd">    "of" of "state-of-the-art", the "AI" of "AI's"), starts, and end where one ends: a</span>
+<span class="sd">    quote is never matched inside a longer word ("art" in "restart").</span>
+
+<span class="sd">    &gt;&gt;&gt; words = [("We", 0), ("restart", 1), ("the", 2), ("art", 3)]</span>
+<span class="sd">    &gt;&gt;&gt; _match_tokens(words, "art"), _match_tokens(words, "start the")</span>
+<span class="sd">    ([3], None)</span>
 <span class="sd">    """</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">_alnum</span><span class="p">(</span><span class="n">quote</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">target</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">stream</span><span class="p">,</span> <span class="n">owner</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">stream</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">starts</span><span class="p">,</span> <span class="n">ends</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">(),</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">words</span><span class="p">):</span>
-        <span class="n">chars</span> <span class="o">=</span> <span class="n">_alnum</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
-        <span class="n">stream</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
-        <span class="n">owner</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
-    <span class="n">at</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[^\W_]+"</span><span class="p">,</span> <span class="n">_norm</span><span class="p">(</span><span class="n">word</span><span class="p">)):</span>
+            <span class="n">starts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+            <span class="n">owner</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
+            <span class="n">at</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+            <span class="n">ends</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">at</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">at</span> <span class="ow">in</span> <span class="n">starts</span> <span class="ow">and</span> <span class="n">at</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ends</span><span class="p">):</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">at</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">at</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">hit</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">owner</span><span class="p">[</span><span class="n">at</span> <span class="p">:</span> <span class="n">at</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">target</span><span class="p">)]))</span>

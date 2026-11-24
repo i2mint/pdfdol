@@ -2,16 +2,18 @@
 
 # About this build
 
-This documentation was built on **2026-11-23 03:05 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0"><code>4f74f6f</code></a> on branch <code>master</code>, for **pdfdol 0.1.36** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-24 05:40 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/0b959bf918cd30418467662aa83a21d9695658d7"><code>0b959bf</code></a> on branch <code>master</code>, for **pdfdol 0.1.37** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.37) is behind the latest release on PyPI (0.1.38): `pip install pdfdol` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0"><code>4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/0b959bf918cd30418467662aa83a21d9695658d7"><code>0b959bf918cd30418467662aa83a21d9695658d7</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
 | Tags at this commit | none                                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
@@ -22,15 +24,15 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45103749083">45103749083</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45334780214">45334780214</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0</code> (in the history of the built commit) |
+| Event commit | <code>0b959bf918cd30418467662aa83a21d9695658d7</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.23  |
+| epythet  | 0.2.25  |
 | Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.16 |
@@ -49,14 +51,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.36/">0.1.36</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.38/">0.1.38</a>, newer than the documented version (0.1.37).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout 4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0
-pip install "epythet==0.2.23"
+git checkout 0b959bf918cd30418467662aa83a21d9695658d7
+pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

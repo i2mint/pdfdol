@@ -1,36 +1,36 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-23T03:05:56Z",
+  "built_at": "2026-11-24T05:40:23Z",
   "package": {
     "name": "pdfdol",
-    "version": "0.1.36",
+    "version": "0.1.37",
     "display_name": "pdfdol",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0",
-    "short_commit": "4f74f6f",
+    "commit": "0b959bf918cd30418467662aa83a21d9695658d7",
+    "short_commit": "0b959bf",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/pdfdol",
-    "commit_url": "https://github.com/i2mint/pdfdol/commit/4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/0b959bf918cd30418467662aa83a21d9695658d7",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/pdfdol",
-    "sha": "4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0",
+    "sha": "0b959bf918cd30418467662aa83a21d9695658d7",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "45103749083",
-    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/45103749083",
+    "run_id": "45334780214",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/45334780214",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.23",
+    "epythet": "0.2.25",
     "sphinx": "9.1.1",
     "docutils": "0.22.4",
     "python": "3.12.16"
@@ -60,14 +60,16 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.36",
-    "relation": "same",
+    "latest": "0.1.38",
+    "relation": "behind",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 4f74f6ffdd95e8d262db2d22f6f96081ff5c96e0\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 0b959bf918cd30418467662aa83a21d9695658d7\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": true,
-    "notes": []
+    "aligned": false,
+    "notes": [
+      "The documented version (0.1.37) is behind the latest release on PyPI (0.1.38): `pip install pdfdol` gives newer code than these docs describe."
+    ]
   }
 }
