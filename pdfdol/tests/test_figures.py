@@ -9,6 +9,7 @@ fitz = pytest.importorskip("fitz")
 from pdfdol.figures import (  # noqa: E402
     FigureBox,
     Passage,
+    _match_tokens,
     figure,
     figure_box,
     find_passage,
@@ -619,3 +620,33 @@ def test_an_empty_box_from_a_strategy_counts_as_nothing():
         return (0.0, 0.0, 0.0, 0.0)
 
     assert figure_box(pdf, "Figure 1.", scan_strategy=empty).source != "pixels"
+
+
+# --------------------------------------------------------------------------- word boundaries
+
+
+def test_a_quote_does_not_match_inside_a_longer_word():
+    """A hit starts and ends at a word (or word-part) boundary (pdfdol#22)."""
+
+    def page(text):
+        return lambda p: p.insert_text((72, 72), text, fontsize=11)
+
+    pdf = _pdf(
+        page("We restart the engine today."),
+        page("Modern art is great."),
+        page("Nothing here."),
+    )
+    assert find_passage(pdf, "art").page == 1
+    assert find_passage(pdf, "art is").page == 1
+    assert find_passage(pdf, "start the") is None
+    assert find_passage(pdf, "restart the engine").page == 0
+    assert find_passage(pdf, "here", page=0) is None
+
+
+def test_match_tokens_searches_past_a_hit_inside_a_word():
+    words = [("restart", 0), ("the", 1), ("art", 2), ("state-of-the-art", 3)]
+    assert _match_tokens(words, "art") == [2]
+    assert _match_tokens(words, "the art") == [1, 2]
+    assert _match_tokens(words, "of the art") == [3]  # parts of a compound count
+    assert _match_tokens(words, "tart") is None
+    assert _match_tokens([("The", 0), ("AI’s", 1), ("impact", 2)], "the AI") == [0, 1]
