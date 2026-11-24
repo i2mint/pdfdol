@@ -1157,17 +1157,30 @@ def _match_tokens(words: Sequence[tuple], quote: str) -> list | None:
     ``words`` are ``(word, payload)`` in reading order. Both sides are compared as their
     letters and digits only, so case, curly quotes, attached punctuation, dashes, and
     hyphens (a compound, a suspended "pre-", or a word broken at a line end) do not
-    matter.
+    matter. A hit must start where a word, or a part of one between punctuation (the
+    "of" of "state-of-the-art", the "AI" of "AI's"), starts, and end where one ends: a
+    quote is never matched inside a longer word ("art" in "restart").
+
+    >>> words = [("We", 0), ("restart", 1), ("the", 2), ("art", 3)]
+    >>> _match_tokens(words, "art"), _match_tokens(words, "start the")
+    ([3], None)
     """
     target = _alnum(quote)
     if not target:
         return None
-    stream, owner = [], []
+    stream, owner, starts, ends = [], [], set(), set()
+    at = 0
     for k, (word, _) in enumerate(words):
-        chars = _alnum(word)
-        stream.append(chars)
-        owner.extend([k] * len(chars))
-    at = "".join(stream).find(target)
+        for part in re.findall(r"[^\W_]+", _norm(word)):
+            starts.add(at)
+            stream.append(part)
+            owner.extend([k] * len(part))
+            at += len(part)
+            ends.add(at)
+    text = "".join(stream)
+    at = text.find(target)
+    while at >= 0 and not (at in starts and at + len(target) in ends):
+        at = text.find(target, at + 1)
     if at < 0:
         return None
     hit = sorted(set(owner[at : at + len(target)]))
