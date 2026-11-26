@@ -1,4 +1,4 @@
-> built 2026-11-24 05:40 UTC from 0b959bf (master) · pdfdol 0.1.37. Details: build_info.json
+> built 2026-11-26 17:31 UTC from a6e425e (master) · pdfdol 0.1.38. Details: build_info.json
 
 # index.html.md
 
@@ -1220,18 +1220,16 @@ Remove empty pages from a PDF file.
 
 # About this build
 
-This documentation was built on **2026-11-24 05:40 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/0b959bf918cd30418467662aa83a21d9695658d7"><code>0b959bf</code></a> on branch <code>master</code>, for **pdfdol 0.1.37** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-26 17:31 UTC** from commit <a href="https://github.com/i2mint/pdfdol/commit/a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c"><code>a6e425e</code></a> on branch <code>master</code>, for **pdfdol 0.1.38** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.37) is behind the latest release on PyPI (0.1.38): `pip install pdfdol` gives newer code than these docs describe.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/0b959bf918cd30418467662aa83a21d9695658d7"><code>0b959bf918cd30418467662aa83a21d9695658d7</code></a> |
+| Commit              | <a href="https://github.com/i2mint/pdfdol/commit/a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c"><code>a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
 | Tags at this commit | none                                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
@@ -1242,9 +1240,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/pdfdol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45334780214">45334780214</a>        |
+| Run          | <a href="https://github.com/i2mint/pdfdol/actions/runs/45868312645">45868312645</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>0b959bf918cd30418467662aa83a21d9695658d7</code> (in the history of the built commit) |
+| Event commit | <code>a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -1269,13 +1267,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/pdfdol/0.1.38/">0.1.38</a>, newer than the documented version (0.1.37).
+Latest release: <a href="https://pypi.org/project/pdfdol/0.1.38/">0.1.38</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/pdfdol && cd pdfdol
-git checkout 0b959bf918cd30418467662aa83a21d9695658d7
+git checkout a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-24T05:40:23Z",
+  "built_at": "2026-11-26T17:31:51Z",
   "package": {
     "name": "pdfdol",
-    "version": "0.1.37",
+    "version": "0.1.38",
     "display_name": "pdfdol",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "0b959bf918cd30418467662aa83a21d9695658d7",
-    "short_commit": "0b959bf",
+    "commit": "a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c",
+    "short_commit": "a6e425e",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/pdfdol",
-    "commit_url": "https://github.com/i2mint/pdfdol/commit/0b959bf918cd30418467662aa83a21d9695658d7",
+    "commit_url": "https://github.com/i2mint/pdfdol/commit/a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/pdfdol",
-    "sha": "0b959bf918cd30418467662aa83a21d9695658d7",
+    "sha": "a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "45334780214",
-    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/45334780214",
+    "run_id": "45868312645",
+    "run_url": "https://github.com/i2mint/pdfdol/actions/runs/45868312645",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -61,15 +61,13 @@
   "pypi": {
     "checked": true,
     "latest": "0.1.38",
-    "relation": "behind",
+    "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout 0b959bf918cd30418467662aa83a21d9695658d7\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/pdfdol && cd pdfdol\ngit checkout a6e425e996cbca5e1970bf5c4a6bd4152cb3dd8c\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": false,
-    "notes": [
-      "The documented version (0.1.37) is behind the latest release on PyPI (0.1.38): `pip install pdfdol` gives newer code than these docs describe."
-    ]
+    "aligned": true,
+    "notes": []
   }
 }

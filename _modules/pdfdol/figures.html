@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=b8ecee75"></script>
+    <script src="../../_static/documentation_options.js?v=50f64db7"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.37" />
+  <meta name="docsearch:version" content="0.1.38" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1181,6 +1181,21 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># --------------------------------------------------------------------------- figures</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_nearest_graphic</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">graphics</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="n">max_gap</span><span class="p">,</span> <span class="n">barriers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The graphic nearest the caption strip ``seed`` on ``side`` within ``max_gap``</span>
+<span class="sd">    vertically (whatever its column), with no barrier between them; None if none."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">vgap</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">seed</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">r</span><span class="o">.</span><span class="n">y1</span> <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">"above"</span> <span class="k">else</span> <span class="n">r</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">seed</span><span class="o">.</span><span class="n">y1</span>
+
+    <span class="n">near</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">graphics</span> <span class="k">if</span> <span class="n">vgap</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_gap</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">near</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">vgap</span><span class="p">):</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">_between</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="n">b</span> <span class="o">&amp;</span> <span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="n">get_area</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">barriers</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">r</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_graphics_from_caption</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">blk</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_up</span><span class="p">,</span> <span class="n">max_gap</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The graphics reached from the caption going ``side`` ("above" or "below"), or None.</span>
 
@@ -1227,6 +1242,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">max_gap</span><span class="o">=</span><span class="n">max_gap</span><span class="p">,</span>
         <span class="n">barriers</span><span class="o">=</span><span class="n">barriers</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>  <span class="c1"># nothing in the caption's column: the nearest graphic, close enough</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">_nearest_graphic</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">graphics</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="n">max_gap</span><span class="p">,</span> <span class="n">barriers</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">rest</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span>
@@ -1589,9 +1608,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="n">fitz</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">page</span><span class="o">.</span><span class="n">find_tables</span><span class="p">()</span><span class="o">.</span><span class="n">tables</span><span class="p">]</span>
-    <span class="k">except</span> <span class="p">(</span>
-        <span class="ne">Exception</span>
-    <span class="p">):</span>  <span class="c1"># noqa: BLE001 - find_tables needs PyMuPDF &gt;= 1.23; any failure: none found</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - find_tables needs PyMuPDF &gt;= 1.23; any failure: none found</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">near</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tables</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">x0</span> <span class="o">&lt;</span> <span class="n">blk</span><span class="o">.</span><span class="n">x1</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">x1</span> <span class="o">&gt;</span> <span class="n">blk</span><span class="o">.</span><span class="n">x0</span> <span class="ow">and</span> <span class="n">_gap</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">blk</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_gap</span>
