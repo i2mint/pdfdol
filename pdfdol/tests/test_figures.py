@@ -333,7 +333,7 @@ def test_a_bare_caption_skips_prose_that_starts_with_its_label():
     def prose(p):
         p.insert_textbox(
             fitz.Rect(50, 50, 550, 120),
-            BODY + "\nTable 2 shows the totals, and\n" "Table 2) is long.",
+            BODY + "\nTable 2 shows the totals, and\nTable 2) is long.",
             fontsize=10,
         )
 
@@ -650,3 +650,21 @@ def test_match_tokens_searches_past_a_hit_inside_a_word():
     assert _match_tokens(words, "of the art") == [3]  # parts of a compound count
     assert _match_tokens(words, "tart") is None
     assert _match_tokens([("The", 0), ("AI’s", 1), ("impact", 2)], "the AI") == [0, 1]
+
+
+def test_a_figure_beside_a_narrow_caption_is_found_above_it():
+    def draw(p):
+        p.draw_rect(fitz.Rect(200, 100, 400, 250), color=(0, 0, 0))
+        p.insert_textbox(fitz.Rect(72, 255, 155, 275), "Figure 1: A box.", fontsize=10)
+
+    box = figure_box(_pdf(draw), "Figure 1:", margin=0)
+    assert box.source != "caption-only"
+    assert box.box[0] <= 200 and box.box[2] >= 400
+
+
+def test_a_distant_graphic_is_not_taken_for_a_narrow_captions_figure():
+    def draw(p):
+        p.draw_rect(fitz.Rect(200, 100, 400, 150), color=(0, 0, 0))  # 125 pt above
+        p.insert_textbox(fitz.Rect(72, 275, 155, 295), "Figure 1: A box.", fontsize=10)
+
+    assert figure_box(_pdf(draw), "Figure 1:").source == "caption-only"
