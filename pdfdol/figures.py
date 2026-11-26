@@ -461,6 +461,21 @@ def _column_limits(lay, blk):
 # --------------------------------------------------------------------------- figures
 
 
+def _nearest_graphic(seed, graphics, side, max_gap, barriers):
+    """The graphic nearest the caption strip ``seed`` on ``side`` within ``max_gap``
+    vertically (whatever its column), with no barrier between them; None if none."""
+
+    def vgap(r):
+        return seed.y0 - r.y1 if side == "above" else r.y0 - seed.y1
+
+    near = [r for r in graphics if vgap(r) <= max_gap]
+    for r in sorted(near, key=vgap):
+        region = _between(r, seed)
+        if region is None or not any((b & region).get_area() > 1 for b in barriers):
+            return r
+    return None
+
+
 def _graphics_from_caption(lay, blk, side, *, max_up, max_gap):
     """The graphics reached from the caption going ``side`` ("above" or "below"), or None.
 
@@ -507,6 +522,10 @@ def _graphics_from_caption(lay, blk, side, *, max_up, max_gap):
         max_gap=max_gap,
         barriers=barriers,
     )
+    if (
+        first is None
+    ):  # nothing in the caption's column: the nearest graphic, close enough
+        first = _nearest_graphic(seed, graphics, side, max_gap, barriers)
     if first is None:
         return None
     rest = [r for r in cands if not first.contains(r)]
@@ -866,9 +885,7 @@ def _detected_table(lay, blk, *, max_gap):
 
     try:
         tables = [fitz.Rect(t.bbox) for t in lay.page.find_tables().tables]
-    except (
-        Exception
-    ):  # noqa: BLE001 - find_tables needs PyMuPDF >= 1.23; any failure: none found
+    except Exception:  # noqa: BLE001 - find_tables needs PyMuPDF >= 1.23; any failure: none found
         return None
     near = [
         t for t in tables if t.x0 < blk.x1 and t.x1 > blk.x0 and _gap(t, blk) <= max_gap
